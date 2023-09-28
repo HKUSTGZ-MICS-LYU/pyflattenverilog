@@ -72,10 +72,10 @@ parser = VerilogParser(stream)
 
 tree = parser.source_text()
 
-# Naive traverse: Print the module identifier:"adder_8bit"
+# Naive Walker: Print the module identifier through tree structure:"adder_8bit"
 print(tree.getChild(0).getChild(0).getChild(1).getText())
 
-# Walker traverse: print the exit module identifier:adder_32bit
+# Identifier Walker: Print the exit module identifier through context
 listener = ModuleIdentifierListener()
 walker = ParseTreeWalker()
 walker.walk(listener, tree)
