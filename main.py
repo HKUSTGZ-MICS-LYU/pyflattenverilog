@@ -60,6 +60,16 @@ module adder_32bit (
 endmodule
 '''
 
+# 1. Specify the top module
+top_module = 'adder_32bit'
+# 2. Start tree traversal from the top module
+
+# 3. Walk to the first node with initialization
+
+# 4. Get the name of the instance and rename all variable
+
+# 5. Print the content of the renamed instance and print it to the pos of initialization 
+
 
 class ModuleIdentifierListener(VerilogParserListener):
     def exitModule_declaration(self, ctx):
