@@ -1,5 +1,5 @@
 from antlr4_verilog import InputStream, CommonTokenStream, ParseTreeWalker
-from antlr4_verilog.verilog import VerilogLexer, VerilogParser, VerilogParserListener
+from antlr4_verilog.verilog import VerilogLexer, VerilogParser, VerilogParserListener, VerilogParserVisitor
 
 design = '''
 // 8 bit adder
@@ -75,6 +75,14 @@ class ModuleIdentifierListener(VerilogParserListener):
     def exitModule_declaration(self, ctx):
         self.identifier = ctx.module_identifier().getText() 
 
+class MyModuleVisitor(VerilogParserVisitor):
+  def visitModule_declaration(self, ctx):
+    module_name = ctx.module_identifier().getText()
+    print(module_name)
+    # 获取module参数
+    if ctx.module_parameter_port_list(): 
+       params = self.visit(ctx.module_parameter_port_list())
+
 
 lexer = VerilogLexer(InputStream(design))
 stream = CommonTokenStream(lexer)
@@ -82,11 +90,16 @@ parser = VerilogParser(stream)
 
 tree = parser.source_text()
 
+
 # Naive Walker: Print the module identifier through tree structure:"adder_8bit"
 print(tree.getChild(0).getChild(0).getChild(1).getText())
 
-# Identifier Walker: Print the exit module identifier through context
+# Identifier Walker: Print the exit module identifier through context:"adder_32bit"
 listener = ModuleIdentifierListener()
 walker = ParseTreeWalker()
 walker.walk(listener, tree)
 print(listener.identifier) 
+
+# Visitor Walker: Print all the module name: "adder_8bit", "adder_16bit", "adder_32bit"
+visitor = MyModuleVisitor()
+visitor.visit(tree)
