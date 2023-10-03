@@ -60,46 +60,66 @@ module adder_32bit (
 endmodule
 '''
 
-# 1. Specify the top module
-top_module = 'adder_32bit'
-# 2. Start tree traversal from the top module
-
-# 3. Walk to the first node with initialization
-
-# 4. Get the name of the instance and rename all variable
-
-# 5. Print the content of the renamed instance and print it to the pos of initialization 
-
-
-class ModuleIdentifierListener(VerilogParserListener):
-    def exitModule_declaration(self, ctx):
-        self.identifier = ctx.module_identifier().getText() 
-
-class MyModuleVisitor(VerilogParserVisitor):
-  def visitModule_declaration(self, ctx):
-    module_name = ctx.module_identifier().getText()
-    print(module_name)
-    # 获取module参数
-    if ctx.module_parameter_port_list(): 
-       params = self.visit(ctx.module_parameter_port_list())
-
-
 lexer = VerilogLexer(InputStream(design))
 stream = CommonTokenStream(lexer)
 parser = VerilogParser(stream)
 
 tree = parser.source_text()
 
+# 1. Specify the top module
+top_module = 'adder_32bit'
 
-# Naive Walker: Print the module identifier through tree structure:"adder_8bit"
-print(tree.getChild(0).getChild(0).getChild(1).getText())
+# 2. Start tree traversal from the top module
+class MyTopModuleVisitor(VerilogParserVisitor):
+   def __init__(self):
+      self.top_module_node = ""
+   def visitModule_declaration(self, ctx:VerilogParser.Module_declarationContext):
+      module_name = ctx.module_identifier().getText()
+      if module_name == top_module:
+         self.top_module_node = ctx
 
-# Identifier Walker: Print the exit module identifier through context:"adder_32bit"
-listener = ModuleIdentifierListener()
-walker = ParseTreeWalker()
-walker.walk(listener, tree)
-print(listener.identifier) 
-
-# Visitor Walker: Print all the module name: "adder_8bit", "adder_16bit", "adder_32bit"
-visitor = MyModuleVisitor()
+visitor = MyTopModuleVisitor()
 visitor.visit(tree)
+top_node_tree = visitor.top_module_node
+
+# Print the design of top module
+print(design[top_node_tree.start.start:top_node_tree.stop.stop+1])
+
+# 3. Walk to the first node with initialization
+class MyModuleInstantiationVisitor(VerilogParserVisitor):
+    def __init__(self):
+      self.is_first_instantiation_module = False
+      self.module_identifier = ""
+      self.name_of_module_instance = ""
+      self.list_of_ports_lhs = []
+      self.list_of_ports_rhs = []
+
+    def visitModule_instantiation(self, ctx: VerilogParser.Module_instantiationContext):
+      if self.is_first_instantiation_module == False:
+         self.is_first_instantiation_module = True
+         self.first_instantiation = ctx
+         self.module_identifier = ctx.module_identifier().getText()
+         self.name_of_module_instance = ctx.module_instance()[0].name_of_module_instance().getText()
+         # get ports connections
+         ports_connections = ctx.module_instance()[0].list_of_port_connections()
+         index = 0
+         for child in ports_connections.getChildren():
+            if index % 2 == 0:
+              self.list_of_ports_lhs.append(child.port_identifier().getText())
+              self.list_of_ports_rhs.append(child.expression().getText())
+            index = index + 1
+
+         
+
+visitor = MyModuleInstantiationVisitor()
+visitor.visit(top_node_tree)
+cur_module_identifier = visitor.module_identifier
+cur_name_of_module_instance = visitor.name_of_module_instance
+cur_list_of_ports_lhs = visitor.list_of_ports_lhs
+cur_list_of_ports_rhs = visitor.list_of_ports_rhs
+
+
+# 4. Get the name of the instance and rename all variable
+
+# 5. Print the content of the renamed instance and print it to the pos of initialization 
+
