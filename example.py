@@ -782,29 +782,21 @@ class ModuleIdentifierListener(VerilogParserListener):
     def exitModule_declaration(self, ctx):
         self.identifier = ctx.module_identifier().getText() 
 
-class MyTestModuleVisitor(VerilogParserVisitor):
-  def visitModule_declaration(self, ctx):
-    module_name = ctx.module_identifier().getText()
-
 lexer = VerilogLexer(InputStream(design))
 stream = CommonTokenStream(lexer)
 parser = VerilogParser(stream)
 tree = parser.source_text()
 
-# 1. Naive Walker: Print the module identifier through tree structure:"adder_8bit"
+# 1. Naive Walker: Print the module identifier through tree structure:"usb_phy"
 print(tree.getChild(0).getChild(0).getChild(1).getText())
 
-# 2. Identifier Walker: Print the exit module identifier through context:"adder_32bit"
+# 2. Identifier Walker: Print the exit module identifier through context:"usb_tx_phy"
 listener = ModuleIdentifierListener()
 walker = ParseTreeWalker()
 walker.walk(listener, tree)
 print(listener.identifier) 
 
-#3. Visitor Walker: Print all the module name: "adder_8bit", "adder_16bit", "adder_32bit"
-visitor = MyTestModuleVisitor()
-visitor.visit(tree)
-
-#4. Visitor Walker: Print the cur module
+#3. Visitor Walker: Print the information of current module
 class MyTopModuleVisitor(VerilogParserVisitor):
   def __init__(self):
       self.top_module_node = ""
@@ -817,7 +809,7 @@ visitor = MyTopModuleVisitor()
 visitor.visit(tree)
 top_node_tree = visitor.top_module_node
 
-
+# Get the port 
 class VerilogPortVisitor(VerilogParserVisitor):
     def __init__(self):
         self.input_ports = []
@@ -825,13 +817,121 @@ class VerilogPortVisitor(VerilogParserVisitor):
     def visitInput_declaration(self, ctx: VerilogParser.Input_declarationContext):
         port_name = ctx.list_of_port_identifiers().getText()
         self.input_ports.append(port_name)
-
     def visitOutput_declaration(self, ctx: VerilogParser.Output_declarationContext):
         port_name = ctx.list_of_port_identifiers().getText()
         self.output_ports.append(port_name)
-
 
 visitor = VerilogPortVisitor()
 visitor.visit(top_node_tree)
 print(visitor.input_ports)
 print(visitor.output_ports)
+
+# Get the register 
+class VerilogRegisterVisitor(VerilogParserVisitor):
+    def __init__(self):
+        self.registers = []
+    def visitReg_declaration(self, ctx: VerilogParser.Reg_declarationContext):
+        register_name = ctx.list_of_variable_identifiers().getText()
+        self.registers.append(register_name)
+
+visitor = VerilogRegisterVisitor()
+visitor.visit(top_node_tree)
+print(visitor.registers)
+
+# Get the wire
+class VerilogWireVisitor(VerilogParserVisitor):
+    def __init__(self):
+        self.wires = []
+    def visitNet_declaration(self, ctx: VerilogParser.Net_declarationContext):
+        wire_name = ctx.list_of_net_identifiers().getText()
+        self.wires.append(wire_name)
+
+visitor = VerilogWireVisitor()
+visitor.visit(top_node_tree)
+print(visitor.wires)
+
+# Get the instance
+class VerilogInstanceVisitor(VerilogParserVisitor):
+  def __init__(self):
+    self.is_first_instantiation_module = False
+    self.module_identifier = ""
+    self.name_of_module_instance = ""
+    self.list_of_ports_lhs = []
+    self.list_of_ports_rhs = []
+
+  def visitModule_instantiation(self, ctx: VerilogParser.Module_instantiationContext):
+    if self.is_first_instantiation_module == False:
+        self.is_first_instantiation_module = True
+        self.first_instantiation = ctx
+        self.module_identifier = ctx.module_identifier().getText()
+        self.name_of_module_instance = ctx.module_instance()[0].name_of_module_instance().getText()
+        # get ports connections
+        ports_connections = ctx.module_instance()[0].list_of_port_connections()
+        index = 0
+        for child in ports_connections.getChildren():
+          if index % 2 == 0:
+            self.list_of_ports_lhs.append(child.port_identifier().getText())
+            self.list_of_ports_rhs.append(child.expression().getText())
+          index = index + 1
+
+visitor = VerilogInstanceVisitor()
+visitor.visit(top_node_tree)
+cur_module_identifier = visitor.module_identifier
+cur_name_of_module_instance = visitor.name_of_module_instance
+cur_list_of_ports_lhs = visitor.list_of_ports_lhs
+cur_list_of_ports_rhs = visitor.list_of_ports_rhs
+print(cur_module_identifier)
+print(cur_name_of_module_instance)
+print(cur_list_of_ports_lhs)
+print(cur_list_of_ports_rhs)
+
+# Get the block
+# class VerilogAlwaysVisitor(VerilogParserVisitor):
+#     def __init__(self):
+#         self.trigger_signals = []
+
+#     def visitAlways_construct(self, ctx: VerilogParser.Always_constructContext):
+#         self.visit(ctx.statement())  # Visit the statement child node
+
+#     def visitEvent_control(self, ctx: VerilogParser.Event_controlContext):
+#         for edge_event in ctx.list_of_event_expressions().event_expression():
+#             edge_type = edge_event.posedge() or edge_event.negedge()
+#             if edge_type:
+#                 signal = edge_event.expression().getText()
+#                 self.trigger_signals.append((edge_type.getText(), signal))
+
+# # Example usage:
+# visitor = VerilogAlwaysVisitor()
+# visitor.visit(tree)
+# print(visitor.trigger_signals)
+    
+
+
+# Get the statement
+class VerilogStatementVisitor(VerilogParserVisitor):
+    def __init__(self):
+        self.blocking_assignments = []
+        self.nonblocking_assignments = []
+
+    def visitStatement(self, ctx: VerilogParser.StatementContext):
+        # Visit the child nodes of the statement
+        self.visitChildren(ctx)
+
+    def visitBlocking_assignment(self, ctx: VerilogParser.Blocking_assignmentContext):
+        lhs_signal = ctx.variable_lvalue().getText()
+        rhs_expression = ctx.expression().getText()
+        self.blocking_assignments.append((lhs_signal, rhs_expression))
+
+    def visitNonblocking_assignment(self, ctx: VerilogParser.Nonblocking_assignmentContext):
+        lhs_signal = ctx.variable_lvalue().getText()
+        rhs_expression = ctx.expression().getText()
+        self.nonblocking_assignments.append((lhs_signal, rhs_expression))
+
+
+visitor = VerilogStatementVisitor()
+visitor.visit(tree)
+print(visitor.blocking_assignments)
+print(visitor.nonblocking_assignments)
+
+
+
