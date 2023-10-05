@@ -83,7 +83,7 @@ visitor.visit(tree)
 top_node_tree = visitor.top_module_node
 
 # Print the design of top module
-print(design[top_node_tree.start.start:top_node_tree.stop.stop+1])
+# print(design[top_node_tree.start.start:top_node_tree.stop.stop+1])
 
 # 3. TODO: Walk to the first node with initialization
 class MyModuleInstantiationVisitor(VerilogParserVisitor):
@@ -117,41 +117,75 @@ cur_list_of_ports_lhs = visitor.list_of_ports_lhs
 cur_list_of_ports_rhs = visitor.list_of_ports_rhs
 
 # 4. TODO: Get the name of the instance and rename all variable
-class InstanceModuleVisitor(VerilogParserVisitor):
+
+class InstModuleVisitor(VerilogParserVisitor):
   def __init__(self):
-      self.instance_module_node = ""
-      self.list_of_ports_lhs = []
-      self.list_of_ports_rhs = []
+      self.inst_module_node = None
 
   def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
-      InstModule_name = ctx.module_identifier().getText()
-      if InstModule_name == cur_module_identifier:
-          self.instance_module_node = InstModule_name
-      
-  def visitPort_declaration(self, ctx: VerilogParser.List_of_portsContext):
-        port_name = ctx.port_identifier().getText()
-        # Change the port name according to your needs
-        new_port_name_lhs = port_name + "_lhs"  # Example: Add '_lhs' suffix
-        new_port_name_rhs = port_name + "_rhs"  # Example: Add '_rhs' suffix
-        self.list_of_ports_lhs.append(new_port_name_lhs)
-        self.list_of_ports_rhs.append(new_port_name_rhs)
+      cur_module_name = ctx.module_identifier().getText()
+      if cur_module_name == cur_module_identifier:
+          self.inst_module_node = ctx
 
-visitor = InstanceModuleVisitor()
+class InstModuleVariableVisitor(VerilogParserVisitor):
+  def __init__(self):
+      self.inst_module_identifier = ""
+      self.name_of_module_inst = ""
+      self.list_of_ports_lhs = []
+      self.list_of_ports_rhs = []
+      self.input_ports = []
+      self.output_ports = []
+
+  def visitModule_instantiation(self, ctx: VerilogParser.Module_instantiationContext):
+      self.inst_module_identifier = ctx.module_identifier().getText()
+      self.name_of_module_inst = cur_name_of_module_instance
+      # get ports connections
+      ports_connections = ctx.module_instance()[0].list_of_port_connections()
+      index = 0
+      for child in ports_connections.getChildren():
+        if index % 2 == 0:
+          self.list_of_ports_lhs.append(child.port_identifier().getText())
+          self.list_of_ports_rhs.append(child.expression().getText())
+        index = index + 1
+    
+  def visitInput_declaration(self, ctx: VerilogParser.Input_declarationContext):
+      port_name = ctx.list_of_port_identifiers().getText()
+      self.input_ports.append(port_name)
+
+  def visitOutput_declaration(self, ctx: VerilogParser.Output_declarationContext):
+      port_name = ctx.list_of_port_identifiers().getText()
+      self.output_ports.append(port_name)
+
+
+visitor = InstModuleVisitor()
 visitor.visit(tree)
-instance_module_node = visitor.instance_module_node
-inst_list_of_ports_lhs = visitor.list_of_ports_lhs
-inst_list_of_ports_rhs = visitor.list_of_ports_rhs
-pass
+inst_module_node = visitor.inst_module_node
+visitor = InstModuleVariableVisitor()
+visitor.visit(inst_module_node)
+inst_module_identifier = visitor.inst_module_identifier
+name_of_module_inst = visitor.name_of_module_inst
+list_of_ports_lhs = visitor.list_of_ports_lhs
+list_of_ports_rhs = visitor.list_of_ports_rhs
 
 
-# 5. Print the content of the renamed instance and print it to the pos of initialization 
+print("inst_module_identifier:", inst_module_identifier)
+print("name_of_module_inst:", name_of_module_inst)
+print("list_of_ports_lhs:", list_of_ports_lhs)
+print("list_of_ports_rhs:", list_of_ports_rhs)
+print(visitor.input_ports)
+print(visitor.output_ports)
+
+# 5. TODO: define the register and wire for port
+
+
+# 6. TODO: Print the content of the renamed instance and print it to the pos of initialization 
 
 # Debug: Check visiting rules
-class DebugVisitor(VerilogParserVisitor):
-    def visitChildren(self, node):
-        rule_name = VerilogParser.ruleNames[node.getRuleIndex()]
-        print("Visiting rule:", rule_name)
-        return super().visitChildren(node)
+# class DebugVisitor(VerilogParserVisitor):
+#     def visitChildren(self, node):
+#         rule_name = VerilogParser.ruleNames[node.getRuleIndex()]
+#         print("Visiting rule:", rule_name)
+#         return super().visitChildren(node)
 
-debug_visitor = DebugVisitor()
-debug_visitor.visit(tree)
+# debug_visitor = DebugVisitor()
+# debug_visitor.visit(tree)
