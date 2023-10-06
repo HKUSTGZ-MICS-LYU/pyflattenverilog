@@ -83,7 +83,7 @@ visitor.visit(tree)
 top_node_tree = visitor.top_module_node
 
 # Print the design of top module
-# print(design[top_node_tree.start.start:top_node_tree.stop.stop+1])
+print(design[top_node_tree.start.start:top_node_tree.stop.stop+1])
 
 # 3. TODO: Walk to the first node with initialization
 class MyModuleInstantiationVisitor(VerilogParserVisitor):
@@ -113,10 +113,51 @@ visitor = MyModuleInstantiationVisitor()
 visitor.visit(top_node_tree)
 cur_module_identifier = visitor.module_identifier
 cur_name_of_module_instance = visitor.name_of_module_instance
+cur_prefix = cur_module_identifier + '_' + cur_name_of_module_instance
 cur_list_of_ports_lhs = visitor.list_of_ports_lhs
 cur_list_of_ports_rhs = visitor.list_of_ports_rhs
 
-# 4. TODO: Get the name of the instance and rename all variable
+
+# 4. Obtain new assignment with 'prefix', lhs and rhs and define the port as wire type
+# Implementation: define the lhs variable with new name in "assign field" and connect with rhs variable
+# e.g. variable 'a' in 'add_high in 'adder_32bit', It should be adder_32bit_add_high_a, first define it as wire type
+# i.g. 'wire adder_32bit_add_high_a;' 
+cur_new_wire = ['wire ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';'
+                for i in range(0,len(cur_list_of_ports_lhs))]
+# i.e. We should have `assign adder_32bit_add_high_a = a[31:16]` on the top
+cur_new_assign = ['assign ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ' = '+ cur_list_of_ports_rhs[i] + ';' 
+                  for i in range(0,len(cur_list_of_ports_rhs))]
+# print(cur_new_wire)
+# print(cur_new_assign)
+
+# 5. On how to rename all variables with new instance name
+# Step 1: Write a visitor that can visit  any token
+# print(design[top_node_tree.start.start:top_node_tree.stop.stop+1])
+class VerilogIdentifierVisitor(VerilogParserVisitor):
+    def __init__(self):
+        super().__init__()
+
+    def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
+      print(ctx.module_identifier().getText())
+      if ctx.module_identifier().getText() == top_module:
+          for child in ctx.getChildren():
+              if isinstance(child, VerilogParser.Non_port_module_itemContext):
+                  print(f"Instantiated module: {child.getText()}")
+
+visitor = VerilogIdentifierVisitor()
+visitor.visit(tree)
+
+# Step 2: Print every token with `print(design[left:right])` (refer to line 86)
+# Step 2.1: If we get `assign`token, print cur_new_assign with correct indent
+
+# Step 3: If the token meets `cur_name_of_module_instance` in `top`
+# Step 3.1. Get tree root of cur_module_identifier
+
+# Step 4. Write a visitor that can visit every token from tree root of cur_module_identifier
+# Step 4.1. If the token is simple_identifier, simply replace it with `cur_prefix`
+
+
+# 6. TODO: Get the name of the instance and rename all variable
 
 class InstModuleVisitor(VerilogParserVisitor):
   def __init__(self):
@@ -168,17 +209,7 @@ list_of_ports_lhs = visitor.list_of_ports_lhs
 list_of_ports_rhs = visitor.list_of_ports_rhs
 
 
-print("inst_module_identifier:", inst_module_identifier)
-print("name_of_module_inst:", name_of_module_inst)
-print("list_of_ports_lhs:", list_of_ports_lhs)
-print("list_of_ports_rhs:", list_of_ports_rhs)
-print(visitor.input_ports)
-print(visitor.output_ports)
-
-# 5. TODO: define the register and wire for port
-
-
-# 6. TODO: Print the content of the renamed instance and print it to the pos of initialization 
+# 7. TODO: Print the content of the renamed instance and print it to the pos of initialization 
 
 # Debug: Check visiting rules
 # class DebugVisitor(VerilogParserVisitor):
