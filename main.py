@@ -12,7 +12,28 @@ module adder_8bit (
   assign sum = a + b;
 
 endmodule
+// 32 bit adder
+module adder_32bit (
+  input [31:0] a,
+  input [31:0] b,
+  output [31:0] sum
+);
 
+  // high 16 bit
+  adder_16bit add_high (
+    .a(a[31:16]),
+    .b(b[31:16]),
+    .sum(sum[31:16])
+  );  
+
+  // low 16 bit
+  adder_16bit add_low (
+    .a(a[15:0]),
+    .b(b[15:0]), 
+    .sum(sum[15:0])
+  );
+
+endmodule
 // 16 bit adder
 module adder_16bit (
   input [15:0] a,
@@ -36,28 +57,7 @@ module adder_16bit (
 
 endmodule 
 
-// 32 bit adder
-module adder_32bit (
-  input [31:0] a,
-  input [31:0] b,
-  output [31:0] sum
-);
 
-  // high 16 bit
-  adder_16bit add_high (
-    .a(a[31:16]),
-    .b(b[31:16]),
-    .sum(sum[31:16])
-  );  
-
-  // low 16 bit
-  adder_16bit add_low (
-    .a(a[15:0]),
-    .b(b[15:0]), 
-    .sum(sum[15:0])
-  );
-
-endmodule
 '''
 
 "This function is used to convert the verilog to a tree"
@@ -146,56 +146,72 @@ cur_new_assign = ['assign ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ' = 
                   for i in range(0,len(cur_list_of_ports_rhs))]
 
 
-# 5. Replace the instance with new assignment in the top module
+"This function is used to traverse the tree and change the name of the instance"
+
+  
+
+# 5. TODO: Get the instance module and rename all variable
+# If the token is simple_identifier, simply replace it with `cur_prefix`
+class InstModuleVisitor(VerilogParserVisitor):
+  def __init__(self):
+      super().__init__()
+      self.inst_module_node = None
+      self.start = None
+      self.stop = None
+  def _traverse_children(self,ctx):  
+    if isinstance(ctx, VerilogParser.Module_declarationContext):
+      self.stop = ctx.stop.start-1
+    if isinstance(ctx, antlr4.tree.Tree.TerminalNodeImpl):
+      pass
+    else:
+      for child in ctx.getChildren():
+        if isinstance(child, VerilogParser.List_of_port_declarationsContext):
+            self.start = child.stop.stop+2
+        if isinstance(child, VerilogParser.Module_instantiationContext):
+            child.start.text = cur_prefix + '_' + child.start.text
+        if isinstance(child, VerilogParser.ExpressionContext):
+            child.start.text = cur_prefix + '_' + child.start.text
+        self._traverse_children(child)
+
+  def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
+      module_name = ctx.module_identifier().getText()
+      if module_name == cur_module_identifier:
+        self.inst_module_node = ctx
+        self._traverse_children(ctx)
+        print(self.inst_module_node.getText())
+
+visitor = InstModuleVisitor()
+visitor.visit(tree)
+inst_node_tree = visitor.inst_module_node
+
+
+
+
+# 6. Replace the instance with new assignment and add instance logic in the top module
 class VerilogIdentifierVisitor(VerilogParserVisitor):
     def __init__(self):
         super().__init__()
 
     def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
-      if ctx.module_identifier().getText() == top_module:
-          for child in ctx.getChildren():
-            if isinstance(child, VerilogParser.Non_port_module_itemContext):
-              inst_name = child.getChild(0).getChild(0).getChild(1).getChild(0).getText()
-              if inst_name == cur_name_of_module_instance:
-                child.removeLastChild()
-                for i in range(0,len(cur_new_wire)):
-                  child.addChild(Wire2Tree(cur_new_wire[i]))
-                for i in range(0,len(cur_new_assign)):  
-                  child.addChild(Assign2Tree(cur_new_assign[i]))
-      print(ctx.getText())
-              
-          
+        cur_start = None
+        cur_stop = None
+        if ctx.module_identifier().getText() == top_module:
+            for child in ctx.getChildren():
+                if isinstance(child, VerilogParser.Non_port_module_itemContext):
+                    inst_name = child.getChild(0).getChild(0).getChild(1).getChild(0).getText()
+                    if inst_name == cur_name_of_module_instance:
+                        cur_start = child.start.start
+                        cur_stop = child.stop.stop
+                        print(design[:cur_start])
+                        for wire in cur_new_wire:
+                            print(wire)
+                        for assign in cur_new_assign:
+                            print(assign)
+                        "print instance module"
+                        print(design[cur_stop+1:])
+                    
+                        
+            
+# Create a visitor instance and visit the top module node
 visitor = VerilogIdentifierVisitor()
-visitor.visit(tree)
-
-
-
-"This function is used to traverse the tree and change the name of the instance"
-def traverse_children(ctx):  
-    if isinstance(ctx, antlr4.tree.Tree.TerminalNodeImpl):
-      pass
-    else:
-      for child in ctx.getChildren():
-        if isinstance(child, VerilogParser):
-          if isinstance(child, VerilogParser.Module_instantiationContext):
-            child.start.text = cur_prefix + '_' + child.start.text
-          if isinstance(child, VerilogParser.ExpressionContext):
-            child.start.text = cur_prefix + '_' + child.start.text
-          traverse_children(child)
-
-# 6. TODO: Get the name of the instance and rename all variable
-# If the token is simple_identifier, simply replace it with `cur_prefix`
-
-class InstModuleVisitor(VerilogParserVisitor):
-  def __init__(self):
-      super().__init__()
-
-  def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
-      if ctx.module_identifier().getText() == cur_module_identifier:
-        traverse_children(ctx)
-      
-  
-visitor = InstModuleVisitor()
-visitor.visit(tree)
-
-
+visitor.visit(top_node_tree)                          

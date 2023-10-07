@@ -78,7 +78,7 @@ tree = parser.source_text()
 
 
 # 1. Naive Walker: Print the module identifier through tree structure:"adder_8bit"
-print(tree.getChild(0).getChild(0).getChild(1).getText())
+# print(tree.getChild(0).getChild(0).getChild(1).getText())
 
 # 2. Identifier Walker: Print the exit module identifier through context:"adder_32bit"
 listener = ModuleIdentifierListener()
