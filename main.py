@@ -1,6 +1,8 @@
 from antlr4_verilog import InputStream, CommonTokenStream, ParseTreeWalker
 from antlr4_verilog.verilog import VerilogLexer, VerilogParser, VerilogParserListener, VerilogParserVisitor
 import antlr4
+from io import StringIO
+
 design = '''
 // 8 bit adder
 module adder_8bit (
@@ -56,8 +58,6 @@ module adder_16bit (
   );
 
 endmodule 
-
-
 '''
 
 "This function is used to convert the verilog to a tree"
@@ -146,48 +146,91 @@ cur_new_assign = ['assign ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ' = 
                   for i in range(0,len(cur_list_of_ports_rhs))]
 
 
-"This function is used to traverse the tree and change the name of the instance"
 
-  
+# 5. TODO: Rename all variable
+def getTokenText(ctx: VerilogParser.Module_declarationContext):
+  text = ""
+  if ctx.getChildCount() == 0:
+    return ""
+  with StringIO() as builder:
+    for child in ctx.getChildren():
+          builder.write(child.getText()+' ')
+    temp = builder.getvalue()
+    for line in temp.splitlines():
+        for char in line: 
+          if char == ',' or char == ';':
+            text += char + '\n'
+          else:
+            text += char
+    return text
 
-# 5. TODO: Get the instance module and rename all variable
-# If the token is simple_identifier, simply replace it with `cur_prefix`
+# replace the corresponding variables with `cur_prefix`
 class InstModuleVisitor(VerilogParserVisitor):
   def __init__(self):
       super().__init__()
       self.inst_module_node = None
+      self.inst_module_design = None
       self.start = None
       self.stop = None
+
+  "This function is used to traverse the tree and change the name of the instance"
   def _traverse_children(self,ctx):  
-    if isinstance(ctx, VerilogParser.Module_declarationContext):
-      self.stop = ctx.stop.start-1
     if isinstance(ctx, antlr4.tree.Tree.TerminalNodeImpl):
       pass
     else:
       for child in ctx.getChildren():
-        if isinstance(child, VerilogParser.List_of_port_declarationsContext):
-            self.start = child.stop.stop+2
         if isinstance(child, VerilogParser.Module_instantiationContext):
+            child.start.text = child.start.text + ' '
+        if isinstance(child, VerilogParser.Name_of_module_instanceContext):
             child.start.text = cur_prefix + '_' + child.start.text
         if isinstance(child, VerilogParser.ExpressionContext):
             child.start.text = cur_prefix + '_' + child.start.text
         self._traverse_children(child)
 
+
   def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
       module_name = ctx.module_identifier().getText()
       if module_name == cur_module_identifier:
-        self.inst_module_node = ctx
-        self._traverse_children(ctx)
-        print(self.inst_module_node.getText())
+        self.inst_module_node = ctx        
+        self._traverse_children(self.inst_module_node)
+        self.inst_module_design = getTokenText(self.inst_module_node)
+        self.inst_module_node = Design2Tree(self.inst_module_design)
 
 visitor = InstModuleVisitor()
 visitor.visit(tree)
-inst_node_tree = visitor.inst_module_node
+inst_module_node = visitor.inst_module_node
+inst_module_design = visitor.inst_module_design
 
 
+# 6. TODO: Get the instance body
+class InstBodyVisitor(VerilogParserVisitor):
+  def __init__(self):
+    super().__init__()
+    self.start = None
+    self.stop = None
+
+  def _traverse_children(self,ctx):
+    if isinstance(ctx, VerilogParser.Module_declarationContext):
+       self.stop = ctx.stop.start-1
+    if isinstance(ctx, antlr4.tree.Tree.TerminalNodeImpl): 
+       pass
+    else:
+       for child in ctx.getChildren():
+         if isinstance(child, VerilogParser.List_of_port_declarationsContext):
+            self.start = child.stop.stop+3
+         self._traverse_children(child) 
+  
+  def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
+      self._traverse_children(ctx)
+
+visitor = InstBodyVisitor()
+visitor.visit(inst_module_node)
+inst_body_start = visitor.start
+inst_body_stop = visitor.stop
+insert_part = inst_module_design[inst_body_start:inst_body_stop+1]
 
 
-# 6. Replace the instance with new assignment and add instance logic in the top module
+# 7. Replace the instance with new assignment and add instance body in the top module
 class VerilogIdentifierVisitor(VerilogParserVisitor):
     def __init__(self):
         super().__init__()
@@ -207,6 +250,7 @@ class VerilogIdentifierVisitor(VerilogParserVisitor):
                             print(wire)
                         for assign in cur_new_assign:
                             print(assign)
+                        print(insert_part)
                         "print instance module"
                         print(design[cur_stop+1:])
                     
