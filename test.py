@@ -37,6 +37,39 @@ module adder_16bit (
   );
 
 endmodule 
+// 8 bit adder
+module adder_8bit (
+  input [7:0] a,
+  input [7:0] b,
+  output [7:0] sum
+);
+
+  assign sum = a + b;
+
+endmodule
+
+// 16 bit adder
+module adder_16bit (
+  input [15:0] a,
+  input [15:0] b,
+  output [15:0] sum  
+);
+
+  // high 8 bit adder
+  adder_8bit add_high (
+    .a(a[15:8]),
+    .b(b[15:8]), 
+    .sum(sum[15:8])
+  );
+
+  // low 8 bit adder
+  adder_8bit add_low (
+    .a(a[7:0]),
+    .b(b[7:0]),
+    .sum(sum[7:0]) 
+  );
+
+endmodule 
 
 // 32 bit adder
 module adder_32bit (
@@ -58,28 +91,59 @@ assign sum[31:16] = add_high_sum;
 wire [7:0] add_high_add_high_a;
 wire [7:0] add_high_add_high_b;
 wire [7:0] add_high_add_high_sum;
-assign add_high_add_high_a = a[15:8];
-assign add_high_add_high_b = b[15:8];
-assign sum[15:8] = add_high_add_high_sum;
+assign add_high_add_high_a = add_high_a[15:8];
+assign add_high_add_high_b = add_high_b[15:8];
+assign add_high_sum[15:8] = add_high_add_high_sum;
 
  assign add_high_add_high_sum = add_high_add_high_a + add_high_add_high_b ;
  
 
- adder_8bit add_high_add_low(.a(a[7:0]),
-.b(b[7:0]),
-.sum(sum[7:0]));
  
-  
+wire [7:0] add_high_add_low_a;
+wire [7:0] add_high_add_low_b;
+wire [7:0] add_high_add_low_sum;
+assign add_high_add_low_a = add_high_a[7:0];
+assign add_high_add_low_b = add_high_b[7:0];
+assign add_high_sum[7:0] = add_high_add_low_sum;
+
+ assign add_high_add_low_sum = add_high_add_low_a + add_high_add_low_b ;
+ 
 
   // low 16 bit
-  adder_16bit add_low (
-    .a(a[15:0]),
-    .b(b[15:0]), 
-    .sum(sum[15:0])
-  );
+  
+wire [15:0] add_low_a;
+wire [15:0] add_low_b;
+wire [15:0] add_low_sum;
+assign add_low_a = a[15:0];
+assign add_low_b = b[15:0];
+assign sum[15:0] = add_low_sum;
+
+ 
+wire [7:0] add_low_add_high_a;
+wire [7:0] add_low_add_high_b;
+wire [7:0] add_low_add_high_sum;
+assign add_low_add_high_a = add_low_a[15:8];
+assign add_low_add_high_b = add_low_b[15:8];
+assign add_low_sum[15:8] = add_low_add_high_sum;
+
+ assign add_low_add_high_sum = add_low_add_high_a + add_low_add_high_b ;
+ 
+
+ 
+wire [7:0] add_low_add_low_a;
+wire [7:0] add_low_add_low_b;
+wire [7:0] add_low_add_low_sum;
+assign add_low_add_low_a = add_low_a[7:0];
+assign add_low_add_low_b = add_low_b[7:0];
+assign add_low_sum[7:0] = add_low_add_low_sum;
+
+ assign add_low_add_low_sum = add_low_add_low_a + add_low_add_low_b ;
+ 
+
+ 
+
 
 endmodule
-
 '''
 
 "This function is used to convert the verilog to a tree"
@@ -203,8 +267,7 @@ for i in range(0,len(cur_list_of_ports_lhs)):
     cur_new_assign.append('assign ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ' = '+ cur_list_of_ports_rhs[i] + ';')
   else:
     cur_new_assign.append('assign ' + cur_list_of_ports_rhs[i] + ' = '+ cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
-print(cur_prefix)
-print(cur_new_wire)
+
 
 # 5. TODO: Rename all variable
 def getTokenText(ctx: VerilogParser.Module_declarationContext):
@@ -243,6 +306,8 @@ class InstModuleVisitor(VerilogParserVisitor):
         if isinstance(child, VerilogParser.Name_of_module_instanceContext):
             child.start.text = cur_prefix + '_' + child.start.text
         if isinstance(child, VerilogParser.ExpressionContext) and isinstance(child.parentCtx, VerilogParser.ExpressionContext):
+            child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
+        if isinstance(child, VerilogParser.ExpressionContext) and isinstance(child.parentCtx, VerilogParser.Named_port_connectionContext):
             child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '    
         if isinstance(child, VerilogParser.Net_lvalueContext):
             child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
@@ -261,7 +326,6 @@ visitor = InstModuleVisitor()
 visitor.visit(tree)
 inst_module_node = visitor.inst_module_node
 inst_module_design = visitor.inst_module_design
-
 
 # 6. TODO: Get the instance body
 class InstBodyVisitor(VerilogParserVisitor):

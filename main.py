@@ -221,10 +221,12 @@ class InstModuleVisitor(VerilogParserVisitor):
             child.start.text = child.start.text + ' '
         if isinstance(child, VerilogParser.Name_of_module_instanceContext):
             child.start.text = cur_prefix + '_' + child.start.text
-        if isinstance(child, VerilogParser.ExpressionContext):
-            child.start.text = cur_prefix + '_' + child.start.text     
+        if isinstance(child, VerilogParser.ExpressionContext) and isinstance(child.parentCtx, VerilogParser.ExpressionContext):
+            child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
+        if isinstance(child, VerilogParser.ExpressionContext) and isinstance(child.parentCtx, VerilogParser.Named_port_connectionContext):
+            child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '    
         if isinstance(child, VerilogParser.Net_lvalueContext):
-            child.start.text = cur_prefix + '_' + child.start.text
+            child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
         self._traverse_children(child)
 
 
@@ -240,7 +242,6 @@ visitor = InstModuleVisitor()
 visitor.visit(tree)
 inst_module_node = visitor.inst_module_node
 inst_module_design = visitor.inst_module_design
-
 
 # 6. TODO: Get the instance body
 class InstBodyVisitor(VerilogParserVisitor):
@@ -291,7 +292,6 @@ class VerilogIdentifierVisitor(VerilogParserVisitor):
                         for assign in cur_new_assign:
                             print(assign)
                         print(insert_part)
-                        "print instance module"
                         print(design[cur_stop+1:])
             
             
