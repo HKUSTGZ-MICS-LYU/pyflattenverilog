@@ -25,9 +25,7 @@ module adder_32bit (
 
   assign add_high_add_high_sum = add_high_add_high_a + add_high_add_high_b;
    
-   
-
-    adder_8bit add_low_add_high (
+    adder_8bit add_high_add_low (
         .a(add_high_a[7:0]),
         .b(add_high_b[7:0]),
         .sum(add_high_sum[7:0])

@@ -54,12 +54,20 @@ assign add_high_a = a[31:16];
 assign add_high_b = b[31:16];
 assign sum[31:16] = add_high_sum;
 
- adder_8bit add_high_add_high(.a(add_high_a[15:8]),
-.b(add_high_b[15:8]),
-.sum(add_high_sum[15:8]));
- adder_8bit add_high_add_low(.a(add_high_a[7:0]),
-.b(add_high_b[7:0]),
-.sum(add_high_sum[7:0]));
+ 
+wire [7:0] add_high_add_high_a;
+wire [7:0] add_high_add_high_b;
+wire [7:0] add_high_add_high_sum;
+assign add_high_add_high_a = a[15:8];
+assign add_high_add_high_b = b[15:8];
+assign sum[15:8] = add_high_add_high_sum;
+
+ assign add_high_add_high_sum = add_high_add_high_a + add_high_add_high_b ;
+ 
+
+ adder_8bit add_high_add_low(.a(a[7:0]),
+.b(b[7:0]),
+.sum(sum[7:0]));
  
   
 
@@ -71,6 +79,7 @@ assign sum[31:16] = add_high_sum;
   );
 
 endmodule
+
 '''
 
 "This function is used to convert the verilog to a tree"
@@ -194,7 +203,8 @@ for i in range(0,len(cur_list_of_ports_lhs)):
     cur_new_assign.append('assign ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ' = '+ cur_list_of_ports_rhs[i] + ';')
   else:
     cur_new_assign.append('assign ' + cur_list_of_ports_rhs[i] + ' = '+ cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
-
+print(cur_prefix)
+print(cur_new_wire)
 
 # 5. TODO: Rename all variable
 def getTokenText(ctx: VerilogParser.Module_declarationContext):
@@ -232,10 +242,10 @@ class InstModuleVisitor(VerilogParserVisitor):
             child.start.text = child.start.text + ' '
         if isinstance(child, VerilogParser.Name_of_module_instanceContext):
             child.start.text = cur_prefix + '_' + child.start.text
-        if isinstance(child, VerilogParser.ExpressionContext):
-            child.start.text = cur_prefix + '_' + child.start.text     
+        if isinstance(child, VerilogParser.ExpressionContext) and isinstance(child.parentCtx, VerilogParser.ExpressionContext):
+            child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '    
         if isinstance(child, VerilogParser.Net_lvalueContext):
-            child.start.text = cur_prefix + '_' + child.start.text
+            child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
         self._traverse_children(child)
 
 
@@ -302,7 +312,6 @@ class VerilogIdentifierVisitor(VerilogParserVisitor):
                         for assign in cur_new_assign:
                             print(assign)
                         print(insert_part)
-                        "print instance module"
                         print(design[cur_stop+1:])
             
             
