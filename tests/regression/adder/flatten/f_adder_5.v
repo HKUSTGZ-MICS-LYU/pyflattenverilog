@@ -56,7 +56,7 @@ assign add_high_add_high_a = add_high_a[15:8];
 assign add_high_add_high_b = add_high_b[15:8];
 assign add_high_sum[15:8] = add_high_add_high_sum;
 
- assign add_high_add_high_sum = add_high_add_high_a + add_high_add_high_b ;
+ assign add_high_add_high_sum= add_high_add_high_a+ add_high_add_high_b;
  
 
  
@@ -67,7 +67,7 @@ assign add_high_add_low_a = add_high_a[7:0];
 assign add_high_add_low_b = add_high_b[7:0];
 assign add_high_sum[7:0] = add_high_add_low_sum;
 
- assign add_high_add_low_sum = add_high_add_low_a + add_high_add_low_b ;
+ assign add_high_add_low_sum= add_high_add_low_a+ add_high_add_low_b;
  
 
  
@@ -90,7 +90,7 @@ assign add_low_add_high_a = add_low_a[15:8];
 assign add_low_add_high_b = add_low_b[15:8];
 assign add_low_sum[15:8] = add_low_add_high_sum;
 
- assign add_low_add_high_sum = add_low_add_high_a + add_low_add_high_b ;
+ assign add_low_add_high_sum= add_low_add_high_a+ add_low_add_high_b;
  
 
  
@@ -101,7 +101,7 @@ assign add_low_add_low_a = add_low_a[7:0];
 assign add_low_add_low_b = add_low_b[7:0];
 assign add_low_sum[7:0] = add_low_add_low_sum;
 
- assign add_low_add_low_sum = add_low_add_low_a + add_low_add_low_b ;
+ assign add_low_add_low_sum= add_low_add_low_a+ add_low_add_low_b;
  
 
  

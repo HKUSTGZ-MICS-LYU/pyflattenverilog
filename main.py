@@ -169,12 +169,18 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
           pass
         else:
           for child in ctx.getChildren():
-            if isinstance(child, VerilogParser.Range_Context):
-              self.list_of_ports_width.append(child.getText())
             if isinstance(child, VerilogParser.Input_declarationContext):
               self.list_of_ports_direction.append('input')
+              if isinstance(child.getChild(1), VerilogParser.Range_Context):
+                self.list_of_ports_width.append(child.getChild(1).getText())
+              else:
+                self.list_of_ports_width.append('')
             if isinstance(child, VerilogParser.Output_declarationContext):
               self.list_of_ports_direction.append('output')
+              if isinstance(child.getChild(1), VerilogParser.Range_Context):
+                self.list_of_ports_width.append(child.getChild(1).getText())
+              else:
+                self.list_of_ports_width.append('')
             self._traverse_children(child)
 
     def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
@@ -203,7 +209,6 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
     else:
       cur_new_assign.append('assign ' + cur_list_of_ports_rhs[i] + ' = '+ cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
 
-
   # 5. TODO: Rename all variable
   def getTokenText(ctx: VerilogParser.Module_declarationContext):
     text = ""
@@ -211,15 +216,18 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
       return ""
     with StringIO() as builder:
       for child in ctx.getChildren():
-            builder.write(child.getText()+' ')
+            if isinstance(child, antlr4.tree.Tree.TerminalNodeImpl):
+              builder.write(child.getText()+' ')
+            else:   
+              builder.write(child.getText()+' ')
       temp = builder.getvalue()
-      for line in temp.splitlines():
-          for char in line: 
-            if char == ',' or char == ';':
-              text += char + '\n'
-            else:
-              text += char
-      return text
+    for line in temp.splitlines():
+        for char in line: 
+          if char == ',' or char == ';'  :
+            text += char + '\n'
+          else:
+            text += char
+    return text
 
   # replace the corresponding variables with `cur_prefix`
   class InstModuleVisitor(VerilogParserVisitor):
@@ -236,16 +244,18 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
         pass
       else:
         for child in ctx.getChildren():
-          if isinstance(child, VerilogParser.Module_instantiationContext):
-              child.start.text = child.start.text + ' '
-          if isinstance(child, VerilogParser.Name_of_module_instanceContext):
-              child.start.text = cur_prefix + '_' + child.start.text
-          if isinstance(child, VerilogParser.ExpressionContext) and isinstance(child.parentCtx, VerilogParser.ExpressionContext):
-              child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
-          if isinstance(child, VerilogParser.ExpressionContext) and isinstance(child.parentCtx, VerilogParser.Named_port_connectionContext):
-              child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '    
-          if isinstance(child, VerilogParser.Net_lvalueContext):
-              child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
+          if isinstance(child, VerilogParser.Simple_identifierContext):
+              if isinstance(child.parentCtx.parentCtx, VerilogParser.Module_identifierContext):
+                  pass
+              elif isinstance(child.parentCtx.parentCtx, VerilogParser.Port_identifierContext):
+                  pass
+              else:
+                  child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
+          if isinstance(child, VerilogParser.Event_expressionContext):
+                child.start.text = ' ' + child.start.text + ' ' 
+          if isinstance(child, VerilogParser.Conditional_statementContext):
+                child.start.text = child.start.text + ' '
+
           self._traverse_children(child)
 
 
@@ -271,12 +281,12 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
 
     def _traverse_children(self,ctx):
       if isinstance(ctx, VerilogParser.Module_declarationContext):
-        self.stop = ctx.stop.start-1
+        self.stop = ctx.stop.start-5
       if isinstance(ctx, antlr4.tree.Tree.TerminalNodeImpl): 
         pass
       else:
         for child in ctx.getChildren():
-          if isinstance(child, VerilogParser.List_of_port_declarationsContext):
+          if isinstance(child, VerilogParser.List_of_portsContext):
               self.start = child.stop.stop+3
           self._traverse_children(child) 
     

@@ -1,28 +1,25 @@
-module usb_phy(clk, rst, phy_tx_mode, usb_rst,
+module usb_phy(
+	input		clk,
+	input		rst,
+	input		phy_tx_mode,
+	output		usb_rst,
+	output		txdp,
+	output		txdn,
+	output 		txoe,
+	input		rxd,
+	input		rxdp,
+	input	    rxdn,
+	input	[7:0]	DataOut_i,
+	input		TxValid_i,
+	output		TxReady_o,
+	output	[7:0]	DataIn_o,
+	output		RxValid_o,
+	output		RxActive_o,
+	output		RxError_o,
+	output	[1:0]	LineState_o
+);
 
-		// Transciever Interface
-		txdp, txdn, txoe,	
-		rxd, rxdp, rxdn,
 
-		// UTMI Interface
-		DataOut_i, TxValid_i, TxReady_o, RxValid_o,
-		RxActive_o, RxError_o, DataIn_o, LineState_o
-		);
-
-input		clk;
-input		rst;
-input		phy_tx_mode;
-output		usb_rst;
-output		txdp, txdn, txoe;
-input		rxd, rxdp, rxdn;
-input	[7:0]	DataOut_i;
-input		TxValid_i;
-output		TxReady_o;
-output	[7:0]	DataIn_o;
-output		RxValid_o;
-output		RxActive_o;
-output		RxError_o;
-output	[1:0]	LineState_o;
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -103,58 +100,69 @@ always @(posedge clk or negedge rst)
 
 endmodule
 
-module usb_rx_phy(	clk, rst, fs_ce,
-	
-			// Transciever Interface
-			rxd, rxdp, rxdn,
+module usb_rx_phy(	
+	input		clk,
+	input		rst,
+	output		fs_ce,
+	input		rxd,
+	input		rxdp,
+	input	    rxdn,
+	output	[7:0]	DataIn_o,
+	output		RxValid_o,
+	output		RxActive_o,
+	output		RxError_o,
+	input		RxEn_i,
+	output 	[1:0]	LineState
+);
 
-			// UTMI Interface
-			RxValid_o, RxActive_o, RxError_o, DataIn_o,
-			RxEn_i, LineState);
 
-input		clk;
-input		rst;
-output		fs_ce;
-input		rxd, rxdp, rxdn;
-output	[7:0]	DataIn_o;
-output		RxValid_o;
-output		RxActive_o;
-output		RxError_o;
-input		RxEn_i;
-output 	[1:0]	LineState;
 
 ///////////////////////////////////////////////////////////////////
 //
 // Local Wires and Registers
 //
 
-reg		rxd_s0, rxd_s1,  rxd_s;
-reg		rxdp_s0, rxdp_s1, rxdp_s, rxdp_s_r;
-reg		rxdn_s0, rxdn_s1, rxdn_s, rxdn_s_r;
+reg		rxd_s0;
+reg 	rxd_s1;
+reg		rxd_s;
+reg		rxdp_s0;
+reg     rxdp_s1;
+reg     rxdp_s;
+reg		rxdp_s_r;
+reg		rxdn_s0;
+reg     rxdn_s1;
+reg     rxdn_s;
+reg		rxdn_s_r;
 reg		synced_d;
-wire		k, j, se0;
+wire	k;
+wire	j;
+wire    se0;
 reg		rxd_r;
 reg		rx_en;
 reg		rx_active;
 reg	[2:0]	bit_cnt;
-reg		rx_valid1, rx_valid;
+reg		rx_valid1;
+reg     rx_valid;
 reg		shift_en;
 reg		sd_r;
 reg		sd_nrzi;
 reg	[7:0]	hold_reg;
 wire		drop_bit;	// Indicates a stuffed bit
 reg	[2:0]	one_cnt;
-
-reg	[1:0]	dpll_state, dpll_next_state;
+reg	[1:0]	dpll_state; 
+reg	[1:0]   dpll_next_state;
 reg		fs_ce_d;
 reg		fs_ce;
 wire		change;
 wire		lock_en;
-reg	[2:0]	fs_state, fs_next_state;
+reg	[2:0]	fs_state;
+reg [2:0]   fs_next_state;
 reg		rx_valid_r;
-reg		sync_err_d, sync_err;
+reg		sync_err_d;
+reg     sync_err;
 reg		bit_stuff_err;
-reg		se0_r, byte_err;
+reg		se0_r;
+reg     byte_err;
 reg		se0_s;
 
 ///////////////////////////////////////////////////////////////////
@@ -451,23 +459,19 @@ always @(posedge clk)	byte_err <= se0 & !se0_r & (|bit_cnt[2:1]) & rx_active;
 endmodule
 
 module usb_tx_phy(
-		clk, rst, fs_ce, phy_mode,
-	
-		// Transciever Interface
-		txdp, txdn, txoe,	
+		input		clk,
+		input		rst,
+		input		fs_ce,
+		input		phy_mode,
+		output		txdp,
+		output		txdn,
+		output		 txoe,
+		input	[7:0]	DataOut_i,
+		input		TxValid_i,
+		output		TxReady_o
+);
 
-		// UTMI Interface
-		DataOut_i, TxValid_i, TxReady_o
-		);
 
-input		clk;
-input		rst;
-input		fs_ce;
-input		phy_mode;
-output		txdp, txdn, txoe;
-input	[7:0]	DataOut_i;
-input		TxValid_i;
-output		TxReady_o;
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -482,7 +486,8 @@ parameter	IDLE	= 3'd0,
 		WAIT	= 3'h5;
 
 reg		TxReady_o;
-reg	[2:0]	state, next_state;
+reg	[2:0]	state;
+reg [2:0]   next_state;
 reg		tx_ready_d;
 reg		ld_sop_d;
 reg		ld_data_d;
@@ -510,8 +515,10 @@ reg		append_eop_sync1;
 reg		append_eop_sync2;
 reg		append_eop_sync3;
 reg		append_eop_sync4;
-reg		txdp, txdn;
-reg		txoe_r1, txoe_r2;
+reg		txdp;
+reg     txdn;
+reg		txoe_r1;
+reg     txoe_r2;
 reg		txoe;
 
 ///////////////////////////////////////////////////////////////////

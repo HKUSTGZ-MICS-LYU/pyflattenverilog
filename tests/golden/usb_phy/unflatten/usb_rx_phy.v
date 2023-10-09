@@ -10,7 +10,9 @@ module usb_rx_phy(	clk, rst, fs_ce,
 input		clk;
 input		rst;
 output		fs_ce;
-input		rxd, rxdp, rxdn;
+input		rxd;
+input		rxdp;
+input		 rxdn;
 output	[7:0]	DataIn_o;
 output		RxValid_o;
 output		RxActive_o;
