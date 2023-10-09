@@ -1,8 +1,8 @@
 import main
 
-file_path = 'tests/regression/adder/unflatten/adder.v'
-output_path = 'tests/regression/adder/flatten/f_adder.v'
-top_module = 'adder_32bit'
+file_path = 'tests/regression/usb_phy/unflatten/usb_phy.v'
+output_path = 'tests/regression/usb_phy/flatten/f_usb_phy.v'
+top_module = 'usb_phy'
 
 with open(file_path,"r") as file:
     design = file.read()
