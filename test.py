@@ -13,65 +13,6 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
   output_file = output_file.split('.')[0] + '_' + str(res_index)+'.v'
   res_index += 1
   of_handler = open(output_file,'w')
-  
-  # design = '''
-  # // 8 bit adder
-  # module adder_8bit (
-  #   input [7:0] a,
-  #   input [7:0] b,
-  #   output [7:0] sum
-  # );
-
-  #   assign sum = a + b;
-
-  # endmodule
-
-  # // 16 bit adder
-  # module adder_16bit (
-  #   input [15:0] a,
-  #   input [15:0] b,
-  #   output [15:0] sum  
-  # );
-
-  #   // high 8 bit adder
-  #   adder_8bit add_high (
-  #     .a(a[15:8]),
-  #     .b(b[15:8]), 
-  #     .sum(sum[15:8])
-  #   );
-
-  #   // low 8 bit adder
-  #   adder_8bit add_low (
-  #     .a(a[7:0]),
-  #     .b(b[7:0]),
-  #     .sum(sum[7:0]) 
-  #   );
-
-  # endmodule 
-
-  # // 32 bit adder
-  # module adder_32bit (
-  #   input [31:0] a,
-  #   input [31:0] b,
-  #   output [31:0] sum
-  # );
-
-  #   // high 16 bit
-  #   adder_16bit add_high (
-  #     .a(a[31:16]),
-  #     .b(b[31:16]),
-  #     .sum(sum[31:16])
-  #   );  
-
-  #   // low 16 bit
-  #   adder_16bit add_low (
-  #     .a(a[15:0]),
-  #     .b(b[15:0]), 
-  #     .sum(sum[15:0])
-  #   );
-
-  # endmodule
-  # '''
 
   "This function is used to convert the verilog to a tree"
   def Design2Tree(Design):
@@ -209,24 +150,29 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
     else:
       cur_new_assign.append('assign ' + cur_list_of_ports_rhs[i] + ' = '+ cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
 
-
   # 5. TODO: Rename all variable
   def getTokenText(ctx: VerilogParser.Module_declarationContext):
+    ctx.getText()
     text = ""
     if ctx.getChildCount() == 0:
       return ""
     with StringIO() as builder:
       for child in ctx.getChildren():
-            builder.write(child.getText()+' ')
+            if isinstance(child, antlr4.tree.Tree.TerminalNodeImpl):
+              builder.write(child.getText()+' ')
+            else:   
+              builder.write(child.getText()+' ')
       temp = builder.getvalue()
-      for line in temp.splitlines():
-          for char in line: 
-            if char == ',' or char == ';':
-              text += char + '\n'
-            else:
-              text += char
-      return text
-
+    for line in temp.splitlines():
+        for char in line: 
+          if char == ',' or char == ';'  :
+            text += char + '\n'
+          elif char == '\r\n':
+            text += '\r\n'
+          else:
+            text += char
+    return text
+  
   # replace the corresponding variables with `cur_prefix`
   class InstModuleVisitor(VerilogParserVisitor):
     def __init__(self):
@@ -235,51 +181,45 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
         self.inst_module_design = None
         self.start = None
         self.stop = None
+        self.indent = 2
 
     "This function is used to traverse the tree and change the name of the instance"
-    def _traverse_children(self,ctx):  
+    def _traverse_children(self,ctx,level=0):  
       if isinstance(ctx, antlr4.tree.Tree.TerminalNodeImpl):
-        pass
+        ctx.symbol.text = ctx.symbol.text + '\n'
       else:
         for child in ctx.getChildren():
-          # Rename the instance module
-          if isinstance(child, VerilogParser.Module_instantiationContext):
-              child.start.text = child.start.text + ' '
-          if isinstance(child, VerilogParser.Name_of_module_instanceContext):
-              child.start.text = cur_prefix + '_' + child.start.text
-          if isinstance(child, VerilogParser.ExpressionContext) and isinstance(child.parentCtx, VerilogParser.Named_port_connectionContext):
-              child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '   
-
-          # Rename assign
-          if isinstance(child, VerilogParser.ExpressionContext) and isinstance(child.parentCtx, VerilogParser.ExpressionContext):
-              child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
-          if isinstance(child, VerilogParser.Net_lvalueContext):
-              child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
-
+          # Rename the variables
           if isinstance(child, VerilogParser.Simple_identifierContext):
-              child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
-          # # Rename register define
-          # if isinstance(child, VerilogParser.List_of_variable_identifiersContext):
-          #     child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
+              if isinstance(child.parentCtx.parentCtx, VerilogParser.Module_identifierContext):
+                  pass
+              elif isinstance(child.parentCtx.parentCtx, VerilogParser.Port_identifierContext):
+                  pass
+              else:
+                  child.start.text = ' ' + cur_prefix + '_' + child.start.text
 
-          # # Rename wire define
-          # if isinstance(child, VerilogParser.Net_identifierContext):
-          #     child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
+          # Adjust the indent
+          # Assign block
+          if isinstance(child, VerilogParser.Continuous_assignContext):
+            child.start.text = '\n' + ' ' * level + child.start.text + ' '
+            child.stop.text = child.stop.text +  '\n'
+          
+          # Always block
+          if isinstance(child, VerilogParser.Always_constructContext):
+            child.start.text = '\n' + ' ' * level + child.start.text + ' '
+            child.stop.text = child.stop.text +  '\n'
 
-          # # Rename always block
-          # if isinstance(child, VerilogParser.Procedural_timing_control_statementContext):
-          #     self._traverse_block(child)
-          # self._traverse_children(child)
+          # Case block
+          if isinstance(child, VerilogParser.Case_statementContext):
+            child.start.text = '\n' + ' ' * level + child.start.text + ' '
+            child.stop.text = child.stop.text +  '\n'
+          self._traverse_children(child, level+1)
 
-    # def _traverse_block(self,ctx):
-    #   if isinstance(ctx, antlr4.tree.Tree.TerminalNodeImpl):
-    #     pass
-    #   else:
-    #     for child in ctx.getChildren():
-    #       if isinstance(child, VerilogParser.Simple_identifierContext):
-    #         child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
-    #       self._traverse_block(child)
-
+          # If block
+          if isinstance(child, VerilogParser.Conditional_statementContext):
+            child.start.text = '\n' + ' ' * level + child.start.text + ' '
+            child.stop.text = child.stop.text +  '\n'
+             
     def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
         module_name = ctx.module_identifier().getText()
         if module_name == cur_module_identifier:
@@ -292,6 +232,8 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
   visitor.visit(tree)
   inst_module_node = visitor.inst_module_node
   inst_module_design = visitor.inst_module_design
+  print(inst_module_design)
+
 
   # 6. TODO: Get the instance body
   class InstBodyVisitor(VerilogParserVisitor):
@@ -299,55 +241,55 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
       super().__init__()
       self.start = None
       self.stop = None
+      self.firstTerminal = False
 
-    def _traverse_children(self,ctx):
-      if isinstance(ctx, VerilogParser.Module_declarationContext):
-        self.stop = ctx.stop.start-1
-      if isinstance(ctx, antlr4.tree.Tree.TerminalNodeImpl): 
-        pass
-      else:
-        for child in ctx.getChildren():
-          if isinstance(child, VerilogParser.List_of_port_declarationsContext):
-              self.start = child.stop.stop+3
-          self._traverse_children(child) 
-    
+    def ExtractStartAndStop(self,ctx):
+      self.stop = ctx.ENDMODULE().getSymbol().start-1
+      for child in ctx.getChildren():
+         if isinstance(child, antlr4.tree.Tree.TerminalNodeImpl):
+            if self.firstTerminal == False:
+              self.start = child.symbol.stop+1
+              self.firstTerminal = True
+      
+      
+          
     def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
-        self._traverse_children(ctx)
+      self.ExtractStartAndStop(ctx)
 
   visitor = InstBodyVisitor()
   visitor.visit(inst_module_node)
   inst_body_start = visitor.start
   inst_body_stop = visitor.stop
   insert_part = inst_module_design[inst_body_start:inst_body_stop+1]
+  print(insert_part,file=of_handler)
 
+  # # 7. Replace the instance with new assignment and add instance body in the top module
+  # class VerilogIdentifierVisitor(VerilogParserVisitor):
+  #     def __init__(self):
+  #         super().__init__()
 
-  # 7. Replace the instance with new assignment and add instance body in the top module
-  class VerilogIdentifierVisitor(VerilogParserVisitor):
-      def __init__(self):
-          super().__init__()
-
-      def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
-          cur_start = None
-          cur_stop = None
-          if ctx.module_identifier().getText() == top_module:
-              for child in ctx.getChildren():
-                  if isinstance(child, VerilogParser.Non_port_module_itemContext) and isinstance(child.getChild(0).getChild(0), VerilogParser.Module_instantiationContext):
-                      inst_name = child.getChild(0).getChild(0).getChild(1).getChild(0).getText()
-                      if inst_name == cur_name_of_module_instance:
-                          cur_start = child.start.start
-                          cur_stop = child.stop.stop
-                          print(design[:cur_start],file=of_handler)
-                          for wire in cur_new_wire:
-                              print(wire,file=of_handler)
-                          for assign in cur_new_assign:
-                              print(assign,file=of_handler)
-                          print(insert_part,file=of_handler)
-                          print(design[cur_stop+1:],file=of_handler)
+  #     def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
+  #         cur_start = None
+  #         cur_stop = None
+  #         if ctx.module_identifier().getText() == top_module:
+  #             for child in ctx.getChildren():
+  #                 if isinstance(child, VerilogParser.Non_port_module_itemContext) and isinstance(child.getChild(0).getChild(0), VerilogParser.Module_instantiationContext):
+  #                     inst_name = child.getChild(0).getChild(0).getChild(1).getChild(0).getText()
+  #                     if inst_name == cur_name_of_module_instance:
+  #                         cur_start = child.start.start
+  #                         cur_stop = child.stop.stop
+  #                         print(design[:cur_start],file=of_handler)
+  #                         for wire in cur_new_wire:
+  #                             print(wire,file=of_handler)
+  #                         for assign in cur_new_assign:
+  #                             print(assign,file=of_handler)
+  #                         print(insert_part,file=of_handler)
+  #                         # print(design[cur_stop+1:],file=of_handler)
               
               
-  # Create a visitor instance and visit the top module node
-  visitor = VerilogIdentifierVisitor()
-  visitor.visit(top_node_tree)
+  # # Create a visitor instance and visit the top module node
+  # visitor = VerilogIdentifierVisitor()
+  # visitor.visit(top_node_tree)
 
   of_handler.close()
   of_handler = open(output_file,'r')

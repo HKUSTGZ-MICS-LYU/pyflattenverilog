@@ -103,7 +103,7 @@ endmodule
 module usb_rx_phy(	
 	input		clk,
 	input		rst,
-	output		fs_ce,
+	output	reg	fs_ce,
 	input		rxd,
 	input		rxdp,
 	input	    rxdn,
@@ -152,7 +152,6 @@ reg	[2:0]	one_cnt;
 reg	[1:0]	dpll_state; 
 reg	[1:0]   dpll_next_state;
 reg		fs_ce_d;
-reg		fs_ce;
 wire		change;
 wire		lock_en;
 reg	[2:0]	fs_state;
@@ -463,12 +462,12 @@ module usb_tx_phy(
 		input		rst,
 		input		fs_ce,
 		input		phy_mode,
-		output		txdp,
-		output		txdn,
-		output		 txoe,
+		output	reg	txdp,
+		output	reg	txdn,
+		output	reg	 txoe,
 		input	[7:0]	DataOut_i,
 		input		TxValid_i,
-		output		TxReady_o
+		output	reg	TxReady_o
 );
 
 
@@ -485,7 +484,6 @@ parameter	IDLE	= 3'd0,
 		EOP2	= 3'h4,
 		WAIT	= 3'h5;
 
-reg		TxReady_o;
 reg	[2:0]	state;
 reg [2:0]   next_state;
 reg		tx_ready_d;
@@ -515,11 +513,9 @@ reg		append_eop_sync1;
 reg		append_eop_sync2;
 reg		append_eop_sync3;
 reg		append_eop_sync4;
-reg		txdp;
-reg     txdn;
 reg		txoe_r1;
 reg     txoe_r2;
-reg		txoe;
+
 
 ///////////////////////////////////////////////////////////////////
 //

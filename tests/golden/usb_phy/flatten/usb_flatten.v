@@ -65,7 +65,6 @@ assign usb_tx_phy_DataOut_i = DataOut_i;
 assign usb_tx_phy_TxValid_i = TxValid_i;
 
 assign TxReady_o = usb_tx_phy_TxReady_o;
-always @(*) TxReady_o = usb_tx_phy_TxReady_o;
 ///////////////////////////////////////////////////////////////////
 //
 // Local Wires and Registers

@@ -103,6 +103,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
         self.inst_module_node = None
         self.list_of_ports_width = []
         self.list_of_ports_direction = []
+        self.list_of_ports_type = []
 
 
     def _traverse_children(self,ctx):  
@@ -114,14 +115,32 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
               self.list_of_ports_direction.append('input')
               if isinstance(child.getChild(1), VerilogParser.Range_Context):
                 self.list_of_ports_width.append(child.getChild(1).getText())
+                self.list_of_ports_type.append('wire')
               else:
-                self.list_of_ports_width.append('')
+                if child.getChild(1).getText() == 'reg':
+                  self.list_of_ports_type.append('reg')
+                else:
+                  self.list_of_ports_type.append('wire')
+                if isinstance(child.getChild(2), VerilogParser.Range_Context):
+                  self.list_of_ports_width.append(child.getChild(2).getText())
+                else:
+                  self.list_of_ports_width.append('')
+              
             if isinstance(child, VerilogParser.Output_declarationContext):
               self.list_of_ports_direction.append('output')
               if isinstance(child.getChild(1), VerilogParser.Range_Context):
                 self.list_of_ports_width.append(child.getChild(1).getText())
+                self.list_of_ports_type.append('wire')
               else:
-                self.list_of_ports_width.append('')
+                if child.getChild(1).getText() == 'reg':
+                  self.list_of_ports_type.append('reg')
+                else:
+                  self.list_of_ports_type.append('wire')
+                if isinstance(child.getChild(2), VerilogParser.Range_Context):
+                  self.list_of_ports_width.append(child.getChild(2).getText())
+                else:
+                  self.list_of_ports_width.append('')
+
             self._traverse_children(child)
 
     def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
@@ -134,6 +153,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
   visitor.visit(tree)
   cur_list_of_ports_lhs_width = visitor.list_of_ports_width
   cur_list_of_ports_direction = visitor.list_of_ports_direction
+  cur_list_of_ports_type = visitor.list_of_ports_type
 
 
   # 4. Obtain new assignment with 'prefix', lhs and rhs and define the port as wire type
@@ -141,35 +161,20 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
   # e.g. variable 'a' in 'add_high in 'adder_32bit', It should be adder_32bit_add_high_a, first define it as wire type
   # i.g. 'wire adder_32bit_add_high_a;' 
   # i.e.`assign adder_32bit_add_high_a = a[31:16]` 
-  cur_new_wire = []
+  cur_new_variable = []
   cur_new_assign = []
   for i in range(0,len(cur_list_of_ports_lhs)):
-    cur_new_wire.append('wire ' + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
+    if cur_list_of_ports_type[i] == 'reg':
+      cur_new_variable.append('reg ' + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
+    else:
+      cur_new_variable.append('wire ' + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
+
     if cur_list_of_ports_direction[i] == 'input': 
       cur_new_assign.append('assign ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ' = '+ cur_list_of_ports_rhs[i] + ';')
     else:
       cur_new_assign.append('assign ' + cur_list_of_ports_rhs[i] + ' = '+ cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
 
   # 5. TODO: Rename all variable
-  def getTokenText(ctx: VerilogParser.Module_declarationContext):
-    text = ""
-    if ctx.getChildCount() == 0:
-      return ""
-    with StringIO() as builder:
-      for child in ctx.getChildren():
-            if isinstance(child, antlr4.tree.Tree.TerminalNodeImpl):
-              builder.write(child.getText()+' ')
-            else:   
-              builder.write(child.getText()+' ')
-      temp = builder.getvalue()
-    for line in temp.splitlines():
-        for char in line: 
-          if char == ',' or char == ';'  :
-            text += char + '\n'
-          else:
-            text += char
-    return text
-
   # replace the corresponding variables with `cur_prefix`
   class InstModuleVisitor(VerilogParserVisitor):
     def __init__(self):
@@ -178,6 +183,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
         self.inst_module_design = None
         self.start = None
         self.stop = None
+        self.indent = 2
 
     "This function is used to traverse the tree and change the name of the instance"
     def _traverse_children(self,ctx):  
@@ -185,6 +191,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
         pass
       else:
         for child in ctx.getChildren():
+          # Rename the variables
           if isinstance(child, VerilogParser.Simple_identifierContext):
               if isinstance(child.parentCtx.parentCtx, VerilogParser.Module_identifierContext):
                   pass
@@ -192,77 +199,164 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
                   pass
               else:
                   child.start.text = ' ' + cur_prefix + '_' + child.start.text + ' '
-          if isinstance(child, VerilogParser.Event_expressionContext):
-                child.start.text = ' ' + child.start.text + ' ' 
-          if isinstance(child, VerilogParser.Conditional_statementContext):
-                child.start.text = child.start.text + ' '
-
           self._traverse_children(child)
-
 
     def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
         module_name = ctx.module_identifier().getText()
         if module_name == cur_module_identifier:
           self.inst_module_node = ctx        
           self._traverse_children(self.inst_module_node)
-          self.inst_module_design = getTokenText(self.inst_module_node)
-          self.inst_module_node = Design2Tree(self.inst_module_design)
+        
 
   visitor = InstModuleVisitor()
   visitor.visit(tree)
   inst_module_node = visitor.inst_module_node
-  inst_module_design = visitor.inst_module_design
 
-  # 6. TODO: Get the instance body
+  # 8. TODO: Process the format of the instance body
+  class InstBodyVisitor(VerilogParserVisitor):
+    def __init__(self):
+      super().__init__()
+      self.inst_module_node = None
+      self.inst_module_design = None
+      self.text = ""
+
+    def formatProcess(self,ctx):
+      self._traverse_children(ctx)
+      if ctx.getChildCount() == 0:
+        return ""
+      
+      with StringIO() as builder:
+        for child in ctx.getChildren():  
+                builder.write(child.getText()+' ')
+
+        temp = builder.getvalue()
+      for line in temp.splitlines():
+          for char in line: 
+            # if char == ';' :
+            #   self.text += char + '\n'
+            # el
+            if char == '#':
+               self.text += '\n'
+            else:
+              self.text += char
+              
+    def _traverse_children(self,ctx,indent = 0):  
+      if isinstance(ctx, antlr4.tree.Tree.TerminalNodeImpl):
+        pass
+      else:
+        for child in ctx.getChildren():
+          # Adjust the indent
+          #Parameter defination
+          if isinstance(child, VerilogParser.Param_assignmentContext):
+            child.start.text = '#' + ' ' * indent + child.start.text 
+          #Reg defination
+          if isinstance(child, VerilogParser.Reg_declarationContext):
+            child.start.text = '#' + ' ' * indent + child.start.text
+          #Wire defination
+          if isinstance(child, VerilogParser.Net_declarationContext):
+            child.start.text = '#' + ' ' * indent + child.start.text
+          # Assign block
+          if isinstance(child, VerilogParser.Continuous_assignContext):
+            child.start.text = '#' + ' ' * indent + child.start.text + ' '
+   
+          # Always block
+          if isinstance(child, VerilogParser.Always_constructContext):
+            child.start.text = '#' + ' ' * indent + child.start.text + ' '
+            child.stop.text = child.stop.text + '#'
+          if isinstance(child, VerilogParser.Event_expressionContext) and child.getText() == 'posedge' or child.getText() == 'negedge':
+            child.symbol.text = ' ' + child.symbol.text + ' '
+          
+          # Case block
+          if isinstance(child, VerilogParser.Case_statementContext):
+            child.start.text = '#' + ' ' * indent + child.start.text + ' '
+            child.stop.text = '#' + ' ' * indent + child.stop.text + ' '
+
+          if isinstance(child, VerilogParser.Case_itemContext):
+            child.start.text = '#' + ' ' * indent + child.start.text + ' '
+
+          # If block
+          if isinstance(child, VerilogParser.Conditional_statementContext):
+            child.start.text = '#' + ' ' * indent + child.start.text + ' '
+            # child.stop.text = '#' + ' ' * indent + child.stop.text + ' '
+          if isinstance(child, antlr4.tree.Tree.TerminalNodeImpl) and child.symbol.text == 'else':
+            child.symbol.text = '#' + ' ' * indent + child.symbol.text + ' '
+
+          # Nonblocking assignment
+          if isinstance(child, VerilogParser.Nonblocking_assignmentContext):
+            child.start.text = '#' + ' ' * indent + child.start.text + ' '
+  
+          # Seqblocking assignment
+          if isinstance(child, VerilogParser.Seq_blockContext):
+            child.start.text = '#' + ' ' * indent + child.start.text + ' '
+            child.stop.text = '#' + ' ' * indent + child.stop.text + ' '
+
+          # Blocking assignment
+          if isinstance(child, VerilogParser.Blocking_assignmentContext):
+            child.start.text = '#' + ' ' * indent + child.start.text + ' '
+          self._traverse_children(child,indent+1)
+    def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
+      self.inst_module_node = ctx
+      self.formatProcess(self.inst_module_node)
+      self.inst_module_node = Design2Tree(self.text)
+
+  visitor = InstBodyVisitor()
+  visitor.visit(inst_module_node)
+  inst_module_node = visitor.inst_module_node
+  inst_module_design = visitor.text
+
+
+  # 7. TODO: Get the instance body
   class InstBodyVisitor(VerilogParserVisitor):
     def __init__(self):
       super().__init__()
       self.start = None
       self.stop = None
+      self.firstTerminal = False
 
-    def _traverse_children(self,ctx):
-      if isinstance(ctx, VerilogParser.Module_declarationContext):
-        self.stop = ctx.stop.start-5
-      if isinstance(ctx, antlr4.tree.Tree.TerminalNodeImpl): 
-        pass
-      else:
-        for child in ctx.getChildren():
-          if isinstance(child, VerilogParser.List_of_portsContext):
-              self.start = child.stop.stop+3
-          self._traverse_children(child) 
-    
+    def ExtractStartAndStop(self,ctx):
+      self.stop = ctx.ENDMODULE().getSymbol().start-1
+      for child in ctx.getChildren():
+         if isinstance(child, antlr4.tree.Tree.TerminalNodeImpl):
+            if self.firstTerminal == False:
+              self.start = child.symbol.stop+1
+              self.firstTerminal = True
+           
     def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
-        self._traverse_children(ctx)
+      self.ExtractStartAndStop(ctx)
 
   visitor = InstBodyVisitor()
   visitor.visit(inst_module_node)
-  inst_body_start = visitor.start
-  inst_body_stop = visitor.stop
-  insert_part = inst_module_design[inst_body_start:inst_body_stop+1]
+  insert_part = inst_module_design[visitor.start:visitor.stop]
+  with open('temp.v','w') as file:
+    file.write(insert_part)
+    
 
-
-  # 7. Replace the instance with new assignment and add instance body in the top module
+  # 8. Replace the instance with new assignment and add instance body in the top module
   class VerilogIdentifierVisitor(VerilogParserVisitor):
       def __init__(self):
           super().__init__()
-
-      def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
-          cur_start = None
-          cur_stop = None
-          if ctx.module_identifier().getText() == top_module:
+          self.start = None
+          self.stop = None
+      def _traverse_children(self,ctx):
+          if isinstance(ctx, antlr4.tree.Tree.TerminalNodeImpl):
+              pass
+          else:
               for child in ctx.getChildren():
-                  if isinstance(child, VerilogParser.Non_port_module_itemContext) and isinstance(child.getChild(0).getChild(0), VerilogParser.Module_instantiationContext):
-                      inst_name = child.getChild(0).getChild(0).getChild(1).getChild(0).getText()
-                      if inst_name == cur_name_of_module_instance:
-                          cur_start = child.start.start
-                          cur_stop = child.stop.stop
-                          print(design[:cur_start],file=of_handler)
-                          for wire in cur_new_wire:
-                              print(wire,file=of_handler)
-                          for assign in cur_new_assign:
-                              print(assign,file=of_handler)
-                          print(insert_part,file=of_handler)
-                          print(design[cur_stop+1:],file=of_handler)
+                if isinstance(child, VerilogParser.Module_instantiationContext):
+                  if child.module_identifier().getText() == cur_module_identifier :
+                    self.start = child.start.start
+                    self.stop = child.stop.stop
+                self._traverse_children(child)
+      def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
+          if ctx.module_identifier().getText() == top_module:
+                self._traverse_children(ctx)
+                print(design[:self.start],file=of_handler)
+                for wire in cur_new_variable:
+                    print(wire,file=of_handler)
+                for assign in cur_new_assign:
+                    print(assign,file=of_handler)
+                print(insert_part,file=of_handler)
+                print(design[self.stop+1:],file=of_handler)
               
               
   # Create a visitor instance and visit the top module node
