@@ -327,9 +327,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
   visitor = InstBodyVisitor()
   visitor.visit(inst_module_node)
   insert_part = inst_module_design[visitor.start:visitor.stop]
-  with open('temp.v','w') as file:
-    file.write(insert_part)
-    
+
 
   # 8. Replace the instance with new assignment and add instance body in the top module
   class VerilogIdentifierVisitor(VerilogParserVisitor):
