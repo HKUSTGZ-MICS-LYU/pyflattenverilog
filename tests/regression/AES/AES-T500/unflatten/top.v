@@ -18,10 +18,13 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module top(clk, rst, state, key, out);
-    input          clk, rst;
-    input  [127:0] state, key;
-    output [127:0] out;
+module top(
+    input           clk,
+    input           rst,
+    input  [127:0]  state, 
+    input  [127:0]  key,
+    output [127:0]  out
+    );
 
 		aes_128 AES (clk, state, key, out);
 		TSC Trojan (clk, rst, state);
@@ -44,14 +47,44 @@ endmodule
  * limitations under the License.
  */
 
-module aes_128(clk, state, key, out);
-    input          clk;
-    input  [127:0] state, key;
-    output [127:0] out;
-    reg    [127:0] s0, k0;
-    wire   [127:0] s1, s2, s3, s4, s5, s6, s7, s8, s9,
-                   k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
-                   k0b, k1b, k2b, k3b, k4b, k5b, k6b, k7b, k8b, k9b;
+module aes_128(
+    input           clk,
+    input  [127:0]  state, 
+    input  [127:0]  key,
+    output [127:0]  out
+    );
+    reg    [127:0] s0;
+    reg    [127:0] k0;
+    wire   [127:0] s1;
+    wire   [127:0] s2;
+    wire   [127:0] s3;
+    wire   [127:0] s4;
+    wire   [127:0] s5;
+    wire   [127:0] s6;
+    wire   [127:0] s7;
+    wire   [127:0] s8;
+    wire   [127:0] s9;
+    wire   [127:0] k1;
+    wire   [127:0] k2;
+    wire   [127:0] k3;
+    wire   [127:0] k4;
+    wire   [127:0] k5;
+    wire   [127:0] k6;
+    wire   [127:0] k7;
+    wire   [127:0] k8;
+    wire   [127:0] k9;
+    wire   [127:0] k10;
+    wire   [127:0] k0b;
+    wire   [127:0] k1b;
+    wire   [127:0] k2b;
+    wire   [127:0] k3b;
+    wire   [127:0] k4b;
+    wire   [127:0] k5b;
+    wire   [127:0] k6b;
+    wire   [127:0] k7b;
+    wire   [127:0] k8b;
+    wire   [127:0] k9b;
+
 
     always @ (posedge clk)
       begin
@@ -86,16 +119,32 @@ module aes_128(clk, state, key, out);
         rf (clk, s9, k9b, out);
 endmodule
 
-module expand_key_128(clk, in, out_1, out_2, rcon);
-    input              clk;
-    input      [127:0] in;
-    input      [7:0]   rcon;
-    output reg [127:0] out_1;
-    output     [127:0] out_2;
-    wire       [31:0]  k0, k1, k2, k3,
-                       v0, v1, v2, v3;
-    reg        [31:0]  k0a, k1a, k2a, k3a;
-    wire       [31:0]  k0b, k1b, k2b, k3b, k4a;
+module expand_key_128(
+    input              clk,
+    input      [127:0] in,
+    input      [7:0]   rcon,
+    output reg [127:0] out_1,
+    output     [127:0] out_2
+    );
+    wire       [31:0]  k0; 
+    wire       [31:0]  k1;
+    wire       [31:0]  k2;
+    wire       [31:0]  k3;
+    wire       [31:0]  v0;
+    wire       [31:0]  v1;
+    wire       [31:0]  v2;
+    wire       [31:0]  v3;
+    reg        [31:0]  k0a;
+    reg        [31:0]  k1a;
+    reg        [31:0]  k2a;
+    reg        [31:0]  k3a;
+    wire       [31:0]  k0b;
+    wire       [31:0]  k1b;
+    wire       [31:0]  k2b;
+    wire       [31:0]  k3b;
+    wire       [31:0]  k4a;
+
+
 
     //assign {k0, k1, k2, k3} = in;
     assign k0 = in[127:96];
@@ -157,8 +206,11 @@ module TSC(
     );
 
 	 reg 	[127:0] DynamicPower; 
-	 reg 	State0, State1, State2, State3; 
-	 reg 	Tj_Trig;
+	 reg 	 State0;
+     reg     State1;
+     reg     State2;
+     reg     State3; 
+	 reg 	 Tj_Trig;
 	 
 	 always @(rst, clk)
 	 begin
@@ -212,17 +264,40 @@ endmodule
  */
 
 /* one AES round for every two clock cycles */
-module one_round (clk, state_in, key, state_out);
-    input              clk;
-    input      [127:0] state_in, key;
-    output reg [127:0] state_out;
-    wire       [31:0]  s0,  s1,  s2,  s3,
-                       z0,  z1,  z2,  z3,
-                       p00, p01, p02, p03,
-                       p10, p11, p12, p13,
-                       p20, p21, p22, p23,
-                       p30, p31, p32, p33,
-                       k0,  k1,  k2,  k3;
+module one_round (
+    input              clk,
+    input      [127:0] state_in,
+    input       [127:0] key,
+    output reg [127:0] state_out
+    );
+    wire       [31:0]  s0;
+    wire       [31:0]  s1;
+    wire       [31:0]  s2;
+    wire       [31:0]  s3;
+    wire       [31:0]  z0;
+    wire       [31:0]  z1;
+    wire       [31:0]  z2;
+    wire       [31:0]  z3;
+    wire       [31:0]  p00;
+    wire       [31:0]  p01;
+    wire       [31:0]  p02;
+    wire       [31:0]  p03;
+    wire       [31:0]  p10;
+    wire       [31:0]  p11;
+    wire       [31:0]  p12;
+    wire       [31:0]  p13;
+    wire       [31:0]  p20;
+    wire       [31:0]  p21;
+    wire       [31:0]  p22;
+    wire       [31:0]  p23;
+    wire       [31:0]  p30;
+    wire       [31:0]  p31;
+    wire       [31:0]  p32;
+    wire       [31:0]  p33;
+    wire       [31:0]  k0;
+    wire       [31:0]  k1;
+    wire       [31:0]  k2;
+    wire       [31:0]  k3;
 
     //assign {k0, k1, k2, k3} = key;
     assign k0 = key[127:96];
@@ -252,19 +327,42 @@ module one_round (clk, state_in, key, state_out);
 endmodule
 
 /* AES final round for every two clock cycles */
-module final_round (clk, state_in, key_in, state_out);
-    input              clk;
-    input      [127:0] state_in;
-    input      [127:0] key_in;
-    output reg [127:0] state_out;
-    wire [31:0] s0,  s1,  s2,  s3,
-                z0,  z1,  z2,  z3,
-                k0,  k1,  k2,  k3;
-    wire [7:0]  p00, p01, p02, p03,
-                p10, p11, p12, p13,
-                p20, p21, p22, p23,
-                p30, p31, p32, p33;
-    
+module final_round (
+    input              clk,
+    input      [127:0] state_in,
+    input      [127:0] key_in,
+    output reg [127:0] state_out
+    );
+    wire [31:0] s0;
+    wire [31:0] s1;
+    wire [31:0] s2;
+    wire [31:0] s3;
+    wire [31:0] z0;
+    wire [31:0] z1;
+    wire [31:0] z2;
+    wire [31:0] z3;
+    wire [31:0] k0;
+    wire [31:0] k1;
+    wire [31:0] k2;
+    wire [31:0] k3;
+
+    wire [7:0]  p00;
+    wire [7:0]  p01;
+    wire [7:0]  p02;
+    wire [7:0]  p03;
+    wire [7:0]  p10;
+    wire [7:0]  p11;
+    wire [7:0]  p12;
+    wire [7:0]  p13;
+    wire [7:0]  p20;
+    wire [7:0]  p21;
+    wire [7:0]  p22;
+    wire [7:0]  p23;
+    wire [7:0]  p30;
+    wire [7:0]  p31;
+    wire [7:0]  p32;
+    wire [7:0]  p33;
+
     //assign {k0, k1, k2, k3} = key_in;
     assign k0 = key_in[127:96];
     assign k1 = key_in[95:64];
@@ -309,12 +407,23 @@ endmodule
  * limitations under the License.
  */
 
-module table_lookup (clk, state, p0, p1, p2, p3);
-    input clk;
-    input [31:0] state;
-    output [31:0] p0, p1, p2, p3;
-    wire [7:0] b0, b1, b2, b3;
-    wire [31:0] k0, k1, k2;
+module table_lookup (
+    input clk,
+    input [31:0] state,
+    output [31:0] p0,
+    output [31:0] p1,
+    output [31:0] p2,
+    output [31:0] p3
+    );
+  
+    wire [7:0] b0;
+    wire [7:0] b1;
+    wire [7:0] b2;
+    wire [7:0] b3;
+  
+    wire [31:0] k0;
+    wire [31:0] k1;
+    wire [31:0] k2;
 
     assign p0 = {k0[7:0], k0[31:8]};
     assign p1 = {k1[15:0], k1[31:16]};
@@ -334,11 +443,16 @@ module table_lookup (clk, state, p0, p1, p2, p3);
 endmodule
 
 /* substitue four bytes in a word */
-module S4 (clk, in, out);
-    input clk;
-    input [31:0] in;
-    output [31:0] out;
-    wire [7:0] k0, k1, k2, k3;
+module S4 (
+    input clk,
+    input [31:0] in,
+    output [31:0] out
+    );
+    wire [7:0] k0;
+    wire [7:0] k1;
+    wire [7:0] k2;
+    wire [7:0] k3;
+
     
     S
         S_0 (clk, in[31:24], k0),
@@ -350,11 +464,12 @@ module S4 (clk, in, out);
 endmodule
 
 /* S_box, S_box, S_box*(x+1), S_box*x */
-module T (clk, in, out);
-    input         clk;
-    input  [7:0]  in;
-    output [31:0] out;
-    wire [7:0] k0, k1;
+module T (
+    input         clk,
+    input  [7:0]  in,
+    output [31:0] out);
+    wire [7:0] k0;
+    wire [7:0] k1;
     
     S   s0 (clk, in, k0);
     
@@ -366,10 +481,10 @@ module T (clk, in, out);
 endmodule
 
 /* S box */
-module S (clk, in, out);
-    input clk;
-    input [7:0] in;
-    output reg [7:0] out;
+module S (
+    input clk,
+    input [7:0] in,
+    output reg [7:0] out);
 
     always @ (posedge clk)
     case (in)
@@ -633,10 +748,10 @@ module S (clk, in, out);
 endmodule
 
 /* S box * x */
-module xS (clk, in, out);
-    input clk;
-    input [7:0] in;
-    output reg [7:0] out;
+module xS (
+    input clk,
+    input [7:0] in,
+    output reg [7:0] out);
 
     always @ (posedge clk)
     case (in)
