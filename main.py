@@ -62,7 +62,6 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
       self.is_first_instantiation_module = False
       self.module_identifier = ""
       self.name_of_module_instance = ""
-      self.list_of_ports_lhs = []
       self.list_of_ports_rhs = []
       self.list_of_ports_rhs_width = []
 
@@ -74,19 +73,18 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
           self.name_of_module_instance = ctx.module_instance()[0].name_of_module_instance().getText()
           # get ports connections
           ports_connections = ctx.module_instance()[0].list_of_port_connections()
-          index = 0
           for child in ports_connections.getChildren():
-            if index % 2 == 0:
-              self.list_of_ports_rhs.append(child.expression().getText())
-              self.list_of_ports_lhs.append(child.port_identifier().getText())
-            index = index + 1
+              if isinstance(child, antlr4.tree.Tree.TerminalNodeImpl):
+                pass
+              else:
+                self.list_of_ports_rhs.append(child.expression().getText())
+
               
   visitor = MyModuleInstantiationVisitor()
   visitor.visit(top_node_tree)
   cur_module_identifier = visitor.module_identifier
   cur_name_of_module_instance = visitor.name_of_module_instance
   cur_prefix = cur_name_of_module_instance
-  cur_list_of_ports_lhs = visitor.list_of_ports_lhs
   cur_list_of_ports_rhs = visitor.list_of_ports_rhs
 
   if cur_module_identifier == '':
@@ -104,6 +102,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
         self.list_of_ports_width = []
         self.list_of_ports_direction = []
         self.list_of_ports_type = []
+        self.list_of_ports_lhs = []
 
 
     def _traverse_children(self,ctx):  
@@ -111,6 +110,8 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
           pass
         else:
           for child in ctx.getChildren():
+            if isinstance(child, VerilogParser.List_of_port_identifiersContext):
+              self.list_of_ports_lhs.append(child.getText())
             if isinstance(child, VerilogParser.Input_declarationContext):
               self.list_of_ports_direction.append('input')
               if isinstance(child.getChild(1), VerilogParser.Range_Context):
@@ -121,7 +122,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
                   self.list_of_ports_type.append('reg')
                 else:
                   self.list_of_ports_type.append('wire')
-                if isinstance(child.getChild(2), VerilogParser.Range_Context):
+                if child.getChildCount() > 2 and isinstance(child.getChild(2), VerilogParser.Range_Context):
                   self.list_of_ports_width.append(child.getChild(2).getText())
                 else:
                   self.list_of_ports_width.append('')
@@ -136,7 +137,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
                   self.list_of_ports_type.append('reg')
                 else:
                   self.list_of_ports_type.append('wire')
-                if isinstance(child.getChild(2), VerilogParser.Range_Context):
+                if child.getChildCount() > 2 and isinstance(child.getChild(2), VerilogParser.Range_Context):
                   self.list_of_ports_width.append(child.getChild(2).getText())
                 else:
                   self.list_of_ports_width.append('')
@@ -154,6 +155,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
   cur_list_of_ports_lhs_width = visitor.list_of_ports_width
   cur_list_of_ports_direction = visitor.list_of_ports_direction
   cur_list_of_ports_type = visitor.list_of_ports_type
+  cur_list_of_ports_lhs = visitor.list_of_ports_lhs
 
 
   # 4. Obtain new assignment with 'prefix', lhs and rhs and define the port as wire type
@@ -163,12 +165,13 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
   # i.e.`assign adder_32bit_add_high_a = a[31:16]` 
   cur_new_variable = []
   cur_new_assign = []
+ 
   for i in range(0,len(cur_list_of_ports_lhs)):
     if cur_list_of_ports_type[i] == 'reg':
       cur_new_variable.append('reg ' + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
     else:
       cur_new_variable.append('wire ' + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
-
+  
     if cur_list_of_ports_direction[i] == 'input': 
       cur_new_assign.append('assign ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ' = '+ cur_list_of_ports_rhs[i] + ';')
     else:
@@ -232,9 +235,6 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
         temp = builder.getvalue()
       for line in temp.splitlines():
           for char in line: 
-            # if char == ';' :
-            #   self.text += char + '\n'
-            # el
             if char == '#':
                self.text += '\n'
             else:
@@ -255,10 +255,12 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
           #Wire defination
           if isinstance(child, VerilogParser.Net_declarationContext):
             child.start.text = '#' + ' ' * indent + child.start.text
+          #Integer defination
+          if isinstance(child, VerilogParser.Integer_declarationContext):
+            child.start.text = '#' + ' ' * indent + child.start.text
           # Assign block
           if isinstance(child, VerilogParser.Continuous_assignContext):
             child.start.text = '#' + ' ' * indent + child.start.text + ' '
-   
           # Always block
           if isinstance(child, VerilogParser.Always_constructContext):
             child.start.text = '#' + ' ' * indent + child.start.text + ' '

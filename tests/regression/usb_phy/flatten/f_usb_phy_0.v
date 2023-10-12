@@ -111,32 +111,39 @@ assign TxReady_o = i_tx_phy_TxReady_o;
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_tx_ip  <=1'b0;
-        else if( i_tx_phy_ld_sop_d )
-           i_tx_phy_tx_ip  <=1'b1;
-        else if( i_tx_phy_eop_done )
-           i_tx_phy_tx_ip  <=1'b0;
+        else 
+          if ( i_tx_phy_ld_sop_d )
+              i_tx_phy_tx_ip  <=1'b1;
+           else 
+             if ( i_tx_phy_eop_done )
+                 i_tx_phy_tx_ip  <=1'b0;
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_tx_ip_sync  <=1'b0;
-        else if( i_tx_phy_fs_ce )
-           i_tx_phy_tx_ip_sync  <= i_tx_phy_tx_ip ;
+        else 
+          if ( i_tx_phy_fs_ce )
+              i_tx_phy_tx_ip_sync  <= i_tx_phy_tx_ip ;
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_data_done  <=1'b0;
-        else if( i_tx_phy_TxValid_i &&! i_tx_phy_tx_ip )
-           i_tx_phy_data_done  <=1'b1;
-        else if(! i_tx_phy_TxValid_i )
-           i_tx_phy_data_done  <=1'b0;
+        else 
+          if ( i_tx_phy_TxValid_i &&! i_tx_phy_tx_ip )
+              i_tx_phy_data_done  <=1'b1;
+           else 
+             if (! i_tx_phy_TxValid_i )
+                 i_tx_phy_data_done  <=1'b0;
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_bit_cnt  <=3'h0;
-        else if(! i_tx_phy_tx_ip_sync )
-           i_tx_phy_bit_cnt  <=3'h0;
-        else if( i_tx_phy_fs_ce &&! i_tx_phy_hold )
-           i_tx_phy_bit_cnt  <= i_tx_phy_bit_cnt +3'h1;
+        else 
+          if (! i_tx_phy_tx_ip_sync )
+              i_tx_phy_bit_cnt  <=3'h0;
+           else 
+             if ( i_tx_phy_fs_ce &&! i_tx_phy_hold )
+                 i_tx_phy_bit_cnt  <= i_tx_phy_bit_cnt +3'h1;
  
   assign  i_tx_phy_hold = i_tx_phy_stuff ; 
   always @(posedge i_tx_phy_clk )
@@ -144,21 +151,21 @@ assign TxReady_o = i_tx_phy_TxReady_o;
            i_tx_phy_sd_raw_o  <=1'b0;
         else 
           case ( i_tx_phy_bit_cnt )
-           3'h0 :
+           3 'h0:
                i_tx_phy_sd_raw_o  <= i_tx_phy_hold_reg_d [0];
-           3'h1 :
+           3 'h1:
                i_tx_phy_sd_raw_o  <= i_tx_phy_hold_reg_d [1];
-           3'h2 :
+           3 'h2:
                i_tx_phy_sd_raw_o  <= i_tx_phy_hold_reg_d [2];
-           3'h3 :
+           3 'h3:
                i_tx_phy_sd_raw_o  <= i_tx_phy_hold_reg_d [3];
-           3'h4 :
+           3 'h4:
                i_tx_phy_sd_raw_o  <= i_tx_phy_hold_reg_d [4];
-           3'h5 :
+           3 'h5:
                i_tx_phy_sd_raw_o  <= i_tx_phy_hold_reg_d [5];
-           3'h6 :
+           3 'h6:
                i_tx_phy_sd_raw_o  <= i_tx_phy_hold_reg_d [6];
-           3'h7 :
+           3 'h7:
                i_tx_phy_sd_raw_o  <= i_tx_phy_hold_reg_d [7];
           endcase
   
@@ -172,8 +179,9 @@ assign TxReady_o = i_tx_phy_TxReady_o;
   always @(posedge i_tx_phy_clk )
        if ( i_tx_phy_ld_sop_d )
            i_tx_phy_hold_reg  <=8'h80;
-        else if( i_tx_phy_ld_data )
-           i_tx_phy_hold_reg  <= i_tx_phy_DataOut_i ;
+        else 
+          if ( i_tx_phy_ld_data )
+              i_tx_phy_hold_reg  <= i_tx_phy_DataOut_i ;
  
   always @(posedge i_tx_phy_clk )
         i_tx_phy_hold_reg_d  <= i_tx_phy_hold_reg ;
@@ -181,93 +189,109 @@ assign TxReady_o = i_tx_phy_TxReady_o;
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_one_cnt  <=3'h0;
-        else if(! i_tx_phy_tx_ip_sync )
-           i_tx_phy_one_cnt  <=3'h0;
-        else if( i_tx_phy_fs_ce )
-          begin 
-            if (! i_tx_phy_sd_raw_o || i_tx_phy_stuff )
-                i_tx_phy_one_cnt  <=3'h0;
-             else 
-                i_tx_phy_one_cnt  <= i_tx_phy_one_cnt +3'h1;
-          end
+        else 
+          if (! i_tx_phy_tx_ip_sync )
+              i_tx_phy_one_cnt  <=3'h0;
+           else 
+             if ( i_tx_phy_fs_ce )
+                begin 
+                  if (! i_tx_phy_sd_raw_o || i_tx_phy_stuff )
+                      i_tx_phy_one_cnt  <=3'h0;
+                   else 
+                      i_tx_phy_one_cnt  <= i_tx_phy_one_cnt +3'h1;
+                end
   
   assign  i_tx_phy_stuff =( i_tx_phy_one_cnt ==3'h6); 
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_sd_bs_o  <=1'h0;
-        else if( i_tx_phy_fs_ce )
-           i_tx_phy_sd_bs_o  <=! i_tx_phy_tx_ip_sync ?1'b0:( i_tx_phy_stuff ?1'b0: i_tx_phy_sd_raw_o );
+        else 
+          if ( i_tx_phy_fs_ce )
+              i_tx_phy_sd_bs_o  <=! i_tx_phy_tx_ip_sync ?1'b0:( i_tx_phy_stuff ?1'b0: i_tx_phy_sd_raw_o );
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_sd_nrzi_o  <=1'b1;
-        else if(! i_tx_phy_tx_ip_sync ||! i_tx_phy_txoe_r1 )
-           i_tx_phy_sd_nrzi_o  <=1'b1;
-        else if( i_tx_phy_fs_ce )
-           i_tx_phy_sd_nrzi_o  <= i_tx_phy_sd_bs_o ? i_tx_phy_sd_nrzi_o :~ i_tx_phy_sd_nrzi_o ;
+        else 
+          if (! i_tx_phy_tx_ip_sync ||! i_tx_phy_txoe_r1 )
+              i_tx_phy_sd_nrzi_o  <=1'b1;
+           else 
+             if ( i_tx_phy_fs_ce )
+                 i_tx_phy_sd_nrzi_o  <= i_tx_phy_sd_bs_o ? i_tx_phy_sd_nrzi_o :~ i_tx_phy_sd_nrzi_o ;
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_append_eop  <=1'b0;
-        else if( i_tx_phy_ld_eop_d )
-           i_tx_phy_append_eop  <=1'b1;
-        else if( i_tx_phy_append_eop_sync2 )
-           i_tx_phy_append_eop  <=1'b0;
+        else 
+          if ( i_tx_phy_ld_eop_d )
+              i_tx_phy_append_eop  <=1'b1;
+           else 
+             if ( i_tx_phy_append_eop_sync2 )
+                 i_tx_phy_append_eop  <=1'b0;
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_append_eop_sync1  <=1'b0;
-        else if( i_tx_phy_fs_ce )
-           i_tx_phy_append_eop_sync1  <= i_tx_phy_append_eop ;
+        else 
+          if ( i_tx_phy_fs_ce )
+              i_tx_phy_append_eop_sync1  <= i_tx_phy_append_eop ;
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_append_eop_sync2  <=1'b0;
-        else if( i_tx_phy_fs_ce )
-           i_tx_phy_append_eop_sync2  <= i_tx_phy_append_eop_sync1 ;
+        else 
+          if ( i_tx_phy_fs_ce )
+              i_tx_phy_append_eop_sync2  <= i_tx_phy_append_eop_sync1 ;
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_append_eop_sync3  <=1'b0;
-        else if( i_tx_phy_fs_ce )
-           i_tx_phy_append_eop_sync3  <= i_tx_phy_append_eop_sync2 |( i_tx_phy_append_eop_sync3 &! i_tx_phy_append_eop_sync4 );
+        else 
+          if ( i_tx_phy_fs_ce )
+              i_tx_phy_append_eop_sync3  <= i_tx_phy_append_eop_sync2 |( i_tx_phy_append_eop_sync3 &! i_tx_phy_append_eop_sync4 );
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_append_eop_sync4  <=1'b0;
-        else if( i_tx_phy_fs_ce )
-           i_tx_phy_append_eop_sync4  <= i_tx_phy_append_eop_sync3 ;
+        else 
+          if ( i_tx_phy_fs_ce )
+              i_tx_phy_append_eop_sync4  <= i_tx_phy_append_eop_sync3 ;
  
   assign  i_tx_phy_eop_done = i_tx_phy_append_eop_sync3 ; 
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_txoe_r1  <=1'b0;
-        else if( i_tx_phy_fs_ce )
-           i_tx_phy_txoe_r1  <= i_tx_phy_tx_ip_sync ;
+        else 
+          if ( i_tx_phy_fs_ce )
+              i_tx_phy_txoe_r1  <= i_tx_phy_tx_ip_sync ;
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_txoe_r2  <=1'b0;
-        else if( i_tx_phy_fs_ce )
-           i_tx_phy_txoe_r2  <= i_tx_phy_txoe_r1 ;
+        else 
+          if ( i_tx_phy_fs_ce )
+              i_tx_phy_txoe_r2  <= i_tx_phy_txoe_r1 ;
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_txoe  <=1'b1;
-        else if( i_tx_phy_fs_ce )
-           i_tx_phy_txoe  <=!( i_tx_phy_txoe_r1 | i_tx_phy_txoe_r2 );
+        else 
+          if ( i_tx_phy_fs_ce )
+              i_tx_phy_txoe  <=!( i_tx_phy_txoe_r1 | i_tx_phy_txoe_r2 );
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_txdp  <=1'b1;
-        else if( i_tx_phy_fs_ce )
-           i_tx_phy_txdp  <= i_tx_phy_phy_mode ?(! i_tx_phy_append_eop_sync3 & i_tx_phy_sd_nrzi_o ): i_tx_phy_sd_nrzi_o ;
+        else 
+          if ( i_tx_phy_fs_ce )
+              i_tx_phy_txdp  <= i_tx_phy_phy_mode ?(! i_tx_phy_append_eop_sync3 & i_tx_phy_sd_nrzi_o ): i_tx_phy_sd_nrzi_o ;
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
            i_tx_phy_txdn  <=1'b0;
-        else if( i_tx_phy_fs_ce )
-           i_tx_phy_txdn  <= i_tx_phy_phy_mode ?(! i_tx_phy_append_eop_sync3 &~ i_tx_phy_sd_nrzi_o ): i_tx_phy_append_eop_sync3 ;
+        else 
+          if ( i_tx_phy_fs_ce )
+              i_tx_phy_txdn  <= i_tx_phy_phy_mode ?(! i_tx_phy_append_eop_sync3 &~ i_tx_phy_sd_nrzi_o ): i_tx_phy_append_eop_sync3 ;
  
   always @(posedge i_tx_phy_clk or negedge  i_tx_phy_rst )
        if (! i_tx_phy_rst )
