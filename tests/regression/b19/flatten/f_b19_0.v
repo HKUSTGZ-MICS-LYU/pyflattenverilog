@@ -1,3 +1,95 @@
+module b18 (
+ input clock,
+ input reset,
+ input hold,
+ input na,
+ input bs,
+ input sel,
+ output reg[19:0]dout,
+ input [31:0]din,
+ output reg[2:0]aux) ; 
+   integer P1_di1 ; 
+   integer P1_di2 ; 
+   wire[31:0] P1_do1 ; 
+   wire[31:0] P1_do2 ; 
+   integer P1_td1 ; 
+   integer P1_td2 ; 
+   integer P1_di3 ; 
+   integer P1_di4 ; 
+   wire[31:0] P1_do3 ; 
+   wire[31:0] P1_do4 ; 
+   reg[29:0] P1_tad1 ; 
+   reg[29:0] P1_tad2 ; 
+   wire[29:0] P1_ad11 ; 
+   wire[29:0] P1_ad12 ; 
+   wire[29:0] P1_ad21 ; 
+   wire[29:0] P1_ad22 ; 
+   wire[19:0] P1_ad31 ; 
+   wire[19:0] P1_ad41 ; 
+   reg[19:0] P1_tad3 ; 
+   reg[19:0] P1_tad4 ; 
+   wire P1_wr1 ; 
+   wire P1_wr2 ; 
+   wire P1_wr3 ; 
+   wire P1_wr4 ; 
+   wire P1_dc1 ; 
+   wire P1_dc2 ; 
+   wire P1_mio1 ; 
+   wire P1_mio2 ; 
+   wire P1_as11 ; 
+   wire P1_as12 ; 
+   wire P1_as21 ; 
+   wire P1_as22 ; 
+   reg P1_r11 ; 
+   reg P1_r12 ; 
+   reg P1_r21 ; 
+   reg P1_r22 ; 
+   wire P1_rd3 ; 
+   wire P1_rd4 ; 
+  b17  P1_P1 ( P1_clock , P1_reset , P1_di1 , P1_do1 , P1_hold , P1_na , P1_bs , P1_ad11 , P1_ad12 , P1_wr1 , P1_dc1 , P1_mio1 , P1_as11 , P1_as12 , P1_r11 , P1_r12 ); 
+  b17  P1_P2 ( P1_clock , P1_reset , P1_di2 , P1_do2 , P1_hold , P1_na , P1_bs , P1_ad21 , P1_ad22 , P1_wr2 , P1_dc2 , P1_mio2 , P1_as21 , P1_as22 , P1_r21 , P1_r22 ); 
+  b14  P1_P3 ( P1_clock , P1_reset , P1_ad31 , P1_di3 , P1_do3 , P1_rd3 , P1_wr3 ); 
+  b14  P1_P4 ( P1_clock , P1_reset , P1_ad41 , P1_di4 , P1_do4 , P1_rd4 , P1_wr4 ); 
+  always @( P1_do1 or P1_rd3 or P1_wr1 or P1_mio1 or P1_dc1 or P1_as12 or P1_do2 or P1_rd4 or P1_wr2 or P1_mio2 or P1_dc2 or P1_as22 or P1_as21 or P1_as11 or P1_wr3 or P1_ad31 or P1_tad2 or P1_wr4 or P1_ad41 or P1_tad1 or P1_do3 or P1_do4 or P1_ad11 or P1_ad12 or P1_ad21 or P1_ad22 or P1_tad3 or P1_tad4 or P1_sel or P1_din or P1_td1 or P1_td2 )
+       begin 
+          P1_di3  <= P1_do1 %2**20;
+          P1_r12  <=(~( P1_rd3 & P1_wr1 & P1_mio1 & P1_dc1 &(~ P1_as12 )));
+          P1_di4  <= P1_do2 ;
+          P1_r22  <=(~( P1_rd4 & P1_wr2 & P1_mio2 & P1_dc2 &(~ P1_as22 )));
+          P1_r11  <= P1_as21 ;
+          P1_r21  <= P1_as11 ;
+         if ( P1_wr3 ==1'b1)
+             P1_tad3  <= P1_ad31 ;
+          else 
+             P1_tad3  <= P1_tad2 %2**20;
+         if ( P1_wr4 ==1'b1)
+             P1_tad4  <= P1_ad41 ;
+          else 
+             P1_tad4  <= P1_tad1 %2**20;
+         if ( P1_do3 >2**28)
+             P1_tad1  <= P1_ad11 ;
+          else 
+             P1_tad1  <= P1_ad12 ;
+         if ( P1_do4 >2**29)
+             P1_tad2  <= P1_ad21 ;
+          else 
+             P1_tad2  <= P1_ad22 ;
+          P1_dout  <=( P1_tad3 * P1_tad4 )%2**19;
+         if ( P1_sel ==1'b0)
+            begin 
+               P1_td1  <=0;
+               P1_td2  <= P1_din ;
+            end 
+          else 
+            begin 
+               P1_td1  <= P1_din ;
+               P1_td2  <=0;
+            end 
+          P1_di1  <= P1_do4 * P1_td1 ;
+          P1_di2  <= P1_do3 * P1_td2 ;
+          P1_aux  <=( P1_tad1 * P1_tad2 )%2**3;
+       end
+  endmodule 
 
 
 module b14(
@@ -1013,7 +1105,15 @@ module b15(
       if (RESET == 1'b1)
       begin
          State2 = Si;
-         InstQueue = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+         InstQueue[0] = 16*{0};
+         InstQueue[1] = 16*{0};
+         InstQueue[2] = 16*{0};
+         InstQueue[3] = 16*{0};
+         InstQueue[4] = 16*{0};
+         InstQueue[5] = 16*{0};
+         InstQueue[6] = 16*{0};
+         InstQueue[7] = 16*{0};
+
          InstQueueRd_Addr = 0;
          InstQueueWr_Addr = 0;
          InstAddrPointer = 0;
@@ -1516,7 +1616,7 @@ module b15(
                ;
          endcase
    end
-   
+
 endmodule
 
 module b17(
@@ -1813,14 +1913,18 @@ wire  P1_hold;
 wire  P1_na;
 wire  P1_bs;
 wire  P1_sel;
-reg [19:0] P1_din;
+reg [19:0] P1_dout;
+wire [31:0] P1_din;
+reg [2:0] P1_aux;
 assign P1_clock = clock;
 assign P1_reset = reset;
 assign P1_hold = hold;
 assign P1_na = na;
 assign P1_bs = bs;
 assign P1_sel = sel1;
-assign do1 = P1_din;
+assign do1 = P1_dout;
+assign P1_din = di1;
+assign ax1 = P1_aux;
  
    integer P1_di1 ; 
    integer P1_di2 ; 
@@ -1859,7 +1963,11 @@ assign do1 = P1_din;
    reg P1_r21 ; 
    reg P1_r22 ; 
    wire P1_rd3 ; 
-   wire P1_rd4 ; b17 P1_P1 ( P1_clock , P1_reset , P1_di1 , P1_do1 , P1_hold , P1_na , P1_bs , P1_ad11 , P1_ad12 , P1_wr1 , P1_dc1 , P1_mio1 , P1_as11 , P1_as12 , P1_r11 , P1_r12 ); b17 P1_P2 ( P1_clock , P1_reset , P1_di2 , P1_do2 , P1_hold , P1_na , P1_bs , P1_ad21 , P1_ad22 , P1_wr2 , P1_dc2 , P1_mio2 , P1_as21 , P1_as22 , P1_r21 , P1_r22 ); b14 P1_P3 ( P1_clock , P1_reset , P1_ad31 , P1_di3 , P1_do3 , P1_rd3 , P1_wr3 ); b14 P1_P4 ( P1_clock , P1_reset , P1_ad41 , P1_di4 , P1_do4 , P1_rd4 , P1_wr4 ); 
+   wire P1_rd4 ; 
+  b17  P1_P1 ( P1_clock , P1_reset , P1_di1 , P1_do1 , P1_hold , P1_na , P1_bs , P1_ad11 , P1_ad12 , P1_wr1 , P1_dc1 , P1_mio1 , P1_as11 , P1_as12 , P1_r11 , P1_r12 ); 
+  b17  P1_P2 ( P1_clock , P1_reset , P1_di2 , P1_do2 , P1_hold , P1_na , P1_bs , P1_ad21 , P1_ad22 , P1_wr2 , P1_dc2 , P1_mio2 , P1_as21 , P1_as22 , P1_r21 , P1_r22 ); 
+  b14  P1_P3 ( P1_clock , P1_reset , P1_ad31 , P1_di3 , P1_do3 , P1_rd3 , P1_wr3 ); 
+  b14  P1_P4 ( P1_clock , P1_reset , P1_ad41 , P1_di4 , P1_do4 , P1_rd4 , P1_wr4 ); 
   always @( P1_do1 or P1_rd3 or P1_wr1 or P1_mio1 or P1_dc1 or P1_as12 or P1_do2 or P1_rd4 or P1_wr2 or P1_mio2 or P1_dc2 or P1_as22 or P1_as21 or P1_as11 or P1_wr3 or P1_ad31 or P1_tad2 or P1_wr4 or P1_ad41 or P1_tad1 or P1_do3 or P1_do4 or P1_ad11 or P1_ad12 or P1_ad21 or P1_ad22 or P1_tad3 or P1_tad4 or P1_sel or P1_din or P1_td1 or P1_td2 )
        begin 
           P1_di3  <= P1_do1 %2**20;

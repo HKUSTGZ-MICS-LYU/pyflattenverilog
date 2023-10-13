@@ -1013,7 +1013,15 @@ module b15(
       if (RESET == 1'b1)
       begin
          State2 = Si;
-         InstQueue = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+         InstQueue[0] = 16*{0};
+         InstQueue[1] = 16*{0};
+         InstQueue[2] = 16*{0};
+         InstQueue[3] = 16*{0};
+         InstQueue[4] = 16*{0};
+         InstQueue[5] = 16*{0};
+         InstQueue[6] = 16*{0};
+         InstQueue[7] = 16*{0};
+
          InstQueueRd_Addr = 0;
          InstQueueWr_Addr = 0;
          InstAddrPointer = 0;
@@ -1516,7 +1524,7 @@ module b15(
                ;
          endcase
    end
-   
+
 endmodule
 
 module b17(
