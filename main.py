@@ -114,41 +114,40 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
           for child in ctx.getChildren():
             if isinstance(child, VerilogParser.Input_declarationContext):
               self.list_of_ports_direction.append('input')
-              for i in range(0,child.getChildCount()):
-                if isinstance(child.getChild(i), VerilogParser.Range_Context):
-                  self.list_of_ports_width.append(child.getChild(i).getText())
-                else:
-                  self.list_of_ports_width.append('')
-                if child.getChild(i).getText() == 'reg':
-                  self.list_of_ports_type.append('reg')
-                else:
-                  self.list_of_ports_type.append('wire')
-                if child.getChild(i).getText() == ('signed' or  'unsigned' or 'integer' or 'float'):
-                  self.list_of_data_type.append(child.getChild(i).getText())
-                else:
-                  self.list_of_data_type.append('')
-                if isinstance(child.getChild(i), VerilogParser.List_of_port_identifiersContext) or isinstance(child.getChild(i), VerilogParser.List_of_variable_identifiersContext):
-                  self.list_of_ports_lhs.append(child.getChild(i).getText())
-                
+              temp = child.INPUT
+              print(temp)
+          
             if isinstance(child, VerilogParser.Output_declarationContext):
               self.list_of_ports_direction.append('output')
-              for i in range(0,child.getChildCount()):
-                temp = child.getChild(i)
-                if isinstance(temp, VerilogParser.Range_Context):
-                  self.list_of_ports_width.append(temp.getText())
-                else:
-                  self.list_of_ports_width.append('')
-                if temp.getText() == 'reg':
-                  self.list_of_ports_type.append('reg')
-                else:
-                  self.list_of_ports_type.append('wire')
-                if temp.getText() == ('signed' or  'unsigned' or 'integer' or 'float'):
-                  self.list_of_data_type.append(temp.getText())
-                else:
-                  self.list_of_data_type.append('')
-                if isinstance(temp, VerilogParser.List_of_port_identifiersContext) or isinstance(temp, VerilogParser.List_of_variable_identifiersContext):
-                  self.list_of_ports_lhs.append(temp.getText())
-          
+              #Port type
+              if child.getChild(1).getText() == 'reg':
+                self.list_of_ports_type.append('reg')
+              else:
+                self.list_of_ports_type.append('wire')
+              #Port width
+              if isinstance(child.getChild(2), VerilogParser.Range_Context):
+                self.list_of_ports_width.append(child.getChild(2).getText())
+              elif isinstance(child.getChild(3),VerilogParser.Range_Context):
+                self.list_of_ports_width.append(child.getChild(3).getText())
+              else:
+                self.list_of_ports_width.append('')
+              #Data type
+              if child.getChild(2).getText() == ('signed' or  'unsigned' or 'integer' or 'float'):
+                self.list_of_data_type.append(child.getChild(2).getText())
+              elif child.getChild(3).getText() == ('signed' or  'unsigned' or 'integer' or 'float'):
+                self.list_of_data_type.append(child.getChild(3).getText())
+              else:
+                self.list_of_data_type.append('')
+              #Port Name
+              if isinstance(child.getChild(1), VerilogParser.List_of_port_identifiersContext) or isinstance(child.getChild(1), VerilogParser.List_of_variable_port_identifiersContext):
+                  self.list_of_ports_lhs.append(child.getChild(1).getText())
+              elif isinstance(child.getChild(2), VerilogParser.List_of_port_identifiersContext) or isinstance(child.getChild(2), VerilogParser.List_of_variable_port_identifiersContext):
+                  self.list_of_ports_lhs.append(child.getChild(2).getText())
+              elif isinstance(child.getChild(3), VerilogParser.List_of_port_identifiersContext) or isinstance(child.getChild(3), VerilogParser.List_of_variable_port_identifiersContext):
+                  self.list_of_ports_lhs.append(child.getChild(3).getText())
+              elif isinstance(child.getChild(4), VerilogParser.List_of_port_identifiersContext) or isinstance(child.getChild(4), VerilogParser.List_of_variable_port_identifiersContext):
+                self.list_of_ports_lhs.append(child.getChild(4).getText())
+            
 
             self._traverse_children(child)
 
