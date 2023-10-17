@@ -113,42 +113,33 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
         else:
           for child in ctx.getChildren():
             if isinstance(child, VerilogParser.Input_declarationContext):
-              self.list_of_ports_direction.append('input')
-              temp = child.INPUT
-              print(temp)
-          
-            if isinstance(child, VerilogParser.Output_declarationContext):
-              self.list_of_ports_direction.append('output')
-              #Port type
-              if child.getChild(1).getText() == 'reg':
-                self.list_of_ports_type.append('reg')
+              self.list_of_ports_direction.append(child.INPUT().getText())
+              self.list_of_ports_lhs.append(child.list_of_port_identifiers().getText())
+              
+              if child.range_() is not None:
+                self.list_of_ports_width.append(child.range_().getText())  
               else:
-                self.list_of_ports_type.append('wire')
-              #Port width
-              if isinstance(child.getChild(2), VerilogParser.Range_Context):
-                self.list_of_ports_width.append(child.getChild(2).getText())
-              elif isinstance(child.getChild(3),VerilogParser.Range_Context):
-                self.list_of_ports_width.append(child.getChild(3).getText())
+                 self.list_of_ports_width.append('')
+
+              if child.net_type() is not None:
+                self.list_of_ports_type.append(child.net_type().getText())
+                print(child.net_type().getText())
               else:
-                self.list_of_ports_width.append('')
-              #Data type
-              if child.getChild(2).getText() == ('signed' or  'unsigned' or 'integer' or 'float'):
-                self.list_of_data_type.append(child.getChild(2).getText())
-              elif child.getChild(3).getText() == ('signed' or  'unsigned' or 'integer' or 'float'):
-                self.list_of_data_type.append(child.getChild(3).getText())
+                self.list_of_ports_type.append('')
+
+              if child.SIGNED() is not None:
+                self.list_of_data_type.append(child.SIGNED().getText())
               else:
                 self.list_of_data_type.append('')
-              #Port Name
-              if isinstance(child.getChild(1), VerilogParser.List_of_port_identifiersContext) or isinstance(child.getChild(1), VerilogParser.List_of_variable_port_identifiersContext):
-                  self.list_of_ports_lhs.append(child.getChild(1).getText())
-              elif isinstance(child.getChild(2), VerilogParser.List_of_port_identifiersContext) or isinstance(child.getChild(2), VerilogParser.List_of_variable_port_identifiersContext):
-                  self.list_of_ports_lhs.append(child.getChild(2).getText())
-              elif isinstance(child.getChild(3), VerilogParser.List_of_port_identifiersContext) or isinstance(child.getChild(3), VerilogParser.List_of_variable_port_identifiersContext):
-                  self.list_of_ports_lhs.append(child.getChild(3).getText())
-              elif isinstance(child.getChild(4), VerilogParser.List_of_port_identifiersContext) or isinstance(child.getChild(4), VerilogParser.List_of_variable_port_identifiersContext):
-                self.list_of_ports_lhs.append(child.getChild(4).getText())
-            
 
+            # if isinstance(child, VerilogParser.Output_declarationContext):
+            #   self.list_of_ports_direction.append(child.OUTPUT().getText())
+            #   self.list_of_ports_lhs.append(child.list_of_port_identifiers().getText())
+              
+            #   if child.range_() is not None:
+            #     self.list_of_ports_width.append(child.range_().getText())  
+            #   else:
+            #      self.list_of_ports_width.append('')
             self._traverse_children(child)
 
     def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
