@@ -48,39 +48,39 @@ assign add_high_a = a[31:16];
 assign add_high_b = b[31:16];
 assign sum[31:16] = add_high_sum;
  
-  adder_8bit  add_high_add_high (.a( add_high_a [15:8]),.b( add_high_b [15:8]),.sum( add_high_sum [15:8])); 
-  adder_8bit  add_high_add_low (.a( add_high_a [7:0]),.b( add_high_b [7:0]),.sum( add_high_sum [7:0]));
+  
+wire [7:0] add_high_add_high_a;
+wire [7:0] add_high_add_high_b;
+wire [7:0] add_high_add_high_sum;
+assign add_high_add_high_a = add_high_a[15:8];
+assign add_high_add_high_b = add_high_b[15:8];
+assign add_high_sum[15:8] = add_high_add_high_sum;
+ 
+  assign  add_high_add_high_sum = add_high_add_high_a + add_high_add_high_b ;
+ 
+  
+wire [7:0] add_high_add_low_a;
+wire [7:0] add_high_add_low_b;
+wire [7:0] add_high_add_low_sum;
+assign add_high_add_low_a = add_high_a[7:0];
+assign add_high_add_low_b = add_high_b[7:0];
+assign add_high_sum[7:0] = add_high_add_low_sum;
+ 
+  assign  add_high_add_low_sum = add_high_add_low_a + add_high_add_low_b ;
+
   
 
   // low 16 bit
   
-wire [15:0] add_high_a;
-wire [15:0] add_high_b;
-wire [15:0] add_high_sum;
-assign add_high_a = a[31:16];
-assign add_high_b = b[31:16];
-assign sum[31:16] = add_high_sum;
+wire [15:0] add_low_a;
+wire [15:0] add_low_b;
+wire [15:0] add_low_sum;
+assign add_low_a = a[15:0];
+assign add_low_b = b[15:0];
+assign sum[15:0] = add_low_sum;
  
-  
-wire [7:0] add_high_add_high_a;
-wire [7:0] add_high_add_high_b;
-wire [7:0] add_high_add_high_sum;
-assign add_high_add_high_a = add_high_a[15:8];
-assign add_high_add_high_b = add_high_b[15:8];
-assign add_high_sum[15:8] = add_high_add_high_sum;
- 
-  assign  add_high_add_high_sum = add_high_add_high_a + add_high_add_high_b ;
- 
-  
-wire [7:0] add_high_add_high_a;
-wire [7:0] add_high_add_high_b;
-wire [7:0] add_high_add_high_sum;
-assign add_high_add_high_a = add_high_a[15:8];
-assign add_high_add_high_b = add_high_b[15:8];
-assign add_high_sum[15:8] = add_high_add_high_sum;
- 
-  assign  add_high_add_high_sum = add_high_add_high_a + add_high_add_high_b ;
-
+  adder_8bit  add_low_add_high (.a( add_low_a [15:8]),.b( add_low_b [15:8]),.sum( add_low_sum [15:8])); 
+  adder_8bit  add_low_add_low (.a( add_low_a [7:0]),.b( add_low_b [7:0]),.sum( add_low_sum [7:0]));
 
 
 endmodule

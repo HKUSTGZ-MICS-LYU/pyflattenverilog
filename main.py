@@ -185,7 +185,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
       cur_new_assign.append('assign ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ' = '+ cur_list_of_ports_rhs[i] + ';')
     else:
       cur_new_assign.append('assign ' + cur_list_of_ports_rhs[i] + ' = '+ cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
-  
+
 
   # 5. TODO: Rename all variable
   # replace the corresponding variables with `cur_prefix`
@@ -359,7 +359,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
           else:
               for child in ctx.getChildren():
                 if isinstance(child, VerilogParser.Module_instantiationContext):
-                  if child.module_identifier().getText() == cur_module_identifier :
+                  if child.module_instance()[0].name_of_module_instance().getText() == cur_name_of_module_instance :
                     self.start = child.start.start
                     self.stop = child.stop.stop
                 self._traverse_children(child)

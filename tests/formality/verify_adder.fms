@@ -1,6 +1,6 @@
-read_verilog -r tests/regression/adder/unflatten/adder.v
-set_top adder_32bit
-read_verilog -i tests/regression/adder/flatten/res.v
-set_top adder_32bit
+read_verilog -r /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/usb_phy/unflatten/usb_phy.v
+set_top usb_phy
+read_verilog -i /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/usb_phy/flatten/res.v
+set_top usb_phy
 verify
 exit
