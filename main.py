@@ -103,6 +103,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
         self.list_of_ports_width = []
         self.list_of_ports_direction = []
         self.list_of_ports_type = []
+        self.list_of_data_type = []
         self.list_of_ports_lhs = []
 
 
@@ -111,38 +112,43 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
           pass
         else:
           for child in ctx.getChildren():
-            if isinstance(child, VerilogParser.Port_identifierContext):
-              self.list_of_ports_lhs.append(child.getText())
-                  
             if isinstance(child, VerilogParser.Input_declarationContext):
               self.list_of_ports_direction.append('input')
-              if isinstance(child.getChild(1), VerilogParser.Range_Context):
-                self.list_of_ports_width.append(child.getChild(1).getText())
-                self.list_of_ports_type.append('wire')
-              else:
-                if child.getChild(1).getText() == 'reg':
+              for i in range(0,child.getChildCount()):
+                if isinstance(child.getChild(i), VerilogParser.Range_Context):
+                  self.list_of_ports_width.append(child.getChild(i).getText())
+                else:
+                  self.list_of_ports_width.append('')
+                if child.getChild(i).getText() == 'reg':
                   self.list_of_ports_type.append('reg')
                 else:
                   self.list_of_ports_type.append('wire')
-                if child.getChildCount() > 2 and isinstance(child.getChild(2), VerilogParser.Range_Context):
-                  self.list_of_ports_width.append(child.getChild(2).getText())
+                if child.getChild(i).getText() == ('signed' or  'unsigned' or 'integer' or 'float'):
+                  self.list_of_data_type.append(child.getChild(i).getText())
                 else:
-                  self.list_of_ports_width.append('')
-              
+                  self.list_of_data_type.append('')
+                if isinstance(child.getChild(i), VerilogParser.List_of_port_identifiersContext) or isinstance(child.getChild(i), VerilogParser.List_of_variable_identifiersContext):
+                  self.list_of_ports_lhs.append(child.getChild(i).getText())
+                
             if isinstance(child, VerilogParser.Output_declarationContext):
               self.list_of_ports_direction.append('output')
-              if isinstance(child.getChild(1), VerilogParser.Range_Context):
-                self.list_of_ports_width.append(child.getChild(1).getText())
-                self.list_of_ports_type.append('wire')
-              else:
-                if child.getChild(1).getText() == 'reg':
+              for i in range(0,child.getChildCount()):
+                temp = child.getChild(i)
+                if isinstance(temp, VerilogParser.Range_Context):
+                  self.list_of_ports_width.append(temp.getText())
+                else:
+                  self.list_of_ports_width.append('')
+                if temp.getText() == 'reg':
                   self.list_of_ports_type.append('reg')
                 else:
                   self.list_of_ports_type.append('wire')
-                if child.getChildCount() > 2 and isinstance(child.getChild(2), VerilogParser.Range_Context):
-                  self.list_of_ports_width.append(child.getChild(2).getText())
+                if temp.getText() == ('signed' or  'unsigned' or 'integer' or 'float'):
+                  self.list_of_data_type.append(temp.getText())
                 else:
-                  self.list_of_ports_width.append('')
+                  self.list_of_data_type.append('')
+                if isinstance(temp, VerilogParser.List_of_port_identifiersContext) or isinstance(temp, VerilogParser.List_of_variable_identifiersContext):
+                  self.list_of_ports_lhs.append(temp.getText())
+          
 
             self._traverse_children(child)
 
@@ -160,7 +166,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
   cur_list_of_ports_lhs_width = visitor.list_of_ports_width
   cur_list_of_ports_direction = visitor.list_of_ports_direction
   cur_list_of_ports_type = visitor.list_of_ports_type
-  
+  cur_list_of_data_type = visitor.list_of_data_type
 
 
   # 4. Obtain new assignment with 'prefix', lhs and rhs and define the port as wire type
@@ -170,7 +176,12 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
   # i.e.`assign adder_32bit_add_high_a = a[31:16]` 
   cur_new_variable = []
   cur_new_assign = []
- 
+  print(cur_list_of_ports_lhs,len(cur_list_of_ports_lhs))
+  print(cur_list_of_ports_rhs,len(cur_list_of_ports_rhs))
+  print(cur_list_of_ports_direction,len(cur_list_of_ports_direction))
+  print(cur_list_of_ports_type,len(cur_list_of_ports_type))
+  print(cur_list_of_ports_lhs_width,len(cur_list_of_ports_lhs_width))
+  print(cur_list_of_data_type,len(cur_list_of_data_type))
 
 
   for i in range(0,len(cur_list_of_ports_lhs)):
@@ -183,7 +194,7 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
       cur_new_assign.append('assign ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ' = '+ cur_list_of_ports_rhs[i] + ';')
     else:
       cur_new_assign.append('assign ' + cur_list_of_ports_rhs[i] + ' = '+ cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
-
+  
 
   # 5. TODO: Rename all variable
   # replace the corresponding variables with `cur_prefix`
@@ -276,10 +287,10 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
           if isinstance(child, VerilogParser.Always_constructContext):
             child.start.text = '#' + ' ' * indent + child.start.text + ' '
             child.stop.text = child.stop.text + '#'
-          if isinstance(child, VerilogParser.Event_expressionContext) and child.getText() == 'posedge':
-            child.symbol.text = ' ' + child.symbol.text + ' '
-          if isinstance(child, VerilogParser.Event_expressionContext) and child.getText() == 'negedge':
-            child.symbol.text = ' ' + child.symbol.text + ' '
+          if isinstance(child, VerilogParser.Event_expressionContext):
+            child.start.text = ' ' + child.start.text + ' '
+          # if isinstance(child, VerilogParser.Event_expressionContext) and child.getText() == 'negedge':
+          #   child.symbol.text = ' ' + child.symbol.text + ' '
           # Case block
           if isinstance(child, VerilogParser.Case_statementContext):
             child.start.text = '#' + ' ' * indent + child.start.text + ' '
@@ -320,7 +331,6 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
   visitor.visit(inst_module_node)
   inst_module_node = visitor.inst_module_node
   inst_module_design = visitor.text
-  print(inst_module_design,file=of_handler)
 
   # 7. TODO: Get the instance body
   class InstBodyVisitor(VerilogParserVisitor):
