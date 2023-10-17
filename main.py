@@ -115,31 +115,38 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
             if isinstance(child, VerilogParser.Input_declarationContext):
               self.list_of_ports_direction.append(child.INPUT().getText())
               self.list_of_ports_lhs.append(child.list_of_port_identifiers().getText())
-              
+              self.list_of_ports_type.append('wire')
               if child.range_() is not None:
                 self.list_of_ports_width.append(child.range_().getText())  
               else:
                  self.list_of_ports_width.append('')
-
-              if child.net_type() is not None:
-                self.list_of_ports_type.append(child.net_type().getText())
-                print(child.net_type().getText())
-              else:
-                self.list_of_ports_type.append('')
 
               if child.SIGNED() is not None:
                 self.list_of_data_type.append(child.SIGNED().getText())
               else:
                 self.list_of_data_type.append('')
 
-            # if isinstance(child, VerilogParser.Output_declarationContext):
-            #   self.list_of_ports_direction.append(child.OUTPUT().getText())
-            #   self.list_of_ports_lhs.append(child.list_of_port_identifiers().getText())
+            if isinstance(child, VerilogParser.Output_declarationContext):
+              self.list_of_ports_direction.append(child.OUTPUT().getText())
+
+              if child.REG() is not None:
+                self.list_of_ports_type.append(child.REG().getText())
+                self.list_of_ports_lhs.append(child.list_of_variable_port_identifiers().getText())
+              else:
+                self.list_of_ports_type.append('wire')
+                self.list_of_ports_lhs.append(child.list_of_port_identifiers().getText())
               
-            #   if child.range_() is not None:
-            #     self.list_of_ports_width.append(child.range_().getText())  
-            #   else:
-            #      self.list_of_ports_width.append('')
+              if child.range_() is not None:
+                self.list_of_ports_width.append(child.range_().getText())  
+              else:
+                 self.list_of_ports_width.append('')
+
+              if child.SIGNED() is not None:
+                self.list_of_data_type.append(child.SIGNED().getText())
+              else:
+                self.list_of_data_type.append('')
+
+              
             self._traverse_children(child)
 
     def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
@@ -166,19 +173,13 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
   # i.e.`assign adder_32bit_add_high_a = a[31:16]` 
   cur_new_variable = []
   cur_new_assign = []
-  print(cur_list_of_ports_lhs,len(cur_list_of_ports_lhs))
-  print(cur_list_of_ports_rhs,len(cur_list_of_ports_rhs))
-  print(cur_list_of_ports_direction,len(cur_list_of_ports_direction))
-  print(cur_list_of_ports_type,len(cur_list_of_ports_type))
-  print(cur_list_of_ports_lhs_width,len(cur_list_of_ports_lhs_width))
-  print(cur_list_of_data_type,len(cur_list_of_data_type))
 
 
   for i in range(0,len(cur_list_of_ports_lhs)):
     if cur_list_of_ports_type[i] == 'reg':
-      cur_new_variable.append('reg ' + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
+      cur_new_variable.append('reg ' + cur_list_of_data_type[i] + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
     else:
-      cur_new_variable.append('wire ' + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
+      cur_new_variable.append('wire ' + cur_list_of_data_type[i] + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
   
     if cur_list_of_ports_direction[i] == 'input': 
       cur_new_assign.append('assign ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ' = '+ cur_list_of_ports_rhs[i] + ';')
