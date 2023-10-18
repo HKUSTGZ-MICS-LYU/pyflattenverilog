@@ -1,8 +1,7 @@
-set synopsys_auto_setup true
-read_verilog -r /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/b19/unflatten/b19.v
+set_mismatch_message_filter -warn FMR_ELAB-147
+read_verilog -r /home/ziyuezheng/researchlib/pyflattenverilog/tests/regression/b19/b19.v
 set_top b19
-read_verilog -i /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/b19/flatten/f_b19_3.v
+read_verilog -i /home/ziyuezheng/researchlib/pyflattenverilog/tests/regression/b19/b19_flatten.v
 set_top b19
 verify
-report_failing_points
 exit

@@ -6,12 +6,14 @@ import os
 
 res_index = 0
 
-def pyflattenverilog(design:str, top_module:str, output_file:str):
+def pyflattenverilog(design:str, top_module:str, output_file:str, debug_mode:bool):
   global res_index
 
   # output file handler
   output_file = output_file.split('.')[0] + '_' + str(res_index)+'.v'
-  res_index += 1
+  if debug_mode:
+    res_index += 1
+  print("[Processing] %s"%(output_file))
   of_handler = open(output_file,'w')
 
   "This function is used to convert the verilog to a tree"
@@ -90,10 +92,16 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
   if cur_module_identifier == '':
      of_handler.close()
      os.remove(output_file)
-     of_handler = open('/'.join(output_file.split('/')[:-1])+'/res.v','w')
+     flatten_path = '/'.join(output_file.split('/')[:-2])+'/flatten_'
+     orig_file_name = '_'.join(output_file.split('/')[-1].split('_')[:-1])+'.v'
+     flatten_path = flatten_path + orig_file_name
+     of_handler = open(flatten_path,'w')
      print(design[top_node_tree.start.start:top_node_tree.stop.stop+1],file=of_handler)
      of_handler.close()
+     os.system("bin/iStyle -n --style=ansi " + flatten_path)
      return -1
+  else:
+    print("[Processing] MODULE: %s\tNAME:%s"%(cur_module_identifier,cur_name_of_module_instance))
 
 
   class InstModulePortVisitor(VerilogParserVisitor):
