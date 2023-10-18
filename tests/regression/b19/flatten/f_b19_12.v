@@ -8357,9 +8357,2244 @@ assign P2_P1_ready2 = P2_r12;
           P2_P1_rdy3  <= P2_P1_ready22 & P2_P1_ready2 ;
        end
   
-  b15  P2_P1_P1 ( P2_P1_be1 , P2_P1_addr1 , P2_P1_wr1 , P2_P1_dc1 , P2_P1_mio1 , P2_P1_ads1 , P2_P1_di1 , P2_P1_do1 , P2_P1_clock , P2_P1_na , P2_P1_bs16 , P2_P1_rdy1 , P2_P1_hold , P2_P1_reset ); 
-  b15  P2_P1_P2 ( P2_P1_be2 , P2_P1_addr2 , P2_P1_wr2 , P2_P1_dc2 , P2_P1_mio2 , P2_P1_ads2 , P2_P1_di2 , P2_P1_do2 , P2_P1_clock , P2_P1_na , P2_P1_bs16 , P2_P1_rdy2 , P2_P1_hold , P2_P1_reset ); 
-  b15  P2_P1_P3 ( P2_P1_be3 , P2_P1_addr3 , P2_P1_wr3 , P2_P1_dc3 , P2_P1_mio3 , P2_P1_ads3 , P2_P1_di3 , P2_P1_do3 , P2_P1_clock , P2_P1_na , P2_P1_bs16 , P2_P1_rdy3 , P2_P1_hold , P2_P1_reset );
+  
+reg [3:0] P2_P1_P1_BE_n;
+reg [29:0] P2_P1_P1_Address;
+reg  P2_P1_P1_W_R_n;
+reg  P2_P1_P1_D_C_n;
+reg  P2_P1_P1_M_IO_n;
+reg  P2_P1_P1_ADS_n;
+wire [31:0] P2_P1_P1_Datai;
+integer P2_P1_P1_Datao;
+wire  P2_P1_P1_CLOCK;
+wire  P2_P1_P1_NA_n;
+wire  P2_P1_P1_BS16_n;
+wire  P2_P1_P1_READY_n;
+wire  P2_P1_P1_HOLD;
+wire  P2_P1_P1_RESET;
+assign P2_P1_be1 = P2_P1_P1_BE_n;
+assign P2_P1_addr1 = P2_P1_P1_Address;
+assign P2_P1_wr1 = P2_P1_P1_W_R_n;
+assign P2_P1_dc1 = P2_P1_P1_D_C_n;
+assign P2_P1_mio1 = P2_P1_P1_M_IO_n;
+assign P2_P1_ads1 = P2_P1_P1_ADS_n;
+assign P2_P1_P1_Datai = P2_P1_di1;
+assign P2_P1_do1 = P2_P1_P1_Datao;
+assign P2_P1_P1_CLOCK = P2_P1_clock;
+assign P2_P1_P1_NA_n = P2_P1_na;
+assign P2_P1_P1_BS16_n = P2_P1_bs16;
+assign P2_P1_P1_READY_n = P2_P1_rdy1;
+assign P2_P1_P1_HOLD = P2_P1_hold;
+assign P2_P1_P1_RESET = P2_P1_reset;
+ 
+   reg P2_P1_P1_StateNA ; 
+   reg P2_P1_P1_StateBS16 ; 
+   reg P2_P1_P1_RequestPending ; 
+ parameter P2_P1_P1_Pending =1'b1; 
+ parameter P2_P1_P1_NotPending =1'b0; 
+   reg P2_P1_P1_NonAligned ; 
+   reg P2_P1_P1_ReadRequest ; 
+   reg P2_P1_P1_MemoryFetch ; 
+   reg P2_P1_P1_CodeFetch ; 
+   reg[3:0] P2_P1_P1_ByteEnable ; 
+   integer P2_P1_P1_DataWidth ; 
+ parameter P2_P1_P1_WidthByte =0; 
+ parameter P2_P1_P1_WidthWord =1; 
+ parameter P2_P1_P1_WidthDword =2; 
+   reg[2:0] P2_P1_P1_State ; 
+ parameter P2_P1_P1_StateInit =0; 
+ parameter P2_P1_P1_StateTi =1; 
+ parameter P2_P1_P1_StateT1 =2; 
+ parameter P2_P1_P1_StateT2 =3; 
+ parameter P2_P1_P1_StateT1P =4; 
+ parameter P2_P1_P1_StateTh =5; 
+ parameter P2_P1_P1_StateT2P =6; 
+ parameter P2_P1_P1_StateT2I =7; 
+   integer P2_P1_P1_EAX ; 
+   integer P2_P1_P1_EBX ; 
+   integer P2_P1_P1_rEIP ; 
+ parameter P2_P1_P1_REP =8'hF3; 
+ parameter P2_P1_P1_REPNE =8'hF2; 
+ parameter P2_P1_P1_LOCK =8'hF0; 
+ parameter P2_P1_P1_CSsop =8'h2E; 
+ parameter P2_P1_P1_SSsop =8'h36; 
+ parameter P2_P1_P1_DSsop =8'h3E; 
+ parameter P2_P1_P1_ESsop =8'h26; 
+ parameter P2_P1_P1_FSsop =8'h64; 
+ parameter P2_P1_P1_GSsop =8'h65; 
+ parameter P2_P1_P1_OPsop =8'h66; 
+ parameter P2_P1_P1_ADsop =8'h67; 
+ parameter P2_P1_P1_MOV_al_b =8'hB0; 
+ parameter P2_P1_P1_MOV_eax_dw =8'hB8; 
+ parameter P2_P1_P1_MOV_ebx_dw =8'hBB; 
+ parameter P2_P1_P1_MOV_ebx_eax =8'h89; 
+ parameter P2_P1_P1_MOV_eax_ebx =8'h8B; 
+ parameter P2_P1_P1_IN_al =8'hE4; 
+ parameter P2_P1_P1_OUT_al =8'hE6; 
+ parameter P2_P1_P1_ADD_al_b =8'h04; 
+ parameter P2_P1_P1_ADD_ax_w =8'h05; 
+ parameter P2_P1_P1_ROL_eax_b =8'hD1; 
+ parameter P2_P1_P1_ROL_al_1 =8'hD0; 
+ parameter P2_P1_P1_ROL_al_n =8'hC0; 
+ parameter P2_P1_P1_INC_eax =8'h40; 
+ parameter P2_P1_P1_INC_ebx =8'h43; 
+ parameter P2_P1_P1_JMP_rel_short =8'hEB; 
+ parameter P2_P1_P1_JMP_rel_near =8'hE9; 
+ parameter P2_P1_P1_JMP_intseg_immed =8'hEA; 
+ parameter P2_P1_P1_HLT =8'hF4; 
+ parameter P2_P1_P1_WAITx =8'h9B; 
+ parameter P2_P1_P1_NOP =8'h90; 
+  always @(  posedge   P2_P1_P1_CLOCK or posedge  P2_P1_P1_RESET )
+       begin : P2_P1_P1_P0 
+         if ( P2_P1_P1_RESET ==1'b1)
+            begin 
+               P2_P1_P1_BE_n  <=4'b0000;
+               P2_P1_P1_Address  <=0;
+               P2_P1_P1_W_R_n  <=1'b0;
+               P2_P1_P1_D_C_n  <=1'b0;
+               P2_P1_P1_M_IO_n  <=1'b0;
+               P2_P1_P1_ADS_n  <=1'b0;
+               P2_P1_P1_State  <= P2_P1_P1_StateInit ;
+               P2_P1_P1_StateNA  <=1'b0;
+               P2_P1_P1_StateBS16  <=1'b0;
+               P2_P1_P1_DataWidth  <=0;
+            end 
+          else 
+            case ( P2_P1_P1_State )
+              P2_P1_P1_StateInit  :
+                begin 
+                   P2_P1_P1_D_C_n  <=1'b1;
+                   P2_P1_P1_ADS_n  <=1'b1;
+                   P2_P1_P1_State  <= P2_P1_P1_StateTi ;
+                   P2_P1_P1_StateNA  <=1'b1;
+                   P2_P1_P1_StateBS16  <=1'b1;
+                   P2_P1_P1_DataWidth  <=2;
+                   P2_P1_P1_State  <= P2_P1_P1_StateTi ;
+                end 
+              P2_P1_P1_StateTi  :
+                if ( P2_P1_P1_RequestPending == P2_P1_P1_Pending )
+                    P2_P1_P1_State  <= P2_P1_P1_StateT1 ;
+                 else 
+                   if ( P2_P1_P1_HOLD ==1'b1)
+                       P2_P1_P1_State  <= P2_P1_P1_StateTh ;
+                    else 
+                       P2_P1_P1_State  <= P2_P1_P1_StateTi ;
+              P2_P1_P1_StateT1  :
+                begin 
+                   P2_P1_P1_Address  <= P2_P1_P1_rEIP /4%2**30;
+                   P2_P1_P1_BE_n  <= P2_P1_P1_ByteEnable ;
+                   P2_P1_P1_M_IO_n  <= P2_P1_P1_MemoryFetch ;
+                  if ( P2_P1_P1_ReadRequest == P2_P1_P1_Pending )
+                      P2_P1_P1_W_R_n  <=1'b0;
+                   else 
+                      P2_P1_P1_W_R_n  <=1'b1;
+                  if ( P2_P1_P1_CodeFetch == P2_P1_P1_Pending )
+                      P2_P1_P1_D_C_n  <=1'b0;
+                   else 
+                      P2_P1_P1_D_C_n  <=1'b1;
+                   P2_P1_P1_ADS_n  <=1'b0;
+                   P2_P1_P1_State  <= P2_P1_P1_StateT2 ;
+                end 
+              P2_P1_P1_StateT2  :
+                begin 
+                  if ( P2_P1_P1_READY_n ==1'b0& P2_P1_P1_HOLD ==1'b0& P2_P1_P1_RequestPending == P2_P1_P1_Pending )
+                      P2_P1_P1_State  <= P2_P1_P1_StateT1 ;
+                   else 
+                     if ( P2_P1_P1_READY_n ==1'b1& P2_P1_P1_NA_n ==1'b1);
+                      else 
+                        if (( P2_P1_P1_RequestPending == P2_P1_P1_Pending | P2_P1_P1_HOLD ==1'b1)&( P2_P1_P1_READY_n ==1'b1& P2_P1_P1_NA_n ==1'b0))
+                            P2_P1_P1_State  <= P2_P1_P1_StateT2I ;
+                         else 
+                           if ( P2_P1_P1_RequestPending == P2_P1_P1_Pending & P2_P1_P1_HOLD ==1'b0& P2_P1_P1_READY_n ==1'b1& P2_P1_P1_NA_n ==1'b0)
+                               P2_P1_P1_State  <= P2_P1_P1_StateT2P ;
+                            else 
+                              if ( P2_P1_P1_RequestPending == P2_P1_P1_NotPending & P2_P1_P1_HOLD ==1'b0& P2_P1_P1_READY_n ==1'b0)
+                                  P2_P1_P1_State  <= P2_P1_P1_StateTi ;
+                               else 
+                                 if ( P2_P1_P1_HOLD ==1'b1& P2_P1_P1_READY_n ==1'b1)
+                                     P2_P1_P1_State  <= P2_P1_P1_StateTh ;
+                                  else 
+                                     P2_P1_P1_State  <= P2_P1_P1_StateT2 ;
+                   P2_P1_P1_StateBS16  <= P2_P1_P1_BS16_n ;
+                  if ( P2_P1_P1_BS16_n ==1'b0)
+                      P2_P1_P1_DataWidth  <= P2_P1_P1_WidthWord ;
+                   else 
+                      P2_P1_P1_DataWidth  <= P2_P1_P1_WidthDword ;
+                   P2_P1_P1_StateNA  <= P2_P1_P1_NA_n ;
+                   P2_P1_P1_ADS_n  <=1'b1;
+                end 
+              P2_P1_P1_StateT1P  :
+                begin 
+                  if ( P2_P1_P1_NA_n ==1'b0& P2_P1_P1_HOLD ==1'b0& P2_P1_P1_RequestPending == P2_P1_P1_Pending )
+                      P2_P1_P1_State  <= P2_P1_P1_StateT2P ;
+                   else 
+                     if ( P2_P1_P1_NA_n ==1'b0&( P2_P1_P1_HOLD ==1'b1| P2_P1_P1_RequestPending == P2_P1_P1_NotPending ))
+                         P2_P1_P1_State  <= P2_P1_P1_StateT2I ;
+                      else 
+                        if ( P2_P1_P1_NA_n ==1'b1)
+                            P2_P1_P1_State  <= P2_P1_P1_StateT2 ;
+                         else 
+                            P2_P1_P1_State  <= P2_P1_P1_StateT1P ;
+                   P2_P1_P1_StateBS16  <= P2_P1_P1_BS16_n ;
+                  if ( P2_P1_P1_BS16_n ==1'b0)
+                      P2_P1_P1_DataWidth  <= P2_P1_P1_WidthWord ;
+                   else 
+                      P2_P1_P1_DataWidth  <= P2_P1_P1_WidthDword ;
+                   P2_P1_P1_StateNA  <= P2_P1_P1_NA_n ;
+                   P2_P1_P1_ADS_n  <=1'b1;
+                end 
+              P2_P1_P1_StateTh  :
+                if ( P2_P1_P1_HOLD ==1'b0& P2_P1_P1_RequestPending == P2_P1_P1_Pending )
+                    P2_P1_P1_State  <= P2_P1_P1_StateT1 ;
+                 else 
+                   if ( P2_P1_P1_HOLD ==1'b0& P2_P1_P1_RequestPending == P2_P1_P1_NotPending )
+                       P2_P1_P1_State  <= P2_P1_P1_StateTi ;
+                    else 
+                       P2_P1_P1_State  <= P2_P1_P1_StateTh ;
+              P2_P1_P1_StateT2P  :
+                begin 
+                   P2_P1_P1_Address  <= P2_P1_P1_rEIP /2%2**30;
+                   P2_P1_P1_BE_n  <= P2_P1_P1_ByteEnable ;
+                   P2_P1_P1_M_IO_n  <= P2_P1_P1_MemoryFetch ;
+                  if ( P2_P1_P1_ReadRequest == P2_P1_P1_Pending )
+                      P2_P1_P1_W_R_n  <=1'b0;
+                   else 
+                      P2_P1_P1_W_R_n  <=1'b1;
+                  if ( P2_P1_P1_CodeFetch == P2_P1_P1_Pending )
+                      P2_P1_P1_D_C_n  <=1'b0;
+                   else 
+                      P2_P1_P1_D_C_n  <=1'b1;
+                   P2_P1_P1_ADS_n  <=1'b0;
+                  if ( P2_P1_P1_READY_n ==1'b0)
+                      P2_P1_P1_State  <= P2_P1_P1_StateT1P ;
+                   else 
+                      P2_P1_P1_State  <= P2_P1_P1_StateT2P ;
+                end 
+              P2_P1_P1_StateT2I  :
+                if ( P2_P1_P1_READY_n ==1'b1& P2_P1_P1_RequestPending == P2_P1_P1_Pending & P2_P1_P1_HOLD ==1'b0)
+                    P2_P1_P1_State  <= P2_P1_P1_StateT2P ;
+                 else 
+                   if ( P2_P1_P1_READY_n ==1'b0& P2_P1_P1_HOLD ==1'b1)
+                       P2_P1_P1_State  <= P2_P1_P1_StateTh ;
+                    else 
+                      if ( P2_P1_P1_READY_n ==1'b0& P2_P1_P1_HOLD ==1'b0& P2_P1_P1_RequestPending == P2_P1_P1_Pending )
+                          P2_P1_P1_State  <= P2_P1_P1_StateT1 ;
+                       else 
+                         if ( P2_P1_P1_READY_n ==1'b0& P2_P1_P1_HOLD ==1'b0& P2_P1_P1_RequestPending == P2_P1_P1_NotPending )
+                             P2_P1_P1_State  <= P2_P1_P1_StateTi ;
+                          else 
+                             P2_P1_P1_State  <= P2_P1_P1_StateT2I ;
+            endcase 
+       end
+  
+  always @(  posedge   P2_P1_P1_CLOCK or posedge  P2_P1_P1_RESET )
+       begin : P2_P1_P1_P1 reg[7:0] P2_P1_P1_InstQueue [15:0];reg[4:0] P2_P1_P1_InstQueueRd_Addr ;reg[4:0] P2_P1_P1_InstQueueWr_Addr ;
+         parameter P2_P1_P1_InstQueueLimit =15;integer P2_P1_P1_InstAddrPointer ;integer P2_P1_P1_PhyAddrPointer ;reg P2_P1_P1_Extended ;reg P2_P1_P1_More ;reg P2_P1_P1_Flush ;reg[15:0] P2_P1_P1_lWord ;reg[14:0] P2_P1_P1_uWord ;integer P2_P1_P1_fWord ;reg[3:0] P2_P1_P1_State2 ;
+         parameter P2_P1_P1_Si =0;
+         parameter P2_P1_P1_S1 =1;
+         parameter P2_P1_P1_S2 =2;
+         parameter P2_P1_P1_S3 =3;
+         parameter P2_P1_P1_S4 =4;
+         parameter P2_P1_P1_S5 =5;
+         parameter P2_P1_P1_S6 =6;
+         parameter P2_P1_P1_S7 =7;
+         parameter P2_P1_P1_S8 =8;
+         parameter P2_P1_P1_S9 =9;
+         if ( P2_P1_P1_RESET ==1'b1)
+            begin 
+               P2_P1_P1_State2  = P2_P1_P1_Si ;
+               P2_P1_P1_InstQueue  [0]=16*{0};
+               P2_P1_P1_InstQueue  [1]=16*{0};
+               P2_P1_P1_InstQueue  [2]=16*{0};
+               P2_P1_P1_InstQueue  [3]=16*{0};
+               P2_P1_P1_InstQueue  [4]=16*{0};
+               P2_P1_P1_InstQueue  [5]=16*{0};
+               P2_P1_P1_InstQueue  [6]=16*{0};
+               P2_P1_P1_InstQueue  [7]=16*{0};
+               P2_P1_P1_InstQueueRd_Addr  =0;
+               P2_P1_P1_InstQueueWr_Addr  =0;
+               P2_P1_P1_InstAddrPointer  =0;
+               P2_P1_P1_PhyAddrPointer  =0;
+               P2_P1_P1_Extended  =1'b0;
+               P2_P1_P1_More  =1'b0;
+               P2_P1_P1_Flush  =1'b0;
+               P2_P1_P1_lWord  =0;
+               P2_P1_P1_uWord  =0;
+               P2_P1_P1_fWord  =0;
+               P2_P1_P1_CodeFetch  <=1'b0;
+               P2_P1_P1_Datao  <=0;
+               P2_P1_P1_EAX  <=0;
+               P2_P1_P1_EBX  <=0;
+               P2_P1_P1_rEIP  <=0;
+               P2_P1_P1_ReadRequest  <=1'b0;
+               P2_P1_P1_MemoryFetch  <=1'b0;
+               P2_P1_P1_RequestPending  <=1'b0;
+            end 
+          else 
+            case ( P2_P1_P1_State2 )
+              P2_P1_P1_Si  :
+                begin 
+                   P2_P1_P1_PhyAddrPointer  = P2_P1_P1_rEIP ;
+                   P2_P1_P1_InstAddrPointer  = P2_P1_P1_PhyAddrPointer ;
+                   P2_P1_P1_State2  = P2_P1_P1_S1 ;
+                   P2_P1_P1_rEIP  <=20'hFFFF0;
+                   P2_P1_P1_ReadRequest  <=1'b1;
+                   P2_P1_P1_MemoryFetch  <=1'b1;
+                   P2_P1_P1_RequestPending  <=1'b1;
+                end 
+              P2_P1_P1_S1  :
+                begin 
+                   P2_P1_P1_RequestPending  <= P2_P1_P1_Pending ;
+                   P2_P1_P1_ReadRequest  <= P2_P1_P1_Pending ;
+                   P2_P1_P1_MemoryFetch  <= P2_P1_P1_Pending ;
+                   P2_P1_P1_CodeFetch  <= P2_P1_P1_Pending ;
+                  if ( P2_P1_P1_READY_n ==1'b0)
+                      P2_P1_P1_State2  = P2_P1_P1_S2 ;
+                   else 
+                      P2_P1_P1_State2  = P2_P1_P1_S1 ;
+                end 
+              P2_P1_P1_S2  :
+                begin 
+                   P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
+                   P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]= P2_P1_P1_Datai %(2**8);
+                   P2_P1_P1_InstQueueWr_Addr  =( P2_P1_P1_InstQueueWr_Addr +1)%16;
+                   P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]= P2_P1_P1_Datai %2**8;
+                   P2_P1_P1_InstQueueWr_Addr  =( P2_P1_P1_InstQueueWr_Addr +1)%16;
+                  if ( P2_P1_P1_StateBS16 ==1'b1)
+                     begin 
+                        P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]=( P2_P1_P1_Datai /(2**16))%(2**8);
+                        P2_P1_P1_InstQueueWr_Addr  =( P2_P1_P1_InstQueueWr_Addr +1)%16;
+                        P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]=( P2_P1_P1_Datai /(2**24))%(2**8);
+                        P2_P1_P1_InstQueueWr_Addr  =( P2_P1_P1_InstQueueWr_Addr +1)%16;
+                        P2_P1_P1_PhyAddrPointer  = P2_P1_P1_PhyAddrPointer +4;
+                        P2_P1_P1_State2  = P2_P1_P1_S5 ;
+                     end 
+                   else 
+                     begin 
+                        P2_P1_P1_PhyAddrPointer  = P2_P1_P1_PhyAddrPointer +2;
+                       if ( P2_P1_P1_PhyAddrPointer <0)
+                           P2_P1_P1_rEIP  <=- P2_P1_P1_PhyAddrPointer ;
+                        else 
+                           P2_P1_P1_rEIP  <= P2_P1_P1_PhyAddrPointer ;
+                        P2_P1_P1_State2  = P2_P1_P1_S3 ;
+                     end 
+                end 
+              P2_P1_P1_S3  :
+                begin 
+                   P2_P1_P1_RequestPending  <= P2_P1_P1_Pending ;
+                  if ( P2_P1_P1_READY_n ==1'b0)
+                      P2_P1_P1_State2  = P2_P1_P1_S4 ;
+                   else 
+                      P2_P1_P1_State2  = P2_P1_P1_S3 ;
+                end 
+              P2_P1_P1_S4  :
+                begin 
+                   P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
+                   P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]= P2_P1_P1_Datai %(2**8);
+                   P2_P1_P1_InstQueueWr_Addr  =( P2_P1_P1_InstQueueWr_Addr +1)%16;
+                   P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]= P2_P1_P1_Datai %(2**8);
+                   P2_P1_P1_InstQueueWr_Addr  =( P2_P1_P1_InstQueueWr_Addr +1)%16;
+                   P2_P1_P1_PhyAddrPointer  = P2_P1_P1_PhyAddrPointer +2;
+                   P2_P1_P1_State2  = P2_P1_P1_S5 ;
+                end 
+              P2_P1_P1_S5  :
+                begin 
+                  case ( P2_P1_P1_InstQueue [ P2_P1_P1_InstQueueRd_Addr ])
+                    P2_P1_P1_NOP  :
+                      begin 
+                         P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +1;
+                         P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +1)%16;
+                         P2_P1_P1_Flush  =1'b0;
+                         P2_P1_P1_More  =1'b0;
+                      end 
+                    P2_P1_P1_OPsop  :
+                      begin 
+                         P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +1;
+                         P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +1)%16;
+                         P2_P1_P1_Extended  =1'b1;
+                         P2_P1_P1_Flush  =1'b0;
+                         P2_P1_P1_More  =1'b0;
+                      end 
+                    P2_P1_P1_JMP_rel_short  :
+                      if (( P2_P1_P1_InstQueueWr_Addr - P2_P1_P1_InstQueueRd_Addr )>=3)
+                         begin 
+                           if ( P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +1)%16]>127)
+                              begin 
+                                 P2_P1_P1_PhyAddrPointer  = P2_P1_P1_InstAddrPointer +1-(8'hFF- P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +1)%16]);
+                                 P2_P1_P1_InstAddrPointer  = P2_P1_P1_PhyAddrPointer ;
+                              end 
+                            else 
+                              begin 
+                                 P2_P1_P1_PhyAddrPointer  = P2_P1_P1_InstAddrPointer +2+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +1)%16];
+                                 P2_P1_P1_InstAddrPointer  = P2_P1_P1_PhyAddrPointer ;
+                              end 
+                            P2_P1_P1_Flush  =1'b1;
+                            P2_P1_P1_More  =1'b0;
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P1_Flush  =1'b0;
+                            P2_P1_P1_More  =1'b1;
+                         end 
+                    P2_P1_P1_JMP_rel_near  :
+                      if (( P2_P1_P1_InstQueueWr_Addr - P2_P1_P1_InstQueueRd_Addr )>=5)
+                         begin 
+                            P2_P1_P1_PhyAddrPointer  = P2_P1_P1_InstAddrPointer +5+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +1)%16];
+                            P2_P1_P1_InstAddrPointer  = P2_P1_P1_PhyAddrPointer ;
+                            P2_P1_P1_Flush  =1'b1;
+                            P2_P1_P1_More  =1'b0;
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P1_Flush  =1'b0;
+                            P2_P1_P1_More  =1'b1;
+                         end 
+                    P2_P1_P1_JMP_intseg_immed  :
+                      begin 
+                         P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +1;
+                         P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +1)%16;
+                         P2_P1_P1_Flush  =1'b0;
+                         P2_P1_P1_More  =1'b0;
+                      end 
+                    P2_P1_P1_MOV_al_b  :
+                      begin 
+                         P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +1;
+                         P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +1)%16;
+                         P2_P1_P1_Flush  =1'b0;
+                         P2_P1_P1_More  =1'b0;
+                      end 
+                    P2_P1_P1_MOV_eax_dw  :
+                      if (( P2_P1_P1_InstQueueWr_Addr - P2_P1_P1_InstQueueRd_Addr )>=5)
+                         begin 
+                            P2_P1_P1_EAX  <= P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +1)%16];
+                            P2_P1_P1_More  =1'b0;
+                            P2_P1_P1_Flush  =1'b0;
+                            P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +5;
+                            P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +5)%16;
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P1_Flush  =1'b0;
+                            P2_P1_P1_More  =1'b1;
+                         end 
+                    P2_P1_P1_MOV_ebx_dw  :
+                      if (( P2_P1_P1_InstQueueWr_Addr - P2_P1_P1_InstQueueRd_Addr )>=5)
+                         begin 
+                            P2_P1_P1_EBX  <= P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +1)%1];
+                            P2_P1_P1_More  =1'b0;
+                            P2_P1_P1_Flush  =1'b0;
+                            P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +5;
+                            P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +5)%16;
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P1_Flush  =1'b0;
+                            P2_P1_P1_More  =1'b1;
+                         end 
+                    P2_P1_P1_MOV_eax_ebx  :
+                      if (( P2_P1_P1_InstQueueWr_Addr - P2_P1_P1_InstQueueRd_Addr )>=2)
+                         begin 
+                           if ( P2_P1_P1_EBX <0)
+                               P2_P1_P1_rEIP  <=- P2_P1_P1_EBX ;
+                            else 
+                               P2_P1_P1_rEIP  <= P2_P1_P1_EBX ;
+                            P2_P1_P1_RequestPending  <= P2_P1_P1_Pending ;
+                            P2_P1_P1_ReadRequest  <= P2_P1_P1_Pending ;
+                            P2_P1_P1_MemoryFetch  <= P2_P1_P1_Pending ;
+                            P2_P1_P1_CodeFetch  <= P2_P1_P1_NotPending ;
+                           if ( P2_P1_P1_READY_n ==1'b0)
+                              begin 
+                                 P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
+                                 P2_P1_P1_uWord  = P2_P1_P1_Datai %(2**15);
+                                if ( P2_P1_P1_StateBS16 ==1'b1)
+                                    P2_P1_P1_lWord  = P2_P1_P1_Datai %(2**16);
+                                 else 
+                                   begin 
+                                      P2_P1_P1_rEIP  <= P2_P1_P1_rEIP +2;
+                                      P2_P1_P1_RequestPending  <= P2_P1_P1_Pending ;
+                                     if ( P2_P1_P1_READY_n ==1'b0)
+                                        begin 
+                                           P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
+                                           P2_P1_P1_lWord  = P2_P1_P1_Datai %(2**16);
+                                        end 
+                                   end 
+                                if ( P2_P1_P1_READY_n ==1'b0)
+                                   begin 
+                                      P2_P1_P1_EAX  <= P2_P1_P1_uWord *(2**16)+ P2_P1_P1_lWord ;
+                                      P2_P1_P1_More  =1'b0;
+                                      P2_P1_P1_Flush  =1'b0;
+                                      P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +2;
+                                      P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +2)%16;
+                                   end 
+                              end 
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P1_Flush  =1'b0;
+                            P2_P1_P1_More  =1'b1;
+                         end 
+                    P2_P1_P1_MOV_ebx_eax  :
+                      if (( P2_P1_P1_InstQueueWr_Addr - P2_P1_P1_InstQueueRd_Addr )>=2)
+                         begin 
+                           if ( P2_P1_P1_EBX <0)
+                               P2_P1_P1_rEIP  <= P2_P1_P1_EBX ;
+                            else 
+                               P2_P1_P1_rEIP  <= P2_P1_P1_EBX ;
+                            P2_P1_P1_lWord  = P2_P1_P1_EAX %(2**16);
+                            P2_P1_P1_uWord  =( P2_P1_P1_EAX /(2**16))%(2**15);
+                            P2_P1_P1_RequestPending  <= P2_P1_P1_Pending ;
+                            P2_P1_P1_ReadRequest  <= P2_P1_P1_NotPending ;
+                            P2_P1_P1_MemoryFetch  <= P2_P1_P1_Pending ;
+                            P2_P1_P1_CodeFetch  <= P2_P1_P1_NotPending ;
+                           if ( P2_P1_P1_State == P2_P1_P1_StateT1 | P2_P1_P1_State == P2_P1_P1_StateT1P )
+                              begin 
+                                 P2_P1_P1_Datao  <=( P2_P1_P1_uWord *(2**16)+ P2_P1_P1_lWord );
+                                if ( P2_P1_P1_READY_n ==1'b0)
+                                   begin 
+                                      P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
+                                     if ( P2_P1_P1_StateBS16 ==1'b0)
+                                        begin 
+                                           P2_P1_P1_rEIP  <= P2_P1_P1_rEIP +2;
+                                           P2_P1_P1_RequestPending  <= P2_P1_P1_Pending ;
+                                           P2_P1_P1_ReadRequest  <= P2_P1_P1_NotPending ;
+                                           P2_P1_P1_MemoryFetch  <= P2_P1_P1_Pending ;
+                                           P2_P1_P1_CodeFetch  <= P2_P1_P1_NotPending ;
+                                           P2_P1_P1_State2  = P2_P1_P1_S6 ;
+                                        end 
+                                      P2_P1_P1_More  =1'b0;
+                                      P2_P1_P1_Flush  =1'b0;
+                                      P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +2;
+                                      P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +2)%16;
+                                   end 
+                              end 
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P1_Flush  =1'b0;
+                            P2_P1_P1_More  =1'b1;
+                         end 
+                    P2_P1_P1_IN_al  :
+                      if (( P2_P1_P1_InstQueueWr_Addr - P2_P1_P1_InstQueueRd_Addr )>=2)
+                         begin 
+                            P2_P1_P1_rEIP  <= P2_P1_P1_InstQueueRd_Addr +1;
+                            P2_P1_P1_RequestPending  <= P2_P1_P1_Pending ;
+                            P2_P1_P1_ReadRequest  <= P2_P1_P1_Pending ;
+                            P2_P1_P1_MemoryFetch  <= P2_P1_P1_NotPending ;
+                            P2_P1_P1_CodeFetch  <= P2_P1_P1_NotPending ;
+                           if ( P2_P1_P1_READY_n ==1'b0)
+                              begin 
+                                 P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
+                                 P2_P1_P1_EAX  <= P2_P1_P1_Datai ;
+                                 P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +2;
+                                 P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +2);
+                                 P2_P1_P1_Flush  =1'b0;
+                                 P2_P1_P1_More  =1'b0;
+                              end 
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P1_Flush  =1'b0;
+                            P2_P1_P1_More  =1'b1;
+                         end 
+                    P2_P1_P1_OUT_al  :
+                      if (( P2_P1_P1_InstQueueWr_Addr - P2_P1_P1_InstQueueRd_Addr )>=2)
+                         begin 
+                            P2_P1_P1_rEIP  <= P2_P1_P1_InstQueueRd_Addr +1;
+                            P2_P1_P1_RequestPending  <= P2_P1_P1_Pending ;
+                            P2_P1_P1_ReadRequest  <= P2_P1_P1_NotPending ;
+                            P2_P1_P1_MemoryFetch  <= P2_P1_P1_NotPending ;
+                            P2_P1_P1_CodeFetch  <= P2_P1_P1_NotPending ;
+                           if ( P2_P1_P1_State == P2_P1_P1_StateT1 | P2_P1_P1_State == P2_P1_P1_StateT1P )
+                              begin 
+                                 P2_P1_P1_fWord  = P2_P1_P1_EAX %(2**16);
+                                 P2_P1_P1_Datao  <= P2_P1_P1_fWord ;
+                                if ( P2_P1_P1_READY_n ==1'b0)
+                                   begin 
+                                      P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
+                                      P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +2;
+                                      P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +2)%16;
+                                      P2_P1_P1_Flush  =1'b0;
+                                      P2_P1_P1_More  =1'b0;
+                                   end 
+                              end 
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P1_Flush  =1'b0;
+                            P2_P1_P1_More  =1'b1;
+                         end 
+                    P2_P1_P1_ADD_al_b  :
+                      begin 
+                         P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +1;
+                         P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +1)%16;
+                         P2_P1_P1_Flush  =1'b0;
+                         P2_P1_P1_More  =1'b0;
+                      end 
+                    P2_P1_P1_ADD_ax_w  :
+                      begin 
+                         P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +1;
+                         P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +1)%16;
+                         P2_P1_P1_Flush  =1'b0;
+                         P2_P1_P1_More  =1'b0;
+                      end 
+                    P2_P1_P1_ROL_al_1  :
+                      begin 
+                         P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +2;
+                         P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +2)%16;
+                         P2_P1_P1_Flush  =1'b0;
+                         P2_P1_P1_More  =1'b0;
+                      end 
+                    P2_P1_P1_ROL_al_n  :
+                      begin 
+                         P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +2;
+                         P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +2)%16;
+                         P2_P1_P1_Flush  =1'b0;
+                         P2_P1_P1_More  =1'b0;
+                      end 
+                    P2_P1_P1_INC_eax  :
+                      begin 
+                         P2_P1_P1_EAX  <= P2_P1_P1_EAX +1;
+                         P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +1;
+                         P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +1)%16;
+                         P2_P1_P1_Flush  =1'b0;
+                         P2_P1_P1_More  =1'b0;
+                      end 
+                    P2_P1_P1_INC_ebx  :
+                      begin 
+                         P2_P1_P1_EBX  <= P2_P1_P1_EBX +1;
+                         P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +1;
+                         P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +1)%16;
+                         P2_P1_P1_Flush  =1'b0;
+                         P2_P1_P1_More  =1'b0;
+                      end 
+                   default :
+                      begin 
+                         P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +1;
+                         P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +1)%16;
+                         P2_P1_P1_Flush  =1'b0;
+                         P2_P1_P1_More  =1'b0;
+                      end 
+                  endcase 
+                  if ((~( P2_P1_P1_InstQueueRd_Addr < P2_P1_P1_InstQueueWr_Addr ))|((( P2_P1_P1_InstQueueLimit - P2_P1_P1_InstQueueRd_Addr )<4)| P2_P1_P1_Flush | P2_P1_P1_More ))
+                      P2_P1_P1_State2  = P2_P1_P1_S7 ;
+                end 
+              P2_P1_P1_S6  :
+                begin 
+                   P2_P1_P1_Datao  <=( P2_P1_P1_uWord *(2**16)+ P2_P1_P1_lWord );
+                  if ( P2_P1_P1_READY_n ==1'b0)
+                     begin 
+                        P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
+                        P2_P1_P1_State2  = P2_P1_P1_S5 ;
+                     end 
+                end 
+              P2_P1_P1_S7  :
+                begin 
+                  if ( P2_P1_P1_Flush )
+                     begin 
+                        P2_P1_P1_InstQueueRd_Addr  =1;
+                        P2_P1_P1_InstQueueWr_Addr  =1;
+                       if ( P2_P1_P1_InstAddrPointer <0)
+                           P2_P1_P1_fWord  =- P2_P1_P1_InstAddrPointer ;
+                        else 
+                           P2_P1_P1_fWord  = P2_P1_P1_InstAddrPointer ;
+                       if ( P2_P1_P1_fWord %2==1)
+                           P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr + P2_P1_P1_fWord %4)%16;
+                     end 
+                  if (( P2_P1_P1_InstQueueLimit - P2_P1_P1_InstQueueRd_Addr )<3)
+                     begin 
+                        P2_P1_P1_State2  = P2_P1_P1_S8 ;
+                        P2_P1_P1_InstQueueWr_Addr  =0;
+                     end 
+                   else 
+                      P2_P1_P1_State2  = P2_P1_P1_S9 ;
+                end 
+              P2_P1_P1_S8  :
+                if ( P2_P1_P1_InstQueueRd_Addr <= P2_P1_P1_InstQueueLimit )
+                   begin 
+                      P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]= P2_P1_P1_InstQueue [ P2_P1_P1_InstQueueRd_Addr ];
+                      P2_P1_P1_InstQueueRd_Addr  =( P2_P1_P1_InstQueueRd_Addr +1)%16;
+                      P2_P1_P1_InstQueueWr_Addr  =( P2_P1_P1_InstQueueWr_Addr +1)%16;
+                      P2_P1_P1_State2  = P2_P1_P1_S8 ;
+                   end 
+                 else 
+                   begin 
+                      P2_P1_P1_InstQueueRd_Addr  =0;
+                      P2_P1_P1_State2  = P2_P1_P1_S9 ;
+                   end 
+              P2_P1_P1_S9  :
+                begin 
+                   P2_P1_P1_rEIP  <= P2_P1_P1_PhyAddrPointer ;
+                   P2_P1_P1_State2  = P2_P1_P1_S1 ;
+                end 
+            endcase 
+       end
+  
+  always @(  posedge   P2_P1_P1_CLOCK or posedge  P2_P1_P1_RESET )
+       begin : P2_P1_P1_P2 
+         if ( P2_P1_P1_RESET ==1'b1)
+            begin 
+               P2_P1_P1_ByteEnable  <=4'b0000;
+               P2_P1_P1_NonAligned  <=1'b0;
+            end 
+          else 
+            case ( P2_P1_P1_DataWidth )
+              P2_P1_P1_WidthByte  :
+                case ( P2_P1_P1_rEIP %4)
+                 0 :
+                     P2_P1_P1_ByteEnable  <=4'b1110;
+                 1 :
+                     P2_P1_P1_ByteEnable  <=4'b1101;
+                 2 :
+                     P2_P1_P1_ByteEnable  <=4'b1011;
+                 3 :
+                     P2_P1_P1_ByteEnable  <=4'b0111;
+                 default :;
+                endcase 
+              P2_P1_P1_WidthWord  :
+                case ( P2_P1_P1_rEIP %4)
+                 0 :
+                    begin 
+                       P2_P1_P1_ByteEnable  <=4'b1100;
+                       P2_P1_P1_NonAligned  <= P2_P1_P1_NotPending ;
+                    end 
+                 1 :
+                    begin 
+                       P2_P1_P1_ByteEnable  <=4'b1001;
+                       P2_P1_P1_NonAligned  <= P2_P1_P1_NotPending ;
+                    end 
+                 2 :
+                    begin 
+                       P2_P1_P1_ByteEnable  <=4'b0011;
+                       P2_P1_P1_NonAligned  <= P2_P1_P1_NotPending ;
+                    end 
+                 3 :
+                    begin 
+                       P2_P1_P1_ByteEnable  <=4'b0111;
+                       P2_P1_P1_NonAligned  <= P2_P1_P1_Pending ;
+                    end 
+                 default :;
+                endcase 
+              P2_P1_P1_WidthDword  :
+                case ( P2_P1_P1_rEIP %4)
+                 0 :
+                    begin 
+                       P2_P1_P1_ByteEnable  <=4'b0000;
+                       P2_P1_P1_NonAligned  <= P2_P1_P1_NotPending ;
+                    end 
+                 1 :
+                    begin 
+                       P2_P1_P1_ByteEnable  <=4'b0001;
+                       P2_P1_P1_NonAligned  <= P2_P1_P1_Pending ;
+                    end 
+                 2 :
+                    begin 
+                       P2_P1_P1_NonAligned  <= P2_P1_P1_Pending ;
+                       P2_P1_P1_ByteEnable  <=4'b0011;
+                    end 
+                 3 :
+                    begin 
+                       P2_P1_P1_NonAligned  <= P2_P1_P1_Pending ;
+                       P2_P1_P1_ByteEnable  <=4'b0111;
+                    end 
+                 default :;
+                endcase 
+             default :;
+            endcase 
+       end
+ 
+ 
+  
+reg [3:0] P2_P1_P2_BE_n;
+reg [29:0] P2_P1_P2_Address;
+reg  P2_P1_P2_W_R_n;
+reg  P2_P1_P2_D_C_n;
+reg  P2_P1_P2_M_IO_n;
+reg  P2_P1_P2_ADS_n;
+wire [31:0] P2_P1_P2_Datai;
+integer P2_P1_P2_Datao;
+wire  P2_P1_P2_CLOCK;
+wire  P2_P1_P2_NA_n;
+wire  P2_P1_P2_BS16_n;
+wire  P2_P1_P2_READY_n;
+wire  P2_P1_P2_HOLD;
+wire  P2_P1_P2_RESET;
+assign P2_P1_be2 = P2_P1_P2_BE_n;
+assign P2_P1_addr2 = P2_P1_P2_Address;
+assign P2_P1_wr2 = P2_P1_P2_W_R_n;
+assign P2_P1_dc2 = P2_P1_P2_D_C_n;
+assign P2_P1_mio2 = P2_P1_P2_M_IO_n;
+assign P2_P1_ads2 = P2_P1_P2_ADS_n;
+assign P2_P1_P2_Datai = P2_P1_di2;
+assign P2_P1_do2 = P2_P1_P2_Datao;
+assign P2_P1_P2_CLOCK = P2_P1_clock;
+assign P2_P1_P2_NA_n = P2_P1_na;
+assign P2_P1_P2_BS16_n = P2_P1_bs16;
+assign P2_P1_P2_READY_n = P2_P1_rdy2;
+assign P2_P1_P2_HOLD = P2_P1_hold;
+assign P2_P1_P2_RESET = P2_P1_reset;
+ 
+   reg P2_P1_P2_StateNA ; 
+   reg P2_P1_P2_StateBS16 ; 
+   reg P2_P1_P2_RequestPending ; 
+ parameter P2_P1_P2_Pending =1'b1; 
+ parameter P2_P1_P2_NotPending =1'b0; 
+   reg P2_P1_P2_NonAligned ; 
+   reg P2_P1_P2_ReadRequest ; 
+   reg P2_P1_P2_MemoryFetch ; 
+   reg P2_P1_P2_CodeFetch ; 
+   reg[3:0] P2_P1_P2_ByteEnable ; 
+   integer P2_P1_P2_DataWidth ; 
+ parameter P2_P1_P2_WidthByte =0; 
+ parameter P2_P1_P2_WidthWord =1; 
+ parameter P2_P1_P2_WidthDword =2; 
+   reg[2:0] P2_P1_P2_State ; 
+ parameter P2_P1_P2_StateInit =0; 
+ parameter P2_P1_P2_StateTi =1; 
+ parameter P2_P1_P2_StateT1 =2; 
+ parameter P2_P1_P2_StateT2 =3; 
+ parameter P2_P1_P2_StateT1P =4; 
+ parameter P2_P1_P2_StateTh =5; 
+ parameter P2_P1_P2_StateT2P =6; 
+ parameter P2_P1_P2_StateT2I =7; 
+   integer P2_P1_P2_EAX ; 
+   integer P2_P1_P2_EBX ; 
+   integer P2_P1_P2_rEIP ; 
+ parameter P2_P1_P2_REP =8'hF3; 
+ parameter P2_P1_P2_REPNE =8'hF2; 
+ parameter P2_P1_P2_LOCK =8'hF0; 
+ parameter P2_P1_P2_CSsop =8'h2E; 
+ parameter P2_P1_P2_SSsop =8'h36; 
+ parameter P2_P1_P2_DSsop =8'h3E; 
+ parameter P2_P1_P2_ESsop =8'h26; 
+ parameter P2_P1_P2_FSsop =8'h64; 
+ parameter P2_P1_P2_GSsop =8'h65; 
+ parameter P2_P1_P2_OPsop =8'h66; 
+ parameter P2_P1_P2_ADsop =8'h67; 
+ parameter P2_P1_P2_MOV_al_b =8'hB0; 
+ parameter P2_P1_P2_MOV_eax_dw =8'hB8; 
+ parameter P2_P1_P2_MOV_ebx_dw =8'hBB; 
+ parameter P2_P1_P2_MOV_ebx_eax =8'h89; 
+ parameter P2_P1_P2_MOV_eax_ebx =8'h8B; 
+ parameter P2_P1_P2_IN_al =8'hE4; 
+ parameter P2_P1_P2_OUT_al =8'hE6; 
+ parameter P2_P1_P2_ADD_al_b =8'h04; 
+ parameter P2_P1_P2_ADD_ax_w =8'h05; 
+ parameter P2_P1_P2_ROL_eax_b =8'hD1; 
+ parameter P2_P1_P2_ROL_al_1 =8'hD0; 
+ parameter P2_P1_P2_ROL_al_n =8'hC0; 
+ parameter P2_P1_P2_INC_eax =8'h40; 
+ parameter P2_P1_P2_INC_ebx =8'h43; 
+ parameter P2_P1_P2_JMP_rel_short =8'hEB; 
+ parameter P2_P1_P2_JMP_rel_near =8'hE9; 
+ parameter P2_P1_P2_JMP_intseg_immed =8'hEA; 
+ parameter P2_P1_P2_HLT =8'hF4; 
+ parameter P2_P1_P2_WAITx =8'h9B; 
+ parameter P2_P1_P2_NOP =8'h90; 
+  always @(  posedge   P2_P1_P2_CLOCK or posedge  P2_P1_P2_RESET )
+       begin : P2_P1_P2_P0 
+         if ( P2_P1_P2_RESET ==1'b1)
+            begin 
+               P2_P1_P2_BE_n  <=4'b0000;
+               P2_P1_P2_Address  <=0;
+               P2_P1_P2_W_R_n  <=1'b0;
+               P2_P1_P2_D_C_n  <=1'b0;
+               P2_P1_P2_M_IO_n  <=1'b0;
+               P2_P1_P2_ADS_n  <=1'b0;
+               P2_P1_P2_State  <= P2_P1_P2_StateInit ;
+               P2_P1_P2_StateNA  <=1'b0;
+               P2_P1_P2_StateBS16  <=1'b0;
+               P2_P1_P2_DataWidth  <=0;
+            end 
+          else 
+            case ( P2_P1_P2_State )
+              P2_P1_P2_StateInit  :
+                begin 
+                   P2_P1_P2_D_C_n  <=1'b1;
+                   P2_P1_P2_ADS_n  <=1'b1;
+                   P2_P1_P2_State  <= P2_P1_P2_StateTi ;
+                   P2_P1_P2_StateNA  <=1'b1;
+                   P2_P1_P2_StateBS16  <=1'b1;
+                   P2_P1_P2_DataWidth  <=2;
+                   P2_P1_P2_State  <= P2_P1_P2_StateTi ;
+                end 
+              P2_P1_P2_StateTi  :
+                if ( P2_P1_P2_RequestPending == P2_P1_P2_Pending )
+                    P2_P1_P2_State  <= P2_P1_P2_StateT1 ;
+                 else 
+                   if ( P2_P1_P2_HOLD ==1'b1)
+                       P2_P1_P2_State  <= P2_P1_P2_StateTh ;
+                    else 
+                       P2_P1_P2_State  <= P2_P1_P2_StateTi ;
+              P2_P1_P2_StateT1  :
+                begin 
+                   P2_P1_P2_Address  <= P2_P1_P2_rEIP /4%2**30;
+                   P2_P1_P2_BE_n  <= P2_P1_P2_ByteEnable ;
+                   P2_P1_P2_M_IO_n  <= P2_P1_P2_MemoryFetch ;
+                  if ( P2_P1_P2_ReadRequest == P2_P1_P2_Pending )
+                      P2_P1_P2_W_R_n  <=1'b0;
+                   else 
+                      P2_P1_P2_W_R_n  <=1'b1;
+                  if ( P2_P1_P2_CodeFetch == P2_P1_P2_Pending )
+                      P2_P1_P2_D_C_n  <=1'b0;
+                   else 
+                      P2_P1_P2_D_C_n  <=1'b1;
+                   P2_P1_P2_ADS_n  <=1'b0;
+                   P2_P1_P2_State  <= P2_P1_P2_StateT2 ;
+                end 
+              P2_P1_P2_StateT2  :
+                begin 
+                  if ( P2_P1_P2_READY_n ==1'b0& P2_P1_P2_HOLD ==1'b0& P2_P1_P2_RequestPending == P2_P1_P2_Pending )
+                      P2_P1_P2_State  <= P2_P1_P2_StateT1 ;
+                   else 
+                     if ( P2_P1_P2_READY_n ==1'b1& P2_P1_P2_NA_n ==1'b1);
+                      else 
+                        if (( P2_P1_P2_RequestPending == P2_P1_P2_Pending | P2_P1_P2_HOLD ==1'b1)&( P2_P1_P2_READY_n ==1'b1& P2_P1_P2_NA_n ==1'b0))
+                            P2_P1_P2_State  <= P2_P1_P2_StateT2I ;
+                         else 
+                           if ( P2_P1_P2_RequestPending == P2_P1_P2_Pending & P2_P1_P2_HOLD ==1'b0& P2_P1_P2_READY_n ==1'b1& P2_P1_P2_NA_n ==1'b0)
+                               P2_P1_P2_State  <= P2_P1_P2_StateT2P ;
+                            else 
+                              if ( P2_P1_P2_RequestPending == P2_P1_P2_NotPending & P2_P1_P2_HOLD ==1'b0& P2_P1_P2_READY_n ==1'b0)
+                                  P2_P1_P2_State  <= P2_P1_P2_StateTi ;
+                               else 
+                                 if ( P2_P1_P2_HOLD ==1'b1& P2_P1_P2_READY_n ==1'b1)
+                                     P2_P1_P2_State  <= P2_P1_P2_StateTh ;
+                                  else 
+                                     P2_P1_P2_State  <= P2_P1_P2_StateT2 ;
+                   P2_P1_P2_StateBS16  <= P2_P1_P2_BS16_n ;
+                  if ( P2_P1_P2_BS16_n ==1'b0)
+                      P2_P1_P2_DataWidth  <= P2_P1_P2_WidthWord ;
+                   else 
+                      P2_P1_P2_DataWidth  <= P2_P1_P2_WidthDword ;
+                   P2_P1_P2_StateNA  <= P2_P1_P2_NA_n ;
+                   P2_P1_P2_ADS_n  <=1'b1;
+                end 
+              P2_P1_P2_StateT1P  :
+                begin 
+                  if ( P2_P1_P2_NA_n ==1'b0& P2_P1_P2_HOLD ==1'b0& P2_P1_P2_RequestPending == P2_P1_P2_Pending )
+                      P2_P1_P2_State  <= P2_P1_P2_StateT2P ;
+                   else 
+                     if ( P2_P1_P2_NA_n ==1'b0&( P2_P1_P2_HOLD ==1'b1| P2_P1_P2_RequestPending == P2_P1_P2_NotPending ))
+                         P2_P1_P2_State  <= P2_P1_P2_StateT2I ;
+                      else 
+                        if ( P2_P1_P2_NA_n ==1'b1)
+                            P2_P1_P2_State  <= P2_P1_P2_StateT2 ;
+                         else 
+                            P2_P1_P2_State  <= P2_P1_P2_StateT1P ;
+                   P2_P1_P2_StateBS16  <= P2_P1_P2_BS16_n ;
+                  if ( P2_P1_P2_BS16_n ==1'b0)
+                      P2_P1_P2_DataWidth  <= P2_P1_P2_WidthWord ;
+                   else 
+                      P2_P1_P2_DataWidth  <= P2_P1_P2_WidthDword ;
+                   P2_P1_P2_StateNA  <= P2_P1_P2_NA_n ;
+                   P2_P1_P2_ADS_n  <=1'b1;
+                end 
+              P2_P1_P2_StateTh  :
+                if ( P2_P1_P2_HOLD ==1'b0& P2_P1_P2_RequestPending == P2_P1_P2_Pending )
+                    P2_P1_P2_State  <= P2_P1_P2_StateT1 ;
+                 else 
+                   if ( P2_P1_P2_HOLD ==1'b0& P2_P1_P2_RequestPending == P2_P1_P2_NotPending )
+                       P2_P1_P2_State  <= P2_P1_P2_StateTi ;
+                    else 
+                       P2_P1_P2_State  <= P2_P1_P2_StateTh ;
+              P2_P1_P2_StateT2P  :
+                begin 
+                   P2_P1_P2_Address  <= P2_P1_P2_rEIP /2%2**30;
+                   P2_P1_P2_BE_n  <= P2_P1_P2_ByteEnable ;
+                   P2_P1_P2_M_IO_n  <= P2_P1_P2_MemoryFetch ;
+                  if ( P2_P1_P2_ReadRequest == P2_P1_P2_Pending )
+                      P2_P1_P2_W_R_n  <=1'b0;
+                   else 
+                      P2_P1_P2_W_R_n  <=1'b1;
+                  if ( P2_P1_P2_CodeFetch == P2_P1_P2_Pending )
+                      P2_P1_P2_D_C_n  <=1'b0;
+                   else 
+                      P2_P1_P2_D_C_n  <=1'b1;
+                   P2_P1_P2_ADS_n  <=1'b0;
+                  if ( P2_P1_P2_READY_n ==1'b0)
+                      P2_P1_P2_State  <= P2_P1_P2_StateT1P ;
+                   else 
+                      P2_P1_P2_State  <= P2_P1_P2_StateT2P ;
+                end 
+              P2_P1_P2_StateT2I  :
+                if ( P2_P1_P2_READY_n ==1'b1& P2_P1_P2_RequestPending == P2_P1_P2_Pending & P2_P1_P2_HOLD ==1'b0)
+                    P2_P1_P2_State  <= P2_P1_P2_StateT2P ;
+                 else 
+                   if ( P2_P1_P2_READY_n ==1'b0& P2_P1_P2_HOLD ==1'b1)
+                       P2_P1_P2_State  <= P2_P1_P2_StateTh ;
+                    else 
+                      if ( P2_P1_P2_READY_n ==1'b0& P2_P1_P2_HOLD ==1'b0& P2_P1_P2_RequestPending == P2_P1_P2_Pending )
+                          P2_P1_P2_State  <= P2_P1_P2_StateT1 ;
+                       else 
+                         if ( P2_P1_P2_READY_n ==1'b0& P2_P1_P2_HOLD ==1'b0& P2_P1_P2_RequestPending == P2_P1_P2_NotPending )
+                             P2_P1_P2_State  <= P2_P1_P2_StateTi ;
+                          else 
+                             P2_P1_P2_State  <= P2_P1_P2_StateT2I ;
+            endcase 
+       end
+  
+  always @(  posedge   P2_P1_P2_CLOCK or posedge  P2_P1_P2_RESET )
+       begin : P2_P1_P2_P1 reg[7:0] P2_P1_P2_InstQueue [15:0];reg[4:0] P2_P1_P2_InstQueueRd_Addr ;reg[4:0] P2_P1_P2_InstQueueWr_Addr ;
+         parameter P2_P1_P2_InstQueueLimit =15;integer P2_P1_P2_InstAddrPointer ;integer P2_P1_P2_PhyAddrPointer ;reg P2_P1_P2_Extended ;reg P2_P1_P2_More ;reg P2_P1_P2_Flush ;reg[15:0] P2_P1_P2_lWord ;reg[14:0] P2_P1_P2_uWord ;integer P2_P1_P2_fWord ;reg[3:0] P2_P1_P2_State2 ;
+         parameter P2_P1_P2_Si =0;
+         parameter P2_P1_P2_S1 =1;
+         parameter P2_P1_P2_S2 =2;
+         parameter P2_P1_P2_S3 =3;
+         parameter P2_P1_P2_S4 =4;
+         parameter P2_P1_P2_S5 =5;
+         parameter P2_P1_P2_S6 =6;
+         parameter P2_P1_P2_S7 =7;
+         parameter P2_P1_P2_S8 =8;
+         parameter P2_P1_P2_S9 =9;
+         if ( P2_P1_P2_RESET ==1'b1)
+            begin 
+               P2_P1_P2_State2  = P2_P1_P2_Si ;
+               P2_P1_P2_InstQueue  [0]=16*{0};
+               P2_P1_P2_InstQueue  [1]=16*{0};
+               P2_P1_P2_InstQueue  [2]=16*{0};
+               P2_P1_P2_InstQueue  [3]=16*{0};
+               P2_P1_P2_InstQueue  [4]=16*{0};
+               P2_P1_P2_InstQueue  [5]=16*{0};
+               P2_P1_P2_InstQueue  [6]=16*{0};
+               P2_P1_P2_InstQueue  [7]=16*{0};
+               P2_P1_P2_InstQueueRd_Addr  =0;
+               P2_P1_P2_InstQueueWr_Addr  =0;
+               P2_P1_P2_InstAddrPointer  =0;
+               P2_P1_P2_PhyAddrPointer  =0;
+               P2_P1_P2_Extended  =1'b0;
+               P2_P1_P2_More  =1'b0;
+               P2_P1_P2_Flush  =1'b0;
+               P2_P1_P2_lWord  =0;
+               P2_P1_P2_uWord  =0;
+               P2_P1_P2_fWord  =0;
+               P2_P1_P2_CodeFetch  <=1'b0;
+               P2_P1_P2_Datao  <=0;
+               P2_P1_P2_EAX  <=0;
+               P2_P1_P2_EBX  <=0;
+               P2_P1_P2_rEIP  <=0;
+               P2_P1_P2_ReadRequest  <=1'b0;
+               P2_P1_P2_MemoryFetch  <=1'b0;
+               P2_P1_P2_RequestPending  <=1'b0;
+            end 
+          else 
+            case ( P2_P1_P2_State2 )
+              P2_P1_P2_Si  :
+                begin 
+                   P2_P1_P2_PhyAddrPointer  = P2_P1_P2_rEIP ;
+                   P2_P1_P2_InstAddrPointer  = P2_P1_P2_PhyAddrPointer ;
+                   P2_P1_P2_State2  = P2_P1_P2_S1 ;
+                   P2_P1_P2_rEIP  <=20'hFFFF0;
+                   P2_P1_P2_ReadRequest  <=1'b1;
+                   P2_P1_P2_MemoryFetch  <=1'b1;
+                   P2_P1_P2_RequestPending  <=1'b1;
+                end 
+              P2_P1_P2_S1  :
+                begin 
+                   P2_P1_P2_RequestPending  <= P2_P1_P2_Pending ;
+                   P2_P1_P2_ReadRequest  <= P2_P1_P2_Pending ;
+                   P2_P1_P2_MemoryFetch  <= P2_P1_P2_Pending ;
+                   P2_P1_P2_CodeFetch  <= P2_P1_P2_Pending ;
+                  if ( P2_P1_P2_READY_n ==1'b0)
+                      P2_P1_P2_State2  = P2_P1_P2_S2 ;
+                   else 
+                      P2_P1_P2_State2  = P2_P1_P2_S1 ;
+                end 
+              P2_P1_P2_S2  :
+                begin 
+                   P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
+                   P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]= P2_P1_P2_Datai %(2**8);
+                   P2_P1_P2_InstQueueWr_Addr  =( P2_P1_P2_InstQueueWr_Addr +1)%16;
+                   P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]= P2_P1_P2_Datai %2**8;
+                   P2_P1_P2_InstQueueWr_Addr  =( P2_P1_P2_InstQueueWr_Addr +1)%16;
+                  if ( P2_P1_P2_StateBS16 ==1'b1)
+                     begin 
+                        P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]=( P2_P1_P2_Datai /(2**16))%(2**8);
+                        P2_P1_P2_InstQueueWr_Addr  =( P2_P1_P2_InstQueueWr_Addr +1)%16;
+                        P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]=( P2_P1_P2_Datai /(2**24))%(2**8);
+                        P2_P1_P2_InstQueueWr_Addr  =( P2_P1_P2_InstQueueWr_Addr +1)%16;
+                        P2_P1_P2_PhyAddrPointer  = P2_P1_P2_PhyAddrPointer +4;
+                        P2_P1_P2_State2  = P2_P1_P2_S5 ;
+                     end 
+                   else 
+                     begin 
+                        P2_P1_P2_PhyAddrPointer  = P2_P1_P2_PhyAddrPointer +2;
+                       if ( P2_P1_P2_PhyAddrPointer <0)
+                           P2_P1_P2_rEIP  <=- P2_P1_P2_PhyAddrPointer ;
+                        else 
+                           P2_P1_P2_rEIP  <= P2_P1_P2_PhyAddrPointer ;
+                        P2_P1_P2_State2  = P2_P1_P2_S3 ;
+                     end 
+                end 
+              P2_P1_P2_S3  :
+                begin 
+                   P2_P1_P2_RequestPending  <= P2_P1_P2_Pending ;
+                  if ( P2_P1_P2_READY_n ==1'b0)
+                      P2_P1_P2_State2  = P2_P1_P2_S4 ;
+                   else 
+                      P2_P1_P2_State2  = P2_P1_P2_S3 ;
+                end 
+              P2_P1_P2_S4  :
+                begin 
+                   P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
+                   P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]= P2_P1_P2_Datai %(2**8);
+                   P2_P1_P2_InstQueueWr_Addr  =( P2_P1_P2_InstQueueWr_Addr +1)%16;
+                   P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]= P2_P1_P2_Datai %(2**8);
+                   P2_P1_P2_InstQueueWr_Addr  =( P2_P1_P2_InstQueueWr_Addr +1)%16;
+                   P2_P1_P2_PhyAddrPointer  = P2_P1_P2_PhyAddrPointer +2;
+                   P2_P1_P2_State2  = P2_P1_P2_S5 ;
+                end 
+              P2_P1_P2_S5  :
+                begin 
+                  case ( P2_P1_P2_InstQueue [ P2_P1_P2_InstQueueRd_Addr ])
+                    P2_P1_P2_NOP  :
+                      begin 
+                         P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +1;
+                         P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +1)%16;
+                         P2_P1_P2_Flush  =1'b0;
+                         P2_P1_P2_More  =1'b0;
+                      end 
+                    P2_P1_P2_OPsop  :
+                      begin 
+                         P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +1;
+                         P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +1)%16;
+                         P2_P1_P2_Extended  =1'b1;
+                         P2_P1_P2_Flush  =1'b0;
+                         P2_P1_P2_More  =1'b0;
+                      end 
+                    P2_P1_P2_JMP_rel_short  :
+                      if (( P2_P1_P2_InstQueueWr_Addr - P2_P1_P2_InstQueueRd_Addr )>=3)
+                         begin 
+                           if ( P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +1)%16]>127)
+                              begin 
+                                 P2_P1_P2_PhyAddrPointer  = P2_P1_P2_InstAddrPointer +1-(8'hFF- P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +1)%16]);
+                                 P2_P1_P2_InstAddrPointer  = P2_P1_P2_PhyAddrPointer ;
+                              end 
+                            else 
+                              begin 
+                                 P2_P1_P2_PhyAddrPointer  = P2_P1_P2_InstAddrPointer +2+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +1)%16];
+                                 P2_P1_P2_InstAddrPointer  = P2_P1_P2_PhyAddrPointer ;
+                              end 
+                            P2_P1_P2_Flush  =1'b1;
+                            P2_P1_P2_More  =1'b0;
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P2_Flush  =1'b0;
+                            P2_P1_P2_More  =1'b1;
+                         end 
+                    P2_P1_P2_JMP_rel_near  :
+                      if (( P2_P1_P2_InstQueueWr_Addr - P2_P1_P2_InstQueueRd_Addr )>=5)
+                         begin 
+                            P2_P1_P2_PhyAddrPointer  = P2_P1_P2_InstAddrPointer +5+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +1)%16];
+                            P2_P1_P2_InstAddrPointer  = P2_P1_P2_PhyAddrPointer ;
+                            P2_P1_P2_Flush  =1'b1;
+                            P2_P1_P2_More  =1'b0;
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P2_Flush  =1'b0;
+                            P2_P1_P2_More  =1'b1;
+                         end 
+                    P2_P1_P2_JMP_intseg_immed  :
+                      begin 
+                         P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +1;
+                         P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +1)%16;
+                         P2_P1_P2_Flush  =1'b0;
+                         P2_P1_P2_More  =1'b0;
+                      end 
+                    P2_P1_P2_MOV_al_b  :
+                      begin 
+                         P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +1;
+                         P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +1)%16;
+                         P2_P1_P2_Flush  =1'b0;
+                         P2_P1_P2_More  =1'b0;
+                      end 
+                    P2_P1_P2_MOV_eax_dw  :
+                      if (( P2_P1_P2_InstQueueWr_Addr - P2_P1_P2_InstQueueRd_Addr )>=5)
+                         begin 
+                            P2_P1_P2_EAX  <= P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +1)%16];
+                            P2_P1_P2_More  =1'b0;
+                            P2_P1_P2_Flush  =1'b0;
+                            P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +5;
+                            P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +5)%16;
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P2_Flush  =1'b0;
+                            P2_P1_P2_More  =1'b1;
+                         end 
+                    P2_P1_P2_MOV_ebx_dw  :
+                      if (( P2_P1_P2_InstQueueWr_Addr - P2_P1_P2_InstQueueRd_Addr )>=5)
+                         begin 
+                            P2_P1_P2_EBX  <= P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +1)%1];
+                            P2_P1_P2_More  =1'b0;
+                            P2_P1_P2_Flush  =1'b0;
+                            P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +5;
+                            P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +5)%16;
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P2_Flush  =1'b0;
+                            P2_P1_P2_More  =1'b1;
+                         end 
+                    P2_P1_P2_MOV_eax_ebx  :
+                      if (( P2_P1_P2_InstQueueWr_Addr - P2_P1_P2_InstQueueRd_Addr )>=2)
+                         begin 
+                           if ( P2_P1_P2_EBX <0)
+                               P2_P1_P2_rEIP  <=- P2_P1_P2_EBX ;
+                            else 
+                               P2_P1_P2_rEIP  <= P2_P1_P2_EBX ;
+                            P2_P1_P2_RequestPending  <= P2_P1_P2_Pending ;
+                            P2_P1_P2_ReadRequest  <= P2_P1_P2_Pending ;
+                            P2_P1_P2_MemoryFetch  <= P2_P1_P2_Pending ;
+                            P2_P1_P2_CodeFetch  <= P2_P1_P2_NotPending ;
+                           if ( P2_P1_P2_READY_n ==1'b0)
+                              begin 
+                                 P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
+                                 P2_P1_P2_uWord  = P2_P1_P2_Datai %(2**15);
+                                if ( P2_P1_P2_StateBS16 ==1'b1)
+                                    P2_P1_P2_lWord  = P2_P1_P2_Datai %(2**16);
+                                 else 
+                                   begin 
+                                      P2_P1_P2_rEIP  <= P2_P1_P2_rEIP +2;
+                                      P2_P1_P2_RequestPending  <= P2_P1_P2_Pending ;
+                                     if ( P2_P1_P2_READY_n ==1'b0)
+                                        begin 
+                                           P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
+                                           P2_P1_P2_lWord  = P2_P1_P2_Datai %(2**16);
+                                        end 
+                                   end 
+                                if ( P2_P1_P2_READY_n ==1'b0)
+                                   begin 
+                                      P2_P1_P2_EAX  <= P2_P1_P2_uWord *(2**16)+ P2_P1_P2_lWord ;
+                                      P2_P1_P2_More  =1'b0;
+                                      P2_P1_P2_Flush  =1'b0;
+                                      P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +2;
+                                      P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +2)%16;
+                                   end 
+                              end 
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P2_Flush  =1'b0;
+                            P2_P1_P2_More  =1'b1;
+                         end 
+                    P2_P1_P2_MOV_ebx_eax  :
+                      if (( P2_P1_P2_InstQueueWr_Addr - P2_P1_P2_InstQueueRd_Addr )>=2)
+                         begin 
+                           if ( P2_P1_P2_EBX <0)
+                               P2_P1_P2_rEIP  <= P2_P1_P2_EBX ;
+                            else 
+                               P2_P1_P2_rEIP  <= P2_P1_P2_EBX ;
+                            P2_P1_P2_lWord  = P2_P1_P2_EAX %(2**16);
+                            P2_P1_P2_uWord  =( P2_P1_P2_EAX /(2**16))%(2**15);
+                            P2_P1_P2_RequestPending  <= P2_P1_P2_Pending ;
+                            P2_P1_P2_ReadRequest  <= P2_P1_P2_NotPending ;
+                            P2_P1_P2_MemoryFetch  <= P2_P1_P2_Pending ;
+                            P2_P1_P2_CodeFetch  <= P2_P1_P2_NotPending ;
+                           if ( P2_P1_P2_State == P2_P1_P2_StateT1 | P2_P1_P2_State == P2_P1_P2_StateT1P )
+                              begin 
+                                 P2_P1_P2_Datao  <=( P2_P1_P2_uWord *(2**16)+ P2_P1_P2_lWord );
+                                if ( P2_P1_P2_READY_n ==1'b0)
+                                   begin 
+                                      P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
+                                     if ( P2_P1_P2_StateBS16 ==1'b0)
+                                        begin 
+                                           P2_P1_P2_rEIP  <= P2_P1_P2_rEIP +2;
+                                           P2_P1_P2_RequestPending  <= P2_P1_P2_Pending ;
+                                           P2_P1_P2_ReadRequest  <= P2_P1_P2_NotPending ;
+                                           P2_P1_P2_MemoryFetch  <= P2_P1_P2_Pending ;
+                                           P2_P1_P2_CodeFetch  <= P2_P1_P2_NotPending ;
+                                           P2_P1_P2_State2  = P2_P1_P2_S6 ;
+                                        end 
+                                      P2_P1_P2_More  =1'b0;
+                                      P2_P1_P2_Flush  =1'b0;
+                                      P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +2;
+                                      P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +2)%16;
+                                   end 
+                              end 
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P2_Flush  =1'b0;
+                            P2_P1_P2_More  =1'b1;
+                         end 
+                    P2_P1_P2_IN_al  :
+                      if (( P2_P1_P2_InstQueueWr_Addr - P2_P1_P2_InstQueueRd_Addr )>=2)
+                         begin 
+                            P2_P1_P2_rEIP  <= P2_P1_P2_InstQueueRd_Addr +1;
+                            P2_P1_P2_RequestPending  <= P2_P1_P2_Pending ;
+                            P2_P1_P2_ReadRequest  <= P2_P1_P2_Pending ;
+                            P2_P1_P2_MemoryFetch  <= P2_P1_P2_NotPending ;
+                            P2_P1_P2_CodeFetch  <= P2_P1_P2_NotPending ;
+                           if ( P2_P1_P2_READY_n ==1'b0)
+                              begin 
+                                 P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
+                                 P2_P1_P2_EAX  <= P2_P1_P2_Datai ;
+                                 P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +2;
+                                 P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +2);
+                                 P2_P1_P2_Flush  =1'b0;
+                                 P2_P1_P2_More  =1'b0;
+                              end 
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P2_Flush  =1'b0;
+                            P2_P1_P2_More  =1'b1;
+                         end 
+                    P2_P1_P2_OUT_al  :
+                      if (( P2_P1_P2_InstQueueWr_Addr - P2_P1_P2_InstQueueRd_Addr )>=2)
+                         begin 
+                            P2_P1_P2_rEIP  <= P2_P1_P2_InstQueueRd_Addr +1;
+                            P2_P1_P2_RequestPending  <= P2_P1_P2_Pending ;
+                            P2_P1_P2_ReadRequest  <= P2_P1_P2_NotPending ;
+                            P2_P1_P2_MemoryFetch  <= P2_P1_P2_NotPending ;
+                            P2_P1_P2_CodeFetch  <= P2_P1_P2_NotPending ;
+                           if ( P2_P1_P2_State == P2_P1_P2_StateT1 | P2_P1_P2_State == P2_P1_P2_StateT1P )
+                              begin 
+                                 P2_P1_P2_fWord  = P2_P1_P2_EAX %(2**16);
+                                 P2_P1_P2_Datao  <= P2_P1_P2_fWord ;
+                                if ( P2_P1_P2_READY_n ==1'b0)
+                                   begin 
+                                      P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
+                                      P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +2;
+                                      P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +2)%16;
+                                      P2_P1_P2_Flush  =1'b0;
+                                      P2_P1_P2_More  =1'b0;
+                                   end 
+                              end 
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P2_Flush  =1'b0;
+                            P2_P1_P2_More  =1'b1;
+                         end 
+                    P2_P1_P2_ADD_al_b  :
+                      begin 
+                         P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +1;
+                         P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +1)%16;
+                         P2_P1_P2_Flush  =1'b0;
+                         P2_P1_P2_More  =1'b0;
+                      end 
+                    P2_P1_P2_ADD_ax_w  :
+                      begin 
+                         P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +1;
+                         P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +1)%16;
+                         P2_P1_P2_Flush  =1'b0;
+                         P2_P1_P2_More  =1'b0;
+                      end 
+                    P2_P1_P2_ROL_al_1  :
+                      begin 
+                         P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +2;
+                         P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +2)%16;
+                         P2_P1_P2_Flush  =1'b0;
+                         P2_P1_P2_More  =1'b0;
+                      end 
+                    P2_P1_P2_ROL_al_n  :
+                      begin 
+                         P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +2;
+                         P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +2)%16;
+                         P2_P1_P2_Flush  =1'b0;
+                         P2_P1_P2_More  =1'b0;
+                      end 
+                    P2_P1_P2_INC_eax  :
+                      begin 
+                         P2_P1_P2_EAX  <= P2_P1_P2_EAX +1;
+                         P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +1;
+                         P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +1)%16;
+                         P2_P1_P2_Flush  =1'b0;
+                         P2_P1_P2_More  =1'b0;
+                      end 
+                    P2_P1_P2_INC_ebx  :
+                      begin 
+                         P2_P1_P2_EBX  <= P2_P1_P2_EBX +1;
+                         P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +1;
+                         P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +1)%16;
+                         P2_P1_P2_Flush  =1'b0;
+                         P2_P1_P2_More  =1'b0;
+                      end 
+                   default :
+                      begin 
+                         P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +1;
+                         P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +1)%16;
+                         P2_P1_P2_Flush  =1'b0;
+                         P2_P1_P2_More  =1'b0;
+                      end 
+                  endcase 
+                  if ((~( P2_P1_P2_InstQueueRd_Addr < P2_P1_P2_InstQueueWr_Addr ))|((( P2_P1_P2_InstQueueLimit - P2_P1_P2_InstQueueRd_Addr )<4)| P2_P1_P2_Flush | P2_P1_P2_More ))
+                      P2_P1_P2_State2  = P2_P1_P2_S7 ;
+                end 
+              P2_P1_P2_S6  :
+                begin 
+                   P2_P1_P2_Datao  <=( P2_P1_P2_uWord *(2**16)+ P2_P1_P2_lWord );
+                  if ( P2_P1_P2_READY_n ==1'b0)
+                     begin 
+                        P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
+                        P2_P1_P2_State2  = P2_P1_P2_S5 ;
+                     end 
+                end 
+              P2_P1_P2_S7  :
+                begin 
+                  if ( P2_P1_P2_Flush )
+                     begin 
+                        P2_P1_P2_InstQueueRd_Addr  =1;
+                        P2_P1_P2_InstQueueWr_Addr  =1;
+                       if ( P2_P1_P2_InstAddrPointer <0)
+                           P2_P1_P2_fWord  =- P2_P1_P2_InstAddrPointer ;
+                        else 
+                           P2_P1_P2_fWord  = P2_P1_P2_InstAddrPointer ;
+                       if ( P2_P1_P2_fWord %2==1)
+                           P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr + P2_P1_P2_fWord %4)%16;
+                     end 
+                  if (( P2_P1_P2_InstQueueLimit - P2_P1_P2_InstQueueRd_Addr )<3)
+                     begin 
+                        P2_P1_P2_State2  = P2_P1_P2_S8 ;
+                        P2_P1_P2_InstQueueWr_Addr  =0;
+                     end 
+                   else 
+                      P2_P1_P2_State2  = P2_P1_P2_S9 ;
+                end 
+              P2_P1_P2_S8  :
+                if ( P2_P1_P2_InstQueueRd_Addr <= P2_P1_P2_InstQueueLimit )
+                   begin 
+                      P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]= P2_P1_P2_InstQueue [ P2_P1_P2_InstQueueRd_Addr ];
+                      P2_P1_P2_InstQueueRd_Addr  =( P2_P1_P2_InstQueueRd_Addr +1)%16;
+                      P2_P1_P2_InstQueueWr_Addr  =( P2_P1_P2_InstQueueWr_Addr +1)%16;
+                      P2_P1_P2_State2  = P2_P1_P2_S8 ;
+                   end 
+                 else 
+                   begin 
+                      P2_P1_P2_InstQueueRd_Addr  =0;
+                      P2_P1_P2_State2  = P2_P1_P2_S9 ;
+                   end 
+              P2_P1_P2_S9  :
+                begin 
+                   P2_P1_P2_rEIP  <= P2_P1_P2_PhyAddrPointer ;
+                   P2_P1_P2_State2  = P2_P1_P2_S1 ;
+                end 
+            endcase 
+       end
+  
+  always @(  posedge   P2_P1_P2_CLOCK or posedge  P2_P1_P2_RESET )
+       begin : P2_P1_P2_P2 
+         if ( P2_P1_P2_RESET ==1'b1)
+            begin 
+               P2_P1_P2_ByteEnable  <=4'b0000;
+               P2_P1_P2_NonAligned  <=1'b0;
+            end 
+          else 
+            case ( P2_P1_P2_DataWidth )
+              P2_P1_P2_WidthByte  :
+                case ( P2_P1_P2_rEIP %4)
+                 0 :
+                     P2_P1_P2_ByteEnable  <=4'b1110;
+                 1 :
+                     P2_P1_P2_ByteEnable  <=4'b1101;
+                 2 :
+                     P2_P1_P2_ByteEnable  <=4'b1011;
+                 3 :
+                     P2_P1_P2_ByteEnable  <=4'b0111;
+                 default :;
+                endcase 
+              P2_P1_P2_WidthWord  :
+                case ( P2_P1_P2_rEIP %4)
+                 0 :
+                    begin 
+                       P2_P1_P2_ByteEnable  <=4'b1100;
+                       P2_P1_P2_NonAligned  <= P2_P1_P2_NotPending ;
+                    end 
+                 1 :
+                    begin 
+                       P2_P1_P2_ByteEnable  <=4'b1001;
+                       P2_P1_P2_NonAligned  <= P2_P1_P2_NotPending ;
+                    end 
+                 2 :
+                    begin 
+                       P2_P1_P2_ByteEnable  <=4'b0011;
+                       P2_P1_P2_NonAligned  <= P2_P1_P2_NotPending ;
+                    end 
+                 3 :
+                    begin 
+                       P2_P1_P2_ByteEnable  <=4'b0111;
+                       P2_P1_P2_NonAligned  <= P2_P1_P2_Pending ;
+                    end 
+                 default :;
+                endcase 
+              P2_P1_P2_WidthDword  :
+                case ( P2_P1_P2_rEIP %4)
+                 0 :
+                    begin 
+                       P2_P1_P2_ByteEnable  <=4'b0000;
+                       P2_P1_P2_NonAligned  <= P2_P1_P2_NotPending ;
+                    end 
+                 1 :
+                    begin 
+                       P2_P1_P2_ByteEnable  <=4'b0001;
+                       P2_P1_P2_NonAligned  <= P2_P1_P2_Pending ;
+                    end 
+                 2 :
+                    begin 
+                       P2_P1_P2_NonAligned  <= P2_P1_P2_Pending ;
+                       P2_P1_P2_ByteEnable  <=4'b0011;
+                    end 
+                 3 :
+                    begin 
+                       P2_P1_P2_NonAligned  <= P2_P1_P2_Pending ;
+                       P2_P1_P2_ByteEnable  <=4'b0111;
+                    end 
+                 default :;
+                endcase 
+             default :;
+            endcase 
+       end
+ 
+ 
+  
+reg [3:0] P2_P1_P3_BE_n;
+reg [29:0] P2_P1_P3_Address;
+reg  P2_P1_P3_W_R_n;
+reg  P2_P1_P3_D_C_n;
+reg  P2_P1_P3_M_IO_n;
+reg  P2_P1_P3_ADS_n;
+wire [31:0] P2_P1_P3_Datai;
+integer P2_P1_P3_Datao;
+wire  P2_P1_P3_CLOCK;
+wire  P2_P1_P3_NA_n;
+wire  P2_P1_P3_BS16_n;
+wire  P2_P1_P3_READY_n;
+wire  P2_P1_P3_HOLD;
+wire  P2_P1_P3_RESET;
+assign P2_P1_be3 = P2_P1_P3_BE_n;
+assign P2_P1_addr3 = P2_P1_P3_Address;
+assign P2_P1_wr3 = P2_P1_P3_W_R_n;
+assign P2_P1_dc3 = P2_P1_P3_D_C_n;
+assign P2_P1_mio3 = P2_P1_P3_M_IO_n;
+assign P2_P1_ads3 = P2_P1_P3_ADS_n;
+assign P2_P1_P3_Datai = P2_P1_di3;
+assign P2_P1_do3 = P2_P1_P3_Datao;
+assign P2_P1_P3_CLOCK = P2_P1_clock;
+assign P2_P1_P3_NA_n = P2_P1_na;
+assign P2_P1_P3_BS16_n = P2_P1_bs16;
+assign P2_P1_P3_READY_n = P2_P1_rdy3;
+assign P2_P1_P3_HOLD = P2_P1_hold;
+assign P2_P1_P3_RESET = P2_P1_reset;
+ 
+   reg P2_P1_P3_StateNA ; 
+   reg P2_P1_P3_StateBS16 ; 
+   reg P2_P1_P3_RequestPending ; 
+ parameter P2_P1_P3_Pending =1'b1; 
+ parameter P2_P1_P3_NotPending =1'b0; 
+   reg P2_P1_P3_NonAligned ; 
+   reg P2_P1_P3_ReadRequest ; 
+   reg P2_P1_P3_MemoryFetch ; 
+   reg P2_P1_P3_CodeFetch ; 
+   reg[3:0] P2_P1_P3_ByteEnable ; 
+   integer P2_P1_P3_DataWidth ; 
+ parameter P2_P1_P3_WidthByte =0; 
+ parameter P2_P1_P3_WidthWord =1; 
+ parameter P2_P1_P3_WidthDword =2; 
+   reg[2:0] P2_P1_P3_State ; 
+ parameter P2_P1_P3_StateInit =0; 
+ parameter P2_P1_P3_StateTi =1; 
+ parameter P2_P1_P3_StateT1 =2; 
+ parameter P2_P1_P3_StateT2 =3; 
+ parameter P2_P1_P3_StateT1P =4; 
+ parameter P2_P1_P3_StateTh =5; 
+ parameter P2_P1_P3_StateT2P =6; 
+ parameter P2_P1_P3_StateT2I =7; 
+   integer P2_P1_P3_EAX ; 
+   integer P2_P1_P3_EBX ; 
+   integer P2_P1_P3_rEIP ; 
+ parameter P2_P1_P3_REP =8'hF3; 
+ parameter P2_P1_P3_REPNE =8'hF2; 
+ parameter P2_P1_P3_LOCK =8'hF0; 
+ parameter P2_P1_P3_CSsop =8'h2E; 
+ parameter P2_P1_P3_SSsop =8'h36; 
+ parameter P2_P1_P3_DSsop =8'h3E; 
+ parameter P2_P1_P3_ESsop =8'h26; 
+ parameter P2_P1_P3_FSsop =8'h64; 
+ parameter P2_P1_P3_GSsop =8'h65; 
+ parameter P2_P1_P3_OPsop =8'h66; 
+ parameter P2_P1_P3_ADsop =8'h67; 
+ parameter P2_P1_P3_MOV_al_b =8'hB0; 
+ parameter P2_P1_P3_MOV_eax_dw =8'hB8; 
+ parameter P2_P1_P3_MOV_ebx_dw =8'hBB; 
+ parameter P2_P1_P3_MOV_ebx_eax =8'h89; 
+ parameter P2_P1_P3_MOV_eax_ebx =8'h8B; 
+ parameter P2_P1_P3_IN_al =8'hE4; 
+ parameter P2_P1_P3_OUT_al =8'hE6; 
+ parameter P2_P1_P3_ADD_al_b =8'h04; 
+ parameter P2_P1_P3_ADD_ax_w =8'h05; 
+ parameter P2_P1_P3_ROL_eax_b =8'hD1; 
+ parameter P2_P1_P3_ROL_al_1 =8'hD0; 
+ parameter P2_P1_P3_ROL_al_n =8'hC0; 
+ parameter P2_P1_P3_INC_eax =8'h40; 
+ parameter P2_P1_P3_INC_ebx =8'h43; 
+ parameter P2_P1_P3_JMP_rel_short =8'hEB; 
+ parameter P2_P1_P3_JMP_rel_near =8'hE9; 
+ parameter P2_P1_P3_JMP_intseg_immed =8'hEA; 
+ parameter P2_P1_P3_HLT =8'hF4; 
+ parameter P2_P1_P3_WAITx =8'h9B; 
+ parameter P2_P1_P3_NOP =8'h90; 
+  always @(  posedge   P2_P1_P3_CLOCK or posedge  P2_P1_P3_RESET )
+       begin : P2_P1_P3_P0 
+         if ( P2_P1_P3_RESET ==1'b1)
+            begin 
+               P2_P1_P3_BE_n  <=4'b0000;
+               P2_P1_P3_Address  <=0;
+               P2_P1_P3_W_R_n  <=1'b0;
+               P2_P1_P3_D_C_n  <=1'b0;
+               P2_P1_P3_M_IO_n  <=1'b0;
+               P2_P1_P3_ADS_n  <=1'b0;
+               P2_P1_P3_State  <= P2_P1_P3_StateInit ;
+               P2_P1_P3_StateNA  <=1'b0;
+               P2_P1_P3_StateBS16  <=1'b0;
+               P2_P1_P3_DataWidth  <=0;
+            end 
+          else 
+            case ( P2_P1_P3_State )
+              P2_P1_P3_StateInit  :
+                begin 
+                   P2_P1_P3_D_C_n  <=1'b1;
+                   P2_P1_P3_ADS_n  <=1'b1;
+                   P2_P1_P3_State  <= P2_P1_P3_StateTi ;
+                   P2_P1_P3_StateNA  <=1'b1;
+                   P2_P1_P3_StateBS16  <=1'b1;
+                   P2_P1_P3_DataWidth  <=2;
+                   P2_P1_P3_State  <= P2_P1_P3_StateTi ;
+                end 
+              P2_P1_P3_StateTi  :
+                if ( P2_P1_P3_RequestPending == P2_P1_P3_Pending )
+                    P2_P1_P3_State  <= P2_P1_P3_StateT1 ;
+                 else 
+                   if ( P2_P1_P3_HOLD ==1'b1)
+                       P2_P1_P3_State  <= P2_P1_P3_StateTh ;
+                    else 
+                       P2_P1_P3_State  <= P2_P1_P3_StateTi ;
+              P2_P1_P3_StateT1  :
+                begin 
+                   P2_P1_P3_Address  <= P2_P1_P3_rEIP /4%2**30;
+                   P2_P1_P3_BE_n  <= P2_P1_P3_ByteEnable ;
+                   P2_P1_P3_M_IO_n  <= P2_P1_P3_MemoryFetch ;
+                  if ( P2_P1_P3_ReadRequest == P2_P1_P3_Pending )
+                      P2_P1_P3_W_R_n  <=1'b0;
+                   else 
+                      P2_P1_P3_W_R_n  <=1'b1;
+                  if ( P2_P1_P3_CodeFetch == P2_P1_P3_Pending )
+                      P2_P1_P3_D_C_n  <=1'b0;
+                   else 
+                      P2_P1_P3_D_C_n  <=1'b1;
+                   P2_P1_P3_ADS_n  <=1'b0;
+                   P2_P1_P3_State  <= P2_P1_P3_StateT2 ;
+                end 
+              P2_P1_P3_StateT2  :
+                begin 
+                  if ( P2_P1_P3_READY_n ==1'b0& P2_P1_P3_HOLD ==1'b0& P2_P1_P3_RequestPending == P2_P1_P3_Pending )
+                      P2_P1_P3_State  <= P2_P1_P3_StateT1 ;
+                   else 
+                     if ( P2_P1_P3_READY_n ==1'b1& P2_P1_P3_NA_n ==1'b1);
+                      else 
+                        if (( P2_P1_P3_RequestPending == P2_P1_P3_Pending | P2_P1_P3_HOLD ==1'b1)&( P2_P1_P3_READY_n ==1'b1& P2_P1_P3_NA_n ==1'b0))
+                            P2_P1_P3_State  <= P2_P1_P3_StateT2I ;
+                         else 
+                           if ( P2_P1_P3_RequestPending == P2_P1_P3_Pending & P2_P1_P3_HOLD ==1'b0& P2_P1_P3_READY_n ==1'b1& P2_P1_P3_NA_n ==1'b0)
+                               P2_P1_P3_State  <= P2_P1_P3_StateT2P ;
+                            else 
+                              if ( P2_P1_P3_RequestPending == P2_P1_P3_NotPending & P2_P1_P3_HOLD ==1'b0& P2_P1_P3_READY_n ==1'b0)
+                                  P2_P1_P3_State  <= P2_P1_P3_StateTi ;
+                               else 
+                                 if ( P2_P1_P3_HOLD ==1'b1& P2_P1_P3_READY_n ==1'b1)
+                                     P2_P1_P3_State  <= P2_P1_P3_StateTh ;
+                                  else 
+                                     P2_P1_P3_State  <= P2_P1_P3_StateT2 ;
+                   P2_P1_P3_StateBS16  <= P2_P1_P3_BS16_n ;
+                  if ( P2_P1_P3_BS16_n ==1'b0)
+                      P2_P1_P3_DataWidth  <= P2_P1_P3_WidthWord ;
+                   else 
+                      P2_P1_P3_DataWidth  <= P2_P1_P3_WidthDword ;
+                   P2_P1_P3_StateNA  <= P2_P1_P3_NA_n ;
+                   P2_P1_P3_ADS_n  <=1'b1;
+                end 
+              P2_P1_P3_StateT1P  :
+                begin 
+                  if ( P2_P1_P3_NA_n ==1'b0& P2_P1_P3_HOLD ==1'b0& P2_P1_P3_RequestPending == P2_P1_P3_Pending )
+                      P2_P1_P3_State  <= P2_P1_P3_StateT2P ;
+                   else 
+                     if ( P2_P1_P3_NA_n ==1'b0&( P2_P1_P3_HOLD ==1'b1| P2_P1_P3_RequestPending == P2_P1_P3_NotPending ))
+                         P2_P1_P3_State  <= P2_P1_P3_StateT2I ;
+                      else 
+                        if ( P2_P1_P3_NA_n ==1'b1)
+                            P2_P1_P3_State  <= P2_P1_P3_StateT2 ;
+                         else 
+                            P2_P1_P3_State  <= P2_P1_P3_StateT1P ;
+                   P2_P1_P3_StateBS16  <= P2_P1_P3_BS16_n ;
+                  if ( P2_P1_P3_BS16_n ==1'b0)
+                      P2_P1_P3_DataWidth  <= P2_P1_P3_WidthWord ;
+                   else 
+                      P2_P1_P3_DataWidth  <= P2_P1_P3_WidthDword ;
+                   P2_P1_P3_StateNA  <= P2_P1_P3_NA_n ;
+                   P2_P1_P3_ADS_n  <=1'b1;
+                end 
+              P2_P1_P3_StateTh  :
+                if ( P2_P1_P3_HOLD ==1'b0& P2_P1_P3_RequestPending == P2_P1_P3_Pending )
+                    P2_P1_P3_State  <= P2_P1_P3_StateT1 ;
+                 else 
+                   if ( P2_P1_P3_HOLD ==1'b0& P2_P1_P3_RequestPending == P2_P1_P3_NotPending )
+                       P2_P1_P3_State  <= P2_P1_P3_StateTi ;
+                    else 
+                       P2_P1_P3_State  <= P2_P1_P3_StateTh ;
+              P2_P1_P3_StateT2P  :
+                begin 
+                   P2_P1_P3_Address  <= P2_P1_P3_rEIP /2%2**30;
+                   P2_P1_P3_BE_n  <= P2_P1_P3_ByteEnable ;
+                   P2_P1_P3_M_IO_n  <= P2_P1_P3_MemoryFetch ;
+                  if ( P2_P1_P3_ReadRequest == P2_P1_P3_Pending )
+                      P2_P1_P3_W_R_n  <=1'b0;
+                   else 
+                      P2_P1_P3_W_R_n  <=1'b1;
+                  if ( P2_P1_P3_CodeFetch == P2_P1_P3_Pending )
+                      P2_P1_P3_D_C_n  <=1'b0;
+                   else 
+                      P2_P1_P3_D_C_n  <=1'b1;
+                   P2_P1_P3_ADS_n  <=1'b0;
+                  if ( P2_P1_P3_READY_n ==1'b0)
+                      P2_P1_P3_State  <= P2_P1_P3_StateT1P ;
+                   else 
+                      P2_P1_P3_State  <= P2_P1_P3_StateT2P ;
+                end 
+              P2_P1_P3_StateT2I  :
+                if ( P2_P1_P3_READY_n ==1'b1& P2_P1_P3_RequestPending == P2_P1_P3_Pending & P2_P1_P3_HOLD ==1'b0)
+                    P2_P1_P3_State  <= P2_P1_P3_StateT2P ;
+                 else 
+                   if ( P2_P1_P3_READY_n ==1'b0& P2_P1_P3_HOLD ==1'b1)
+                       P2_P1_P3_State  <= P2_P1_P3_StateTh ;
+                    else 
+                      if ( P2_P1_P3_READY_n ==1'b0& P2_P1_P3_HOLD ==1'b0& P2_P1_P3_RequestPending == P2_P1_P3_Pending )
+                          P2_P1_P3_State  <= P2_P1_P3_StateT1 ;
+                       else 
+                         if ( P2_P1_P3_READY_n ==1'b0& P2_P1_P3_HOLD ==1'b0& P2_P1_P3_RequestPending == P2_P1_P3_NotPending )
+                             P2_P1_P3_State  <= P2_P1_P3_StateTi ;
+                          else 
+                             P2_P1_P3_State  <= P2_P1_P3_StateT2I ;
+            endcase 
+       end
+  
+  always @(  posedge   P2_P1_P3_CLOCK or posedge  P2_P1_P3_RESET )
+       begin : P2_P1_P3_P1 reg[7:0] P2_P1_P3_InstQueue [15:0];reg[4:0] P2_P1_P3_InstQueueRd_Addr ;reg[4:0] P2_P1_P3_InstQueueWr_Addr ;
+         parameter P2_P1_P3_InstQueueLimit =15;integer P2_P1_P3_InstAddrPointer ;integer P2_P1_P3_PhyAddrPointer ;reg P2_P1_P3_Extended ;reg P2_P1_P3_More ;reg P2_P1_P3_Flush ;reg[15:0] P2_P1_P3_lWord ;reg[14:0] P2_P1_P3_uWord ;integer P2_P1_P3_fWord ;reg[3:0] P2_P1_P3_State2 ;
+         parameter P2_P1_P3_Si =0;
+         parameter P2_P1_P3_S1 =1;
+         parameter P2_P1_P3_S2 =2;
+         parameter P2_P1_P3_S3 =3;
+         parameter P2_P1_P3_S4 =4;
+         parameter P2_P1_P3_S5 =5;
+         parameter P2_P1_P3_S6 =6;
+         parameter P2_P1_P3_S7 =7;
+         parameter P2_P1_P3_S8 =8;
+         parameter P2_P1_P3_S9 =9;
+         if ( P2_P1_P3_RESET ==1'b1)
+            begin 
+               P2_P1_P3_State2  = P2_P1_P3_Si ;
+               P2_P1_P3_InstQueue  [0]=16*{0};
+               P2_P1_P3_InstQueue  [1]=16*{0};
+               P2_P1_P3_InstQueue  [2]=16*{0};
+               P2_P1_P3_InstQueue  [3]=16*{0};
+               P2_P1_P3_InstQueue  [4]=16*{0};
+               P2_P1_P3_InstQueue  [5]=16*{0};
+               P2_P1_P3_InstQueue  [6]=16*{0};
+               P2_P1_P3_InstQueue  [7]=16*{0};
+               P2_P1_P3_InstQueueRd_Addr  =0;
+               P2_P1_P3_InstQueueWr_Addr  =0;
+               P2_P1_P3_InstAddrPointer  =0;
+               P2_P1_P3_PhyAddrPointer  =0;
+               P2_P1_P3_Extended  =1'b0;
+               P2_P1_P3_More  =1'b0;
+               P2_P1_P3_Flush  =1'b0;
+               P2_P1_P3_lWord  =0;
+               P2_P1_P3_uWord  =0;
+               P2_P1_P3_fWord  =0;
+               P2_P1_P3_CodeFetch  <=1'b0;
+               P2_P1_P3_Datao  <=0;
+               P2_P1_P3_EAX  <=0;
+               P2_P1_P3_EBX  <=0;
+               P2_P1_P3_rEIP  <=0;
+               P2_P1_P3_ReadRequest  <=1'b0;
+               P2_P1_P3_MemoryFetch  <=1'b0;
+               P2_P1_P3_RequestPending  <=1'b0;
+            end 
+          else 
+            case ( P2_P1_P3_State2 )
+              P2_P1_P3_Si  :
+                begin 
+                   P2_P1_P3_PhyAddrPointer  = P2_P1_P3_rEIP ;
+                   P2_P1_P3_InstAddrPointer  = P2_P1_P3_PhyAddrPointer ;
+                   P2_P1_P3_State2  = P2_P1_P3_S1 ;
+                   P2_P1_P3_rEIP  <=20'hFFFF0;
+                   P2_P1_P3_ReadRequest  <=1'b1;
+                   P2_P1_P3_MemoryFetch  <=1'b1;
+                   P2_P1_P3_RequestPending  <=1'b1;
+                end 
+              P2_P1_P3_S1  :
+                begin 
+                   P2_P1_P3_RequestPending  <= P2_P1_P3_Pending ;
+                   P2_P1_P3_ReadRequest  <= P2_P1_P3_Pending ;
+                   P2_P1_P3_MemoryFetch  <= P2_P1_P3_Pending ;
+                   P2_P1_P3_CodeFetch  <= P2_P1_P3_Pending ;
+                  if ( P2_P1_P3_READY_n ==1'b0)
+                      P2_P1_P3_State2  = P2_P1_P3_S2 ;
+                   else 
+                      P2_P1_P3_State2  = P2_P1_P3_S1 ;
+                end 
+              P2_P1_P3_S2  :
+                begin 
+                   P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
+                   P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]= P2_P1_P3_Datai %(2**8);
+                   P2_P1_P3_InstQueueWr_Addr  =( P2_P1_P3_InstQueueWr_Addr +1)%16;
+                   P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]= P2_P1_P3_Datai %2**8;
+                   P2_P1_P3_InstQueueWr_Addr  =( P2_P1_P3_InstQueueWr_Addr +1)%16;
+                  if ( P2_P1_P3_StateBS16 ==1'b1)
+                     begin 
+                        P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]=( P2_P1_P3_Datai /(2**16))%(2**8);
+                        P2_P1_P3_InstQueueWr_Addr  =( P2_P1_P3_InstQueueWr_Addr +1)%16;
+                        P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]=( P2_P1_P3_Datai /(2**24))%(2**8);
+                        P2_P1_P3_InstQueueWr_Addr  =( P2_P1_P3_InstQueueWr_Addr +1)%16;
+                        P2_P1_P3_PhyAddrPointer  = P2_P1_P3_PhyAddrPointer +4;
+                        P2_P1_P3_State2  = P2_P1_P3_S5 ;
+                     end 
+                   else 
+                     begin 
+                        P2_P1_P3_PhyAddrPointer  = P2_P1_P3_PhyAddrPointer +2;
+                       if ( P2_P1_P3_PhyAddrPointer <0)
+                           P2_P1_P3_rEIP  <=- P2_P1_P3_PhyAddrPointer ;
+                        else 
+                           P2_P1_P3_rEIP  <= P2_P1_P3_PhyAddrPointer ;
+                        P2_P1_P3_State2  = P2_P1_P3_S3 ;
+                     end 
+                end 
+              P2_P1_P3_S3  :
+                begin 
+                   P2_P1_P3_RequestPending  <= P2_P1_P3_Pending ;
+                  if ( P2_P1_P3_READY_n ==1'b0)
+                      P2_P1_P3_State2  = P2_P1_P3_S4 ;
+                   else 
+                      P2_P1_P3_State2  = P2_P1_P3_S3 ;
+                end 
+              P2_P1_P3_S4  :
+                begin 
+                   P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
+                   P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]= P2_P1_P3_Datai %(2**8);
+                   P2_P1_P3_InstQueueWr_Addr  =( P2_P1_P3_InstQueueWr_Addr +1)%16;
+                   P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]= P2_P1_P3_Datai %(2**8);
+                   P2_P1_P3_InstQueueWr_Addr  =( P2_P1_P3_InstQueueWr_Addr +1)%16;
+                   P2_P1_P3_PhyAddrPointer  = P2_P1_P3_PhyAddrPointer +2;
+                   P2_P1_P3_State2  = P2_P1_P3_S5 ;
+                end 
+              P2_P1_P3_S5  :
+                begin 
+                  case ( P2_P1_P3_InstQueue [ P2_P1_P3_InstQueueRd_Addr ])
+                    P2_P1_P3_NOP  :
+                      begin 
+                         P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +1;
+                         P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +1)%16;
+                         P2_P1_P3_Flush  =1'b0;
+                         P2_P1_P3_More  =1'b0;
+                      end 
+                    P2_P1_P3_OPsop  :
+                      begin 
+                         P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +1;
+                         P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +1)%16;
+                         P2_P1_P3_Extended  =1'b1;
+                         P2_P1_P3_Flush  =1'b0;
+                         P2_P1_P3_More  =1'b0;
+                      end 
+                    P2_P1_P3_JMP_rel_short  :
+                      if (( P2_P1_P3_InstQueueWr_Addr - P2_P1_P3_InstQueueRd_Addr )>=3)
+                         begin 
+                           if ( P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +1)%16]>127)
+                              begin 
+                                 P2_P1_P3_PhyAddrPointer  = P2_P1_P3_InstAddrPointer +1-(8'hFF- P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +1)%16]);
+                                 P2_P1_P3_InstAddrPointer  = P2_P1_P3_PhyAddrPointer ;
+                              end 
+                            else 
+                              begin 
+                                 P2_P1_P3_PhyAddrPointer  = P2_P1_P3_InstAddrPointer +2+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +1)%16];
+                                 P2_P1_P3_InstAddrPointer  = P2_P1_P3_PhyAddrPointer ;
+                              end 
+                            P2_P1_P3_Flush  =1'b1;
+                            P2_P1_P3_More  =1'b0;
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P3_Flush  =1'b0;
+                            P2_P1_P3_More  =1'b1;
+                         end 
+                    P2_P1_P3_JMP_rel_near  :
+                      if (( P2_P1_P3_InstQueueWr_Addr - P2_P1_P3_InstQueueRd_Addr )>=5)
+                         begin 
+                            P2_P1_P3_PhyAddrPointer  = P2_P1_P3_InstAddrPointer +5+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +1)%16];
+                            P2_P1_P3_InstAddrPointer  = P2_P1_P3_PhyAddrPointer ;
+                            P2_P1_P3_Flush  =1'b1;
+                            P2_P1_P3_More  =1'b0;
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P3_Flush  =1'b0;
+                            P2_P1_P3_More  =1'b1;
+                         end 
+                    P2_P1_P3_JMP_intseg_immed  :
+                      begin 
+                         P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +1;
+                         P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +1)%16;
+                         P2_P1_P3_Flush  =1'b0;
+                         P2_P1_P3_More  =1'b0;
+                      end 
+                    P2_P1_P3_MOV_al_b  :
+                      begin 
+                         P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +1;
+                         P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +1)%16;
+                         P2_P1_P3_Flush  =1'b0;
+                         P2_P1_P3_More  =1'b0;
+                      end 
+                    P2_P1_P3_MOV_eax_dw  :
+                      if (( P2_P1_P3_InstQueueWr_Addr - P2_P1_P3_InstQueueRd_Addr )>=5)
+                         begin 
+                            P2_P1_P3_EAX  <= P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +1)%16];
+                            P2_P1_P3_More  =1'b0;
+                            P2_P1_P3_Flush  =1'b0;
+                            P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +5;
+                            P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +5)%16;
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P3_Flush  =1'b0;
+                            P2_P1_P3_More  =1'b1;
+                         end 
+                    P2_P1_P3_MOV_ebx_dw  :
+                      if (( P2_P1_P3_InstQueueWr_Addr - P2_P1_P3_InstQueueRd_Addr )>=5)
+                         begin 
+                            P2_P1_P3_EBX  <= P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +1)%1];
+                            P2_P1_P3_More  =1'b0;
+                            P2_P1_P3_Flush  =1'b0;
+                            P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +5;
+                            P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +5)%16;
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P3_Flush  =1'b0;
+                            P2_P1_P3_More  =1'b1;
+                         end 
+                    P2_P1_P3_MOV_eax_ebx  :
+                      if (( P2_P1_P3_InstQueueWr_Addr - P2_P1_P3_InstQueueRd_Addr )>=2)
+                         begin 
+                           if ( P2_P1_P3_EBX <0)
+                               P2_P1_P3_rEIP  <=- P2_P1_P3_EBX ;
+                            else 
+                               P2_P1_P3_rEIP  <= P2_P1_P3_EBX ;
+                            P2_P1_P3_RequestPending  <= P2_P1_P3_Pending ;
+                            P2_P1_P3_ReadRequest  <= P2_P1_P3_Pending ;
+                            P2_P1_P3_MemoryFetch  <= P2_P1_P3_Pending ;
+                            P2_P1_P3_CodeFetch  <= P2_P1_P3_NotPending ;
+                           if ( P2_P1_P3_READY_n ==1'b0)
+                              begin 
+                                 P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
+                                 P2_P1_P3_uWord  = P2_P1_P3_Datai %(2**15);
+                                if ( P2_P1_P3_StateBS16 ==1'b1)
+                                    P2_P1_P3_lWord  = P2_P1_P3_Datai %(2**16);
+                                 else 
+                                   begin 
+                                      P2_P1_P3_rEIP  <= P2_P1_P3_rEIP +2;
+                                      P2_P1_P3_RequestPending  <= P2_P1_P3_Pending ;
+                                     if ( P2_P1_P3_READY_n ==1'b0)
+                                        begin 
+                                           P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
+                                           P2_P1_P3_lWord  = P2_P1_P3_Datai %(2**16);
+                                        end 
+                                   end 
+                                if ( P2_P1_P3_READY_n ==1'b0)
+                                   begin 
+                                      P2_P1_P3_EAX  <= P2_P1_P3_uWord *(2**16)+ P2_P1_P3_lWord ;
+                                      P2_P1_P3_More  =1'b0;
+                                      P2_P1_P3_Flush  =1'b0;
+                                      P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +2;
+                                      P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +2)%16;
+                                   end 
+                              end 
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P3_Flush  =1'b0;
+                            P2_P1_P3_More  =1'b1;
+                         end 
+                    P2_P1_P3_MOV_ebx_eax  :
+                      if (( P2_P1_P3_InstQueueWr_Addr - P2_P1_P3_InstQueueRd_Addr )>=2)
+                         begin 
+                           if ( P2_P1_P3_EBX <0)
+                               P2_P1_P3_rEIP  <= P2_P1_P3_EBX ;
+                            else 
+                               P2_P1_P3_rEIP  <= P2_P1_P3_EBX ;
+                            P2_P1_P3_lWord  = P2_P1_P3_EAX %(2**16);
+                            P2_P1_P3_uWord  =( P2_P1_P3_EAX /(2**16))%(2**15);
+                            P2_P1_P3_RequestPending  <= P2_P1_P3_Pending ;
+                            P2_P1_P3_ReadRequest  <= P2_P1_P3_NotPending ;
+                            P2_P1_P3_MemoryFetch  <= P2_P1_P3_Pending ;
+                            P2_P1_P3_CodeFetch  <= P2_P1_P3_NotPending ;
+                           if ( P2_P1_P3_State == P2_P1_P3_StateT1 | P2_P1_P3_State == P2_P1_P3_StateT1P )
+                              begin 
+                                 P2_P1_P3_Datao  <=( P2_P1_P3_uWord *(2**16)+ P2_P1_P3_lWord );
+                                if ( P2_P1_P3_READY_n ==1'b0)
+                                   begin 
+                                      P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
+                                     if ( P2_P1_P3_StateBS16 ==1'b0)
+                                        begin 
+                                           P2_P1_P3_rEIP  <= P2_P1_P3_rEIP +2;
+                                           P2_P1_P3_RequestPending  <= P2_P1_P3_Pending ;
+                                           P2_P1_P3_ReadRequest  <= P2_P1_P3_NotPending ;
+                                           P2_P1_P3_MemoryFetch  <= P2_P1_P3_Pending ;
+                                           P2_P1_P3_CodeFetch  <= P2_P1_P3_NotPending ;
+                                           P2_P1_P3_State2  = P2_P1_P3_S6 ;
+                                        end 
+                                      P2_P1_P3_More  =1'b0;
+                                      P2_P1_P3_Flush  =1'b0;
+                                      P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +2;
+                                      P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +2)%16;
+                                   end 
+                              end 
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P3_Flush  =1'b0;
+                            P2_P1_P3_More  =1'b1;
+                         end 
+                    P2_P1_P3_IN_al  :
+                      if (( P2_P1_P3_InstQueueWr_Addr - P2_P1_P3_InstQueueRd_Addr )>=2)
+                         begin 
+                            P2_P1_P3_rEIP  <= P2_P1_P3_InstQueueRd_Addr +1;
+                            P2_P1_P3_RequestPending  <= P2_P1_P3_Pending ;
+                            P2_P1_P3_ReadRequest  <= P2_P1_P3_Pending ;
+                            P2_P1_P3_MemoryFetch  <= P2_P1_P3_NotPending ;
+                            P2_P1_P3_CodeFetch  <= P2_P1_P3_NotPending ;
+                           if ( P2_P1_P3_READY_n ==1'b0)
+                              begin 
+                                 P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
+                                 P2_P1_P3_EAX  <= P2_P1_P3_Datai ;
+                                 P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +2;
+                                 P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +2);
+                                 P2_P1_P3_Flush  =1'b0;
+                                 P2_P1_P3_More  =1'b0;
+                              end 
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P3_Flush  =1'b0;
+                            P2_P1_P3_More  =1'b1;
+                         end 
+                    P2_P1_P3_OUT_al  :
+                      if (( P2_P1_P3_InstQueueWr_Addr - P2_P1_P3_InstQueueRd_Addr )>=2)
+                         begin 
+                            P2_P1_P3_rEIP  <= P2_P1_P3_InstQueueRd_Addr +1;
+                            P2_P1_P3_RequestPending  <= P2_P1_P3_Pending ;
+                            P2_P1_P3_ReadRequest  <= P2_P1_P3_NotPending ;
+                            P2_P1_P3_MemoryFetch  <= P2_P1_P3_NotPending ;
+                            P2_P1_P3_CodeFetch  <= P2_P1_P3_NotPending ;
+                           if ( P2_P1_P3_State == P2_P1_P3_StateT1 | P2_P1_P3_State == P2_P1_P3_StateT1P )
+                              begin 
+                                 P2_P1_P3_fWord  = P2_P1_P3_EAX %(2**16);
+                                 P2_P1_P3_Datao  <= P2_P1_P3_fWord ;
+                                if ( P2_P1_P3_READY_n ==1'b0)
+                                   begin 
+                                      P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
+                                      P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +2;
+                                      P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +2)%16;
+                                      P2_P1_P3_Flush  =1'b0;
+                                      P2_P1_P3_More  =1'b0;
+                                   end 
+                              end 
+                         end 
+                       else 
+                         begin 
+                            P2_P1_P3_Flush  =1'b0;
+                            P2_P1_P3_More  =1'b1;
+                         end 
+                    P2_P1_P3_ADD_al_b  :
+                      begin 
+                         P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +1;
+                         P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +1)%16;
+                         P2_P1_P3_Flush  =1'b0;
+                         P2_P1_P3_More  =1'b0;
+                      end 
+                    P2_P1_P3_ADD_ax_w  :
+                      begin 
+                         P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +1;
+                         P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +1)%16;
+                         P2_P1_P3_Flush  =1'b0;
+                         P2_P1_P3_More  =1'b0;
+                      end 
+                    P2_P1_P3_ROL_al_1  :
+                      begin 
+                         P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +2;
+                         P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +2)%16;
+                         P2_P1_P3_Flush  =1'b0;
+                         P2_P1_P3_More  =1'b0;
+                      end 
+                    P2_P1_P3_ROL_al_n  :
+                      begin 
+                         P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +2;
+                         P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +2)%16;
+                         P2_P1_P3_Flush  =1'b0;
+                         P2_P1_P3_More  =1'b0;
+                      end 
+                    P2_P1_P3_INC_eax  :
+                      begin 
+                         P2_P1_P3_EAX  <= P2_P1_P3_EAX +1;
+                         P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +1;
+                         P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +1)%16;
+                         P2_P1_P3_Flush  =1'b0;
+                         P2_P1_P3_More  =1'b0;
+                      end 
+                    P2_P1_P3_INC_ebx  :
+                      begin 
+                         P2_P1_P3_EBX  <= P2_P1_P3_EBX +1;
+                         P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +1;
+                         P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +1)%16;
+                         P2_P1_P3_Flush  =1'b0;
+                         P2_P1_P3_More  =1'b0;
+                      end 
+                   default :
+                      begin 
+                         P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +1;
+                         P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +1)%16;
+                         P2_P1_P3_Flush  =1'b0;
+                         P2_P1_P3_More  =1'b0;
+                      end 
+                  endcase 
+                  if ((~( P2_P1_P3_InstQueueRd_Addr < P2_P1_P3_InstQueueWr_Addr ))|((( P2_P1_P3_InstQueueLimit - P2_P1_P3_InstQueueRd_Addr )<4)| P2_P1_P3_Flush | P2_P1_P3_More ))
+                      P2_P1_P3_State2  = P2_P1_P3_S7 ;
+                end 
+              P2_P1_P3_S6  :
+                begin 
+                   P2_P1_P3_Datao  <=( P2_P1_P3_uWord *(2**16)+ P2_P1_P3_lWord );
+                  if ( P2_P1_P3_READY_n ==1'b0)
+                     begin 
+                        P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
+                        P2_P1_P3_State2  = P2_P1_P3_S5 ;
+                     end 
+                end 
+              P2_P1_P3_S7  :
+                begin 
+                  if ( P2_P1_P3_Flush )
+                     begin 
+                        P2_P1_P3_InstQueueRd_Addr  =1;
+                        P2_P1_P3_InstQueueWr_Addr  =1;
+                       if ( P2_P1_P3_InstAddrPointer <0)
+                           P2_P1_P3_fWord  =- P2_P1_P3_InstAddrPointer ;
+                        else 
+                           P2_P1_P3_fWord  = P2_P1_P3_InstAddrPointer ;
+                       if ( P2_P1_P3_fWord %2==1)
+                           P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr + P2_P1_P3_fWord %4)%16;
+                     end 
+                  if (( P2_P1_P3_InstQueueLimit - P2_P1_P3_InstQueueRd_Addr )<3)
+                     begin 
+                        P2_P1_P3_State2  = P2_P1_P3_S8 ;
+                        P2_P1_P3_InstQueueWr_Addr  =0;
+                     end 
+                   else 
+                      P2_P1_P3_State2  = P2_P1_P3_S9 ;
+                end 
+              P2_P1_P3_S8  :
+                if ( P2_P1_P3_InstQueueRd_Addr <= P2_P1_P3_InstQueueLimit )
+                   begin 
+                      P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]= P2_P1_P3_InstQueue [ P2_P1_P3_InstQueueRd_Addr ];
+                      P2_P1_P3_InstQueueRd_Addr  =( P2_P1_P3_InstQueueRd_Addr +1)%16;
+                      P2_P1_P3_InstQueueWr_Addr  =( P2_P1_P3_InstQueueWr_Addr +1)%16;
+                      P2_P1_P3_State2  = P2_P1_P3_S8 ;
+                   end 
+                 else 
+                   begin 
+                      P2_P1_P3_InstQueueRd_Addr  =0;
+                      P2_P1_P3_State2  = P2_P1_P3_S9 ;
+                   end 
+              P2_P1_P3_S9  :
+                begin 
+                   P2_P1_P3_rEIP  <= P2_P1_P3_PhyAddrPointer ;
+                   P2_P1_P3_State2  = P2_P1_P3_S1 ;
+                end 
+            endcase 
+       end
+  
+  always @(  posedge   P2_P1_P3_CLOCK or posedge  P2_P1_P3_RESET )
+       begin : P2_P1_P3_P2 
+         if ( P2_P1_P3_RESET ==1'b1)
+            begin 
+               P2_P1_P3_ByteEnable  <=4'b0000;
+               P2_P1_P3_NonAligned  <=1'b0;
+            end 
+          else 
+            case ( P2_P1_P3_DataWidth )
+              P2_P1_P3_WidthByte  :
+                case ( P2_P1_P3_rEIP %4)
+                 0 :
+                     P2_P1_P3_ByteEnable  <=4'b1110;
+                 1 :
+                     P2_P1_P3_ByteEnable  <=4'b1101;
+                 2 :
+                     P2_P1_P3_ByteEnable  <=4'b1011;
+                 3 :
+                     P2_P1_P3_ByteEnable  <=4'b0111;
+                 default :;
+                endcase 
+              P2_P1_P3_WidthWord  :
+                case ( P2_P1_P3_rEIP %4)
+                 0 :
+                    begin 
+                       P2_P1_P3_ByteEnable  <=4'b1100;
+                       P2_P1_P3_NonAligned  <= P2_P1_P3_NotPending ;
+                    end 
+                 1 :
+                    begin 
+                       P2_P1_P3_ByteEnable  <=4'b1001;
+                       P2_P1_P3_NonAligned  <= P2_P1_P3_NotPending ;
+                    end 
+                 2 :
+                    begin 
+                       P2_P1_P3_ByteEnable  <=4'b0011;
+                       P2_P1_P3_NonAligned  <= P2_P1_P3_NotPending ;
+                    end 
+                 3 :
+                    begin 
+                       P2_P1_P3_ByteEnable  <=4'b0111;
+                       P2_P1_P3_NonAligned  <= P2_P1_P3_Pending ;
+                    end 
+                 default :;
+                endcase 
+              P2_P1_P3_WidthDword  :
+                case ( P2_P1_P3_rEIP %4)
+                 0 :
+                    begin 
+                       P2_P1_P3_ByteEnable  <=4'b0000;
+                       P2_P1_P3_NonAligned  <= P2_P1_P3_NotPending ;
+                    end 
+                 1 :
+                    begin 
+                       P2_P1_P3_ByteEnable  <=4'b0001;
+                       P2_P1_P3_NonAligned  <= P2_P1_P3_Pending ;
+                    end 
+                 2 :
+                    begin 
+                       P2_P1_P3_NonAligned  <= P2_P1_P3_Pending ;
+                       P2_P1_P3_ByteEnable  <=4'b0011;
+                    end 
+                 3 :
+                    begin 
+                       P2_P1_P3_NonAligned  <= P2_P1_P3_Pending ;
+                       P2_P1_P3_ByteEnable  <=4'b0111;
+                    end 
+                 default :;
+                endcase 
+             default :;
+            endcase 
+       end
+ 
+
  
   b17  P2_P2 ( P2_clock , P2_reset , P2_di2 , P2_do2 , P2_hold , P2_na , P2_bs , P2_ad21 , P2_ad22 , P2_wr2 , P2_dc2 , P2_mio2 , P2_as21 , P2_as22 , P2_r21 , P2_r22 ); 
   b14  P2_P3 ( P2_clock , P2_reset , P2_ad31 , P2_di3 , P2_do3 , P2_rd3 , P2_wr3 ); 
@@ -8442,6 +10677,9 @@ assign P2_P1_ready2 = P2_r12;
    end
    
 endmodule
+
+
+
 
 
 

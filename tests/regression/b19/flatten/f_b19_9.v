@@ -7381,7 +7381,725 @@ assign P1_wr3 = P1_P3_wr;
        end
  
  
-  b14  P1_P4 ( P1_clock , P1_reset , P1_ad41 , P1_di4 , P1_do4 , P1_rd4 , P1_wr4 ); 
+  
+wire  P1_P4_clock;
+wire  P1_P4_reset;
+reg [19:0] P1_P4_addr;
+wire [31:0] P1_P4_datai;
+integer P1_P4_datao;
+reg  P1_P4_rd;
+reg  P1_P4_wr;
+assign P1_P4_clock = P1_clock;
+assign P1_P4_reset = P1_reset;
+assign P1_ad41 = P1_P4_addr;
+assign P1_P4_datai = P1_di4;
+assign P1_do4 = P1_P4_datao;
+assign P1_rd4 = P1_P4_rd;
+assign P1_wr4 = P1_P4_wr;
+ 
+  always @(  posedge   P1_P4_clock or posedge  P1_P4_reset )
+       begin : P1_P4_xhdl0 integer P1_P4_reg0 ;integer P1_P4_reg1 ;integer P1_P4_reg2 ;integer P1_P4_reg3 ;reg P1_P4_B ;reg[19:0] P1_P4_MAR ;integer P1_P4_MBR ;reg[1:0] P1_P4_mf ;reg[2:0] P1_P4_df ;reg[0:0] P1_P4_cf ;reg[3:0] P1_P4_ff ;reg[19:0] P1_P4_tail ;integer P1_P4_IR ;reg[0:0] P1_P4_state ;integer P1_P4_r ;integer P1_P4_m ;integer P1_P4_t ;integer P1_P4_d ;integer P1_P4_temp ;reg[1:0] P1_P4_s ;
+         parameter P1_P4_FETCH =0;
+         parameter P1_P4_EXEC =1;
+         if ( P1_P4_reset ==1'b1)
+            begin 
+               P1_P4_MAR  =0;
+               P1_P4_MBR  =0;
+               P1_P4_IR  =0;
+               P1_P4_d  =0;
+               P1_P4_r  =0;
+               P1_P4_m  =0;
+               P1_P4_s  =0;
+               P1_P4_temp  =0;
+               P1_P4_mf  =0;
+               P1_P4_df  =0;
+               P1_P4_ff  =0;
+               P1_P4_cf  =0;
+               P1_P4_tail  =0;
+               P1_P4_B  =1'b0;
+               P1_P4_reg0  =0;
+               P1_P4_reg1  =0;
+               P1_P4_reg2  =0;
+               P1_P4_reg3  =0;
+               P1_P4_addr  <=0;
+               P1_P4_rd  <=1'b0;
+               P1_P4_wr  <=1'b0;
+               P1_P4_datao  <=0;
+               P1_P4_state  = P1_P4_FETCH ;
+            end 
+          else 
+            begin 
+               P1_P4_rd  <=1'b0;
+               P1_P4_wr  <=1'b0;
+              case ( P1_P4_state )
+                P1_P4_FETCH  :
+                  begin 
+                     P1_P4_MAR  = P1_P4_reg3 %2**20;
+                     P1_P4_addr  <= P1_P4_MAR ;
+                     P1_P4_rd  <=1'b1;
+                     P1_P4_MBR  = P1_P4_datai ;
+                     P1_P4_IR  = P1_P4_MBR ;
+                     P1_P4_state  = P1_P4_EXEC ;
+                  end 
+                P1_P4_EXEC  :
+                  begin 
+                    if ( P1_P4_IR <0)
+                        P1_P4_IR  =- P1_P4_IR ;
+                     P1_P4_mf  =( P1_P4_IR /2**27)%4;
+                     P1_P4_df  =( P1_P4_IR /2**24)%2**3;
+                     P1_P4_ff  =( P1_P4_IR /2**19)%2**4;
+                     P1_P4_cf  =( P1_P4_IR /2**23)%2;
+                     P1_P4_tail  = P1_P4_IR %2**20;
+                     P1_P4_reg3  =(( P1_P4_reg3 %2**29)+8);
+                     P1_P4_s  =( P1_P4_IR /2**29)%4;
+                    case ( P1_P4_s )
+                     0 :
+                         P1_P4_r  = P1_P4_reg0 ;
+                     1 :
+                         P1_P4_r  = P1_P4_reg1 ;
+                     2 :
+                         P1_P4_r  = P1_P4_reg2 ;
+                     3 :
+                         P1_P4_r  = P1_P4_reg3 ;
+                    endcase 
+                    case ( P1_P4_cf )
+                     1 :
+                        begin 
+                          case ( P1_P4_mf )
+                           0 :
+                               P1_P4_m  = P1_P4_tail ;
+                           1 :
+                              begin 
+                                 P1_P4_m  = P1_P4_datai ;
+                                 P1_P4_addr  <= P1_P4_tail ;
+                                 P1_P4_rd  <=1'b1;
+                              end 
+                           2 :
+                              begin 
+                                 P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                 P1_P4_rd  <=1'b1;
+                                 P1_P4_m  = P1_P4_datai ;
+                              end 
+                           3 :
+                              begin 
+                                 P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                 P1_P4_rd  <=1'b1;
+                                 P1_P4_m  = P1_P4_datai ;
+                              end 
+                          endcase 
+                          case ( P1_P4_ff )
+                           0 :
+                              if ( P1_P4_r < P1_P4_m )
+                                  P1_P4_B  =1'b1;
+                               else 
+                                  P1_P4_B  =1'b0;
+                           1 :
+                              if (~( P1_P4_r < P1_P4_m ))
+                                  P1_P4_B  =1'b1;
+                               else 
+                                  P1_P4_B  =1'b0;
+                           2 :
+                              if ( P1_P4_r == P1_P4_m )
+                                  P1_P4_B  =1'b1;
+                               else 
+                                  P1_P4_B  =1'b0;
+                           3 :
+                              if (~( P1_P4_r == P1_P4_m ))
+                                  P1_P4_B  =1'b1;
+                               else 
+                                  P1_P4_B  =1'b0;
+                           4 :
+                              if (~( P1_P4_r > P1_P4_m ))
+                                  P1_P4_B  =1'b1;
+                               else 
+                                  P1_P4_B  =1'b0;
+                           5 :
+                              if ( P1_P4_r > P1_P4_m )
+                                  P1_P4_B  =1'b1;
+                               else 
+                                  P1_P4_B  =1'b0;
+                           6 :
+                              begin 
+                                if ( P1_P4_r >2**30-1)
+                                    P1_P4_r  = P1_P4_r -2**30;
+                                if ( P1_P4_r < P1_P4_m )
+                                    P1_P4_B  =1'b1;
+                                 else 
+                                    P1_P4_B  =1'b0;
+                              end 
+                           7 :
+                              begin 
+                                if ( P1_P4_r >2**30-1)
+                                    P1_P4_r  = P1_P4_r -2**30;
+                                if (~( P1_P4_r < P1_P4_m ))
+                                    P1_P4_B  =1'b1;
+                                 else 
+                                    P1_P4_B  =1'b0;
+                              end 
+                           8 :
+                              if (( P1_P4_r < P1_P4_m )|( P1_P4_B ==1'b1))
+                                  P1_P4_B  =1'b1;
+                               else 
+                                  P1_P4_B  =1'b0;
+                           9 :
+                              if ((~( P1_P4_r < P1_P4_m ))|( P1_P4_B ==1'b1))
+                                  P1_P4_B  =1'b1;
+                               else 
+                                  P1_P4_B  =1'b0;
+                           10 :
+                              if (( P1_P4_r == P1_P4_m )|( P1_P4_B ==1'b1))
+                                  P1_P4_B  =1'b1;
+                               else 
+                                  P1_P4_B  =1'b0;
+                           11 :
+                              if ((~( P1_P4_r == P1_P4_m ))|( P1_P4_B ==1'b1))
+                                  P1_P4_B  =1'b1;
+                               else 
+                                  P1_P4_B  =1'b0;
+                           12 :
+                              if ((~( P1_P4_r > P1_P4_m ))|( P1_P4_B ==1'b1))
+                                  P1_P4_B  =1'b1;
+                               else 
+                                  P1_P4_B  =1'b0;
+                           13 :
+                              if (( P1_P4_r > P1_P4_m )|( P1_P4_B ==1'b1))
+                                  P1_P4_B  =1'b1;
+                               else 
+                                  P1_P4_B  =1'b0;
+                           14 :
+                              begin 
+                                if ( P1_P4_r >2**30-1)
+                                    P1_P4_r  = P1_P4_r -2**30;
+                                if (( P1_P4_r < P1_P4_m )|( P1_P4_B ==1'b1))
+                                    P1_P4_B  =1'b1;
+                                 else 
+                                    P1_P4_B  =1'b0;
+                              end 
+                           15 :
+                              begin 
+                                if ( P1_P4_r >2**30-1)
+                                    P1_P4_r  = P1_P4_r -2**30;
+                                if ((~( P1_P4_r < P1_P4_m ))|( P1_P4_B ==1'b1))
+                                    P1_P4_B  =1'b1;
+                                 else 
+                                    P1_P4_B  =1'b0;
+                              end 
+                          endcase 
+                        end 
+                     0 :
+                        if (~( P1_P4_df ==7))
+                           begin 
+                             if ( P1_P4_df ==5)
+                                begin 
+                                  if ((~( P1_P4_B ))==1'b1)
+                                      P1_P4_d  =3;
+                                end 
+                              else 
+                                if ( P1_P4_df ==4)
+                                   begin 
+                                     if ( P1_P4_B ==1'b1)
+                                         P1_P4_d  =3;
+                                   end 
+                                 else 
+                                   if ( P1_P4_df ==3)
+                                       P1_P4_d  =3;
+                                    else 
+                                      if ( P1_P4_df ==2)
+                                          P1_P4_d  =2;
+                                       else 
+                                         if ( P1_P4_df ==1)
+                                             P1_P4_d  =1;
+                                          else 
+                                            if ( P1_P4_df ==0)
+                                                P1_P4_d  =0;
+                             case ( P1_P4_ff )
+                              0 :
+                                 begin 
+                                   case ( P1_P4_mf )
+                                    0 :
+                                        P1_P4_m  = P1_P4_tail ;
+                                    1 :
+                                       begin 
+                                          P1_P4_m  = P1_P4_datai ;
+                                          P1_P4_addr  <= P1_P4_tail ;
+                                          P1_P4_rd  <=1'b1;
+                                       end 
+                                    2 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                    3 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                   endcase 
+                                    P1_P4_t  =0;
+                                   case ( P1_P4_d )
+                                    0 :
+                                        P1_P4_reg0  = P1_P4_t - P1_P4_m ;
+                                    1 :
+                                        P1_P4_reg1  = P1_P4_t - P1_P4_m ;
+                                    2 :
+                                        P1_P4_reg2  = P1_P4_t - P1_P4_m ;
+                                    3 :
+                                        P1_P4_reg3  = P1_P4_t - P1_P4_m ;
+                                    default :;
+                                   endcase 
+                                 end 
+                              1 :
+                                 begin 
+                                   case ( P1_P4_mf )
+                                    0 :
+                                        P1_P4_m  = P1_P4_tail ;
+                                    1 :
+                                       begin 
+                                          P1_P4_m  = P1_P4_datai ;
+                                          P1_P4_addr  <= P1_P4_tail ;
+                                          P1_P4_rd  <=1'b1;
+                                       end 
+                                    2 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                    3 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                   endcase 
+                                    P1_P4_reg2  = P1_P4_reg3 ;
+                                    P1_P4_reg3  = P1_P4_m ;
+                                 end 
+                              2 :
+                                 begin 
+                                   case ( P1_P4_mf )
+                                    0 :
+                                        P1_P4_m  = P1_P4_tail ;
+                                    1 :
+                                       begin 
+                                          P1_P4_m  = P1_P4_datai ;
+                                          P1_P4_addr  <= P1_P4_tail ;
+                                          P1_P4_rd  <=1'b1;
+                                       end 
+                                    2 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                    3 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                   endcase 
+                                   case ( P1_P4_d )
+                                    0 :
+                                        P1_P4_reg0  = P1_P4_m ;
+                                    1 :
+                                        P1_P4_reg1  = P1_P4_m ;
+                                    2 :
+                                        P1_P4_reg2  = P1_P4_m ;
+                                    3 :
+                                        P1_P4_reg3  = P1_P4_m ;
+                                    default :;
+                                   endcase 
+                                 end 
+                              3 :
+                                 begin 
+                                   case ( P1_P4_mf )
+                                    0 :
+                                        P1_P4_m  = P1_P4_tail ;
+                                    1 :
+                                       begin 
+                                          P1_P4_m  = P1_P4_datai ;
+                                          P1_P4_addr  <= P1_P4_tail ;
+                                          P1_P4_rd  <=1'b1;
+                                       end 
+                                    2 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                    3 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                   endcase 
+                                   case ( P1_P4_d )
+                                    0 :
+                                        P1_P4_reg0  = P1_P4_m ;
+                                    1 :
+                                        P1_P4_reg1  = P1_P4_m ;
+                                    2 :
+                                        P1_P4_reg2  = P1_P4_m ;
+                                    3 :
+                                        P1_P4_reg3  = P1_P4_m ;
+                                    default :;
+                                   endcase 
+                                 end 
+                              4 :
+                                 begin 
+                                   case ( P1_P4_mf )
+                                    0 :
+                                        P1_P4_m  = P1_P4_tail ;
+                                    1 :
+                                       begin 
+                                          P1_P4_m  = P1_P4_datai ;
+                                          P1_P4_addr  <= P1_P4_tail ;
+                                          P1_P4_rd  <=1'b1;
+                                       end 
+                                    2 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                    3 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                   endcase 
+                                   case ( P1_P4_d )
+                                    0 :
+                                        P1_P4_reg0  =( P1_P4_r + P1_P4_m )%2**30;
+                                    1 :
+                                        P1_P4_reg1  =( P1_P4_r + P1_P4_m )%2**30;
+                                    2 :
+                                        P1_P4_reg2  =( P1_P4_r + P1_P4_m )%2**30;
+                                    3 :
+                                        P1_P4_reg3  =( P1_P4_r + P1_P4_m )%2**30;
+                                    default :;
+                                   endcase 
+                                 end 
+                              5 :
+                                 begin 
+                                   case ( P1_P4_mf )
+                                    0 :
+                                        P1_P4_m  = P1_P4_tail ;
+                                    1 :
+                                       begin 
+                                          P1_P4_m  = P1_P4_datai ;
+                                          P1_P4_addr  <= P1_P4_tail ;
+                                          P1_P4_rd  <=1'b1;
+                                       end 
+                                    2 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                    3 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                   endcase 
+                                   case ( P1_P4_d )
+                                    0 :
+                                        P1_P4_reg0  =( P1_P4_r + P1_P4_m )%2**30;
+                                    1 :
+                                        P1_P4_reg1  =( P1_P4_r + P1_P4_m )%2**30;
+                                    2 :
+                                        P1_P4_reg2  =( P1_P4_r + P1_P4_m )%2**30;
+                                    3 :
+                                        P1_P4_reg3  =( P1_P4_r + P1_P4_m )%2**30;
+                                    default :;
+                                   endcase 
+                                 end 
+                              6 :
+                                 begin 
+                                   case ( P1_P4_mf )
+                                    0 :
+                                        P1_P4_m  = P1_P4_tail ;
+                                    1 :
+                                       begin 
+                                          P1_P4_m  = P1_P4_datai ;
+                                          P1_P4_addr  <= P1_P4_tail ;
+                                          P1_P4_rd  <=1'b1;
+                                       end 
+                                    2 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                    3 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                   endcase 
+                                   case ( P1_P4_d )
+                                    0 :
+                                        P1_P4_reg0  =( P1_P4_r - P1_P4_m )%2**30;
+                                    1 :
+                                        P1_P4_reg1  =( P1_P4_r - P1_P4_m )%2**30;
+                                    2 :
+                                        P1_P4_reg2  =( P1_P4_r - P1_P4_m )%2**30;
+                                    3 :
+                                        P1_P4_reg3  =( P1_P4_r - P1_P4_m )%2**30;
+                                    default :;
+                                   endcase 
+                                 end 
+                              7 :
+                                 begin 
+                                   case ( P1_P4_mf )
+                                    0 :
+                                        P1_P4_m  = P1_P4_tail ;
+                                    1 :
+                                       begin 
+                                          P1_P4_m  = P1_P4_datai ;
+                                          P1_P4_addr  <= P1_P4_tail ;
+                                          P1_P4_rd  <=1'b1;
+                                       end 
+                                    2 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                    3 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                   endcase 
+                                   case ( P1_P4_d )
+                                    0 :
+                                        P1_P4_reg0  =( P1_P4_r - P1_P4_m )%2**30;
+                                    1 :
+                                        P1_P4_reg1  =( P1_P4_r - P1_P4_m )%2**30;
+                                    2 :
+                                        P1_P4_reg2  =( P1_P4_r - P1_P4_m )%2**30;
+                                    3 :
+                                        P1_P4_reg3  =( P1_P4_r - P1_P4_m )%2**30;
+                                    default :;
+                                   endcase 
+                                 end 
+                              8 :
+                                 begin 
+                                   case ( P1_P4_mf )
+                                    0 :
+                                        P1_P4_m  = P1_P4_tail ;
+                                    1 :
+                                       begin 
+                                          P1_P4_m  = P1_P4_datai ;
+                                          P1_P4_addr  <= P1_P4_tail ;
+                                          P1_P4_rd  <=1'b1;
+                                       end 
+                                    2 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                    3 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                   endcase 
+                                   case ( P1_P4_d )
+                                    0 :
+                                        P1_P4_reg0  =( P1_P4_r + P1_P4_m )%2**30;
+                                    1 :
+                                        P1_P4_reg1  =( P1_P4_r + P1_P4_m )%2**30;
+                                    2 :
+                                        P1_P4_reg2  =( P1_P4_r + P1_P4_m )%2**30;
+                                    3 :
+                                        P1_P4_reg3  =( P1_P4_r + P1_P4_m )%2**30;
+                                    default :;
+                                   endcase 
+                                 end 
+                              9 :
+                                 begin 
+                                   case ( P1_P4_mf )
+                                    0 :
+                                        P1_P4_m  = P1_P4_tail ;
+                                    1 :
+                                       begin 
+                                          P1_P4_m  = P1_P4_datai ;
+                                          P1_P4_addr  <= P1_P4_tail ;
+                                          P1_P4_rd  <=1'b1;
+                                       end 
+                                    2 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                    3 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                   endcase 
+                                   case ( P1_P4_d )
+                                    0 :
+                                        P1_P4_reg0  =( P1_P4_r - P1_P4_m )%2**30;
+                                    1 :
+                                        P1_P4_reg1  =( P1_P4_r - P1_P4_m )%2**30;
+                                    2 :
+                                        P1_P4_reg2  =( P1_P4_r - P1_P4_m )%2**30;
+                                    3 :
+                                        P1_P4_reg3  =( P1_P4_r - P1_P4_m )%2**30;
+                                    default :;
+                                   endcase 
+                                 end 
+                              10 :
+                                 begin 
+                                   case ( P1_P4_mf )
+                                    0 :
+                                        P1_P4_m  = P1_P4_tail ;
+                                    1 :
+                                       begin 
+                                          P1_P4_m  = P1_P4_datai ;
+                                          P1_P4_addr  <= P1_P4_tail ;
+                                          P1_P4_rd  <=1'b1;
+                                       end 
+                                    2 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                    3 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                   endcase 
+                                   case ( P1_P4_d )
+                                    0 :
+                                        P1_P4_reg0  =( P1_P4_r + P1_P4_m )%2**30;
+                                    1 :
+                                        P1_P4_reg1  =( P1_P4_r + P1_P4_m )%2**30;
+                                    2 :
+                                        P1_P4_reg2  =( P1_P4_r + P1_P4_m )%2**30;
+                                    3 :
+                                        P1_P4_reg3  =( P1_P4_r + P1_P4_m )%2**30;
+                                    default :;
+                                   endcase 
+                                 end 
+                              11 :
+                                 begin 
+                                   case ( P1_P4_mf )
+                                    0 :
+                                        P1_P4_m  = P1_P4_tail ;
+                                    1 :
+                                       begin 
+                                          P1_P4_m  = P1_P4_datai ;
+                                          P1_P4_addr  <= P1_P4_tail ;
+                                          P1_P4_rd  <=1'b1;
+                                       end 
+                                    2 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                    3 :
+                                       begin 
+                                          P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                          P1_P4_rd  <=1'b1;
+                                          P1_P4_m  = P1_P4_datai ;
+                                       end 
+                                   endcase 
+                                   case ( P1_P4_d )
+                                    0 :
+                                        P1_P4_reg0  =( P1_P4_r - P1_P4_m )%2**30;
+                                    1 :
+                                        P1_P4_reg1  =( P1_P4_r - P1_P4_m )%2**30;
+                                    2 :
+                                        P1_P4_reg2  =( P1_P4_r - P1_P4_m )%2**30;
+                                    3 :
+                                        P1_P4_reg3  =( P1_P4_r - P1_P4_m )%2**30;
+                                    default :;
+                                   endcase 
+                                 end 
+                              12 :
+                                 begin 
+                                   case ( P1_P4_mf )
+                                    0 :
+                                        P1_P4_t  = P1_P4_r /2;
+                                    1 :
+                                       begin 
+                                          P1_P4_t  = P1_P4_r /2;
+                                         if ( P1_P4_B ==1'b1)
+                                             P1_P4_t  = P1_P4_t %2**29;
+                                       end 
+                                    2 :
+                                        P1_P4_t  =( P1_P4_r %2**29)*2;
+                                    3 :
+                                       begin 
+                                          P1_P4_t  =( P1_P4_r %2**29)*2;
+                                         if ( P1_P4_t >2**30-1)
+                                             P1_P4_B  =1'b1;
+                                          else 
+                                             P1_P4_B  =1'b0;
+                                       end 
+                                    default :;
+                                   endcase 
+                                   case ( P1_P4_d )
+                                    0 :
+                                        P1_P4_reg0  = P1_P4_t ;
+                                    1 :
+                                        P1_P4_reg1  = P1_P4_t ;
+                                    2 :
+                                        P1_P4_reg2  = P1_P4_t ;
+                                    3 :
+                                        P1_P4_reg3  = P1_P4_t ;
+                                    default :;
+                                   endcase 
+                                 end 
+                              13 ,14,15:;
+                             endcase 
+                           end 
+                         else 
+                           if ( P1_P4_df ==7)
+                              begin 
+                                case ( P1_P4_mf )
+                                 0 :
+                                     P1_P4_m  = P1_P4_tail ;
+                                 1 :
+                                     P1_P4_m  = P1_P4_tail ;
+                                 2 :
+                                     P1_P4_m  =( P1_P4_reg1 %2**20)+( P1_P4_tail %2**20);
+                                 3 :
+                                     P1_P4_m  =( P1_P4_reg2 %2**20)+( P1_P4_tail %2**20);
+                                endcase 
+                                 P1_P4_addr  <= P1_P4_m %2*20;
+                                 P1_P4_wr  <=1'b1;
+                                 P1_P4_datao  <= P1_P4_r ;
+                              end 
+                    endcase 
+                     P1_P4_state  = P1_P4_FETCH ;
+                  end 
+              endcase 
+            end 
+       end
+ 
+ 
   always @(                                 P1_do1                                 or  P1_rd3  or  P1_wr1  or  P1_mio1  or  P1_dc1  or  P1_as12  or  P1_do2  or  P1_rd4  or  P1_wr2  or  P1_mio2  or  P1_dc2  or  P1_as22  or  P1_as21  or  P1_as11  or  P1_wr3  or  P1_ad31  or  P1_tad2  or  P1_wr4  or  P1_ad41  or  P1_tad1  or  P1_do3  or  P1_do4  or  P1_ad11  or  P1_ad12  or  P1_ad21  or  P1_ad22  or  P1_tad3  or  P1_tad4  or  P1_sel  or  P1_din  or  P1_td1  or  P1_td2  )
        begin 
           P1_di3  <= P1_do1 %2**20;
@@ -7424,7 +8142,269 @@ assign P1_wr3 = P1_P3_wr;
  
 
    
-   b18 P2(clock, reset, hold, na, bs, sel2, do2, di2, ax2);
+   
+wire  P2_clock;
+wire  P2_reset;
+wire  P2_hold;
+wire  P2_na;
+wire  P2_bs;
+wire  P2_sel;
+reg [19:0] P2_dout;
+wire [31:0] P2_din;
+reg [2:0] P2_aux;
+assign P2_clock = clock;
+assign P2_reset = reset;
+assign P2_hold = hold;
+assign P2_na = na;
+assign P2_bs = bs;
+assign P2_sel = sel2;
+assign do2 = P2_dout;
+assign P2_din = di2;
+assign ax2 = P2_aux;
+ 
+   integer P2_di1 ; 
+   integer P2_di2 ; 
+   wire[31:0] P2_do1 ; 
+   wire[31:0] P2_do2 ; 
+   integer P2_td1 ; 
+   integer P2_td2 ; 
+   integer P2_di3 ; 
+   integer P2_di4 ; 
+   wire[31:0] P2_do3 ; 
+   wire[31:0] P2_do4 ; 
+   reg[29:0] P2_tad1 ; 
+   reg[29:0] P2_tad2 ; 
+   wire[29:0] P2_ad11 ; 
+   wire[29:0] P2_ad12 ; 
+   wire[29:0] P2_ad21 ; 
+   wire[29:0] P2_ad22 ; 
+   wire[19:0] P2_ad31 ; 
+   wire[19:0] P2_ad41 ; 
+   reg[19:0] P2_tad3 ; 
+   reg[19:0] P2_tad4 ; 
+   wire P2_wr1 ; 
+   wire P2_wr2 ; 
+   wire P2_wr3 ; 
+   wire P2_wr4 ; 
+   wire P2_dc1 ; 
+   wire P2_dc2 ; 
+   wire P2_mio1 ; 
+   wire P2_mio2 ; 
+   wire P2_as11 ; 
+   wire P2_as12 ; 
+   wire P2_as21 ; 
+   wire P2_as22 ; 
+   reg P2_r11 ; 
+   reg P2_r12 ; 
+   reg P2_r21 ; 
+   reg P2_r22 ; 
+   wire P2_rd3 ; 
+   wire P2_rd4 ; 
+  
+wire  P2_P1_clock;
+wire  P2_P1_reset;
+wire [31:0] P2_P1_datai;
+integer P2_P1_datao;
+wire  P2_P1_hold;
+wire  P2_P1_na;
+wire  P2_P1_bs16;
+reg [29:0] P2_P1_address1;
+reg [29:0] P2_P1_address2;
+reg  P2_P1_wr;
+reg  P2_P1_dc;
+reg  P2_P1_mio;
+reg  P2_P1_ast1;
+reg  P2_P1_ast2;
+wire  P2_P1_ready1;
+wire  P2_P1_ready2;
+assign P2_P1_clock = P2_clock;
+assign P2_P1_reset = P2_reset;
+assign P2_P1_datai = P2_di1;
+assign P2_do1 = P2_P1_datao;
+assign P2_P1_hold = P2_hold;
+assign P2_P1_na = P2_na;
+assign P2_P1_bs16 = P2_bs;
+assign P2_ad11 = P2_P1_address1;
+assign P2_ad12 = P2_P1_address2;
+assign P2_wr1 = P2_P1_wr;
+assign P2_dc1 = P2_P1_dc;
+assign P2_mio1 = P2_P1_mio;
+assign P2_as11 = P2_P1_ast1;
+assign P2_as12 = P2_P1_ast2;
+assign P2_P1_ready1 = P2_r11;
+assign P2_P1_ready2 = P2_r12;
+ 
+   integer P2_P1_buf1 ; 
+   integer P2_P1_buf2 ; 
+   wire[3:0] P2_P1_be1 ; 
+   wire[3:0] P2_P1_be2 ; 
+   wire[3:0] P2_P1_be3 ; 
+   wire[29:0] P2_P1_addr1 ; 
+   wire[29:0] P2_P1_addr2 ; 
+   wire[29:0] P2_P1_addr3 ; 
+   wire P2_P1_wr1 ; 
+   wire P2_P1_wr2 ; 
+   wire P2_P1_wr3 ; 
+   wire P2_P1_dc1 ; 
+   wire P2_P1_dc2 ; 
+   wire P2_P1_dc3 ; 
+   wire P2_P1_mio1 ; 
+   wire P2_P1_mio2 ; 
+   wire P2_P1_mio3 ; 
+   wire P2_P1_ads1 ; 
+   wire P2_P1_ads2 ; 
+   wire P2_P1_ads3 ; 
+   integer P2_P1_di1 ; 
+   integer P2_P1_di2 ; 
+   integer P2_P1_di3 ; 
+   wire[31:0] P2_P1_do1 ; 
+   wire[31:0] P2_P1_do2 ; 
+   wire[31:0] P2_P1_do3 ; 
+   reg P2_P1_rdy1 ; 
+   reg P2_P1_rdy2 ; 
+   reg P2_P1_rdy3 ; 
+   reg P2_P1_ready11 ; 
+   reg P2_P1_ready12 ; 
+   reg P2_P1_ready21 ; 
+   reg P2_P1_ready22 ; 
+  always @(  posedge   P2_P1_clock or posedge  P2_P1_reset )
+       if ( P2_P1_reset ==1'b1)
+          begin 
+             P2_P1_buf1  <=0;
+             P2_P1_ready11  <=1'b0;
+             P2_P1_ready12  <=1'b0;
+          end 
+        else 
+          begin 
+            if ( P2_P1_addr1 >2**29& P2_P1_ads1 ==1'b0& P2_P1_mio1 ==1'b1& P2_P1_dc1 ==1'b0& P2_P1_wr1 ==1'b1& P2_P1_be1 ==4'b0000)
+               begin 
+                  P2_P1_buf1  <= P2_P1_do1 ;
+                  P2_P1_ready11  <=1'b0;
+                  P2_P1_ready12  <=1'b1;
+               end 
+             else 
+               if ( P2_P1_addr2 >2**29& P2_P1_ads2 ==1'b0& P2_P1_mio2 ==1'b1& P2_P1_dc2 ==1'b0& P2_P1_wr2 ==1'b1& P2_P1_be2 ==4'b0000)
+                  begin 
+                     P2_P1_buf1  <= P2_P1_do2 ;
+                     P2_P1_ready11  <=1'b1;
+                     P2_P1_ready12  <=1'b0;
+                  end 
+                else 
+                  begin 
+                     P2_P1_ready11  <=1'b1;
+                     P2_P1_ready12  <=1'b1;
+                  end 
+          end
+  
+  always @(  posedge   P2_P1_clock or posedge  P2_P1_reset )
+       if ( P2_P1_reset ==1'b1)
+          begin 
+             P2_P1_buf2  <=0;
+             P2_P1_ready21  <=1'b0;
+             P2_P1_ready22  <=1'b0;
+          end 
+        else 
+          begin 
+            if ( P2_P1_addr2 <2**29& P2_P1_ads2 ==1'b0& P2_P1_mio2 ==1'b1& P2_P1_dc2 ==1'b0& P2_P1_wr2 ==1'b1& P2_P1_be2 ==4'b0000)
+               begin 
+                  P2_P1_buf2  <= P2_P1_do2 ;
+                  P2_P1_ready21  <=1'b0;
+                  P2_P1_ready22  <=1'b1;
+               end 
+             else 
+               if ( P2_P1_ads3 ==1'b0& P2_P1_mio3 ==1'b1& P2_P1_dc3 ==1'b0& P2_P1_wr3 ==1'b0& P2_P1_be3 ==4'b0000)
+                  begin 
+                     P2_P1_ready21  <=1'b1;
+                     P2_P1_ready22  <=1'b0;
+                  end 
+                else 
+                  begin 
+                     P2_P1_ready21  <=1'b1;
+                     P2_P1_ready22  <=1'b1;
+                  end 
+          end
+  
+  always @(    P2_P1_addr1    or  P2_P1_buf1  or  P2_P1_datai  )
+       if ( P2_P1_addr1 >2**29)
+           P2_P1_di1  <= P2_P1_buf1 ;
+        else 
+           P2_P1_di1  <= P2_P1_datai ;
+ 
+  always @(    P2_P1_addr2    or  P2_P1_buf1  or  P2_P1_buf2  )
+       if ( P2_P1_addr2 >2**29)
+           P2_P1_di2  <= P2_P1_buf1 ;
+        else 
+           P2_P1_di2  <= P2_P1_buf2 ;
+ 
+  always @(      P2_P1_addr2      or  P2_P1_addr3  or  P2_P1_do1  or  P2_P1_do2  or  P2_P1_do3  )
+       if (( P2_P1_do1 <2**30)&( P2_P1_do2 <2**30)&( P2_P1_do3 <2**30))
+           P2_P1_address2  <= P2_P1_addr3 ;
+        else 
+           P2_P1_address2  <= P2_P1_addr2 ;
+ 
+  always @(               P2_P1_buf2               or  P2_P1_do3  or  P2_P1_addr1  or  P2_P1_wr3  or  P2_P1_dc3  or  P2_P1_mio3  or  P2_P1_ads1  or  P2_P1_ads3  or  P2_P1_ready1  or  P2_P1_ready2  or  P2_P1_ready11  or  P2_P1_ready12  or  P2_P1_ready21  or  P2_P1_ready22  )
+       begin 
+          P2_P1_di3  <= P2_P1_buf2 ;
+          P2_P1_datao  <= P2_P1_do3 ;
+          P2_P1_address1  <= P2_P1_addr1 ;
+          P2_P1_wr  <= P2_P1_wr3 ;
+          P2_P1_dc  <= P2_P1_dc3 ;
+          P2_P1_mio  <= P2_P1_mio3 ;
+          P2_P1_ast1  <= P2_P1_ads1 ;
+          P2_P1_ast2  <= P2_P1_ads3 ;
+          P2_P1_rdy1  <= P2_P1_ready11 & P2_P1_ready1 ;
+          P2_P1_rdy2  <= P2_P1_ready12 & P2_P1_ready21 ;
+          P2_P1_rdy3  <= P2_P1_ready22 & P2_P1_ready2 ;
+       end
+  
+  b15  P2_P1_P1 ( P2_P1_be1 , P2_P1_addr1 , P2_P1_wr1 , P2_P1_dc1 , P2_P1_mio1 , P2_P1_ads1 , P2_P1_di1 , P2_P1_do1 , P2_P1_clock , P2_P1_na , P2_P1_bs16 , P2_P1_rdy1 , P2_P1_hold , P2_P1_reset ); 
+  b15  P2_P1_P2 ( P2_P1_be2 , P2_P1_addr2 , P2_P1_wr2 , P2_P1_dc2 , P2_P1_mio2 , P2_P1_ads2 , P2_P1_di2 , P2_P1_do2 , P2_P1_clock , P2_P1_na , P2_P1_bs16 , P2_P1_rdy2 , P2_P1_hold , P2_P1_reset ); 
+  b15  P2_P1_P3 ( P2_P1_be3 , P2_P1_addr3 , P2_P1_wr3 , P2_P1_dc3 , P2_P1_mio3 , P2_P1_ads3 , P2_P1_di3 , P2_P1_do3 , P2_P1_clock , P2_P1_na , P2_P1_bs16 , P2_P1_rdy3 , P2_P1_hold , P2_P1_reset );
+ 
+  b17  P2_P2 ( P2_clock , P2_reset , P2_di2 , P2_do2 , P2_hold , P2_na , P2_bs , P2_ad21 , P2_ad22 , P2_wr2 , P2_dc2 , P2_mio2 , P2_as21 , P2_as22 , P2_r21 , P2_r22 ); 
+  b14  P2_P3 ( P2_clock , P2_reset , P2_ad31 , P2_di3 , P2_do3 , P2_rd3 , P2_wr3 ); 
+  b14  P2_P4 ( P2_clock , P2_reset , P2_ad41 , P2_di4 , P2_do4 , P2_rd4 , P2_wr4 ); 
+  always @(                                 P2_do1                                 or  P2_rd3  or  P2_wr1  or  P2_mio1  or  P2_dc1  or  P2_as12  or  P2_do2  or  P2_rd4  or  P2_wr2  or  P2_mio2  or  P2_dc2  or  P2_as22  or  P2_as21  or  P2_as11  or  P2_wr3  or  P2_ad31  or  P2_tad2  or  P2_wr4  or  P2_ad41  or  P2_tad1  or  P2_do3  or  P2_do4  or  P2_ad11  or  P2_ad12  or  P2_ad21  or  P2_ad22  or  P2_tad3  or  P2_tad4  or  P2_sel  or  P2_din  or  P2_td1  or  P2_td2  )
+       begin 
+          P2_di3  <= P2_do1 %2**20;
+          P2_r12  <=(~( P2_rd3 & P2_wr1 & P2_mio1 & P2_dc1 &(~ P2_as12 )));
+          P2_di4  <= P2_do2 ;
+          P2_r22  <=(~( P2_rd4 & P2_wr2 & P2_mio2 & P2_dc2 &(~ P2_as22 )));
+          P2_r11  <= P2_as21 ;
+          P2_r21  <= P2_as11 ;
+         if ( P2_wr3 ==1'b1)
+             P2_tad3  <= P2_ad31 ;
+          else 
+             P2_tad3  <= P2_tad2 %2**20;
+         if ( P2_wr4 ==1'b1)
+             P2_tad4  <= P2_ad41 ;
+          else 
+             P2_tad4  <= P2_tad1 %2**20;
+         if ( P2_do3 >2**28)
+             P2_tad1  <= P2_ad11 ;
+          else 
+             P2_tad1  <= P2_ad12 ;
+         if ( P2_do4 >2**29)
+             P2_tad2  <= P2_ad21 ;
+          else 
+             P2_tad2  <= P2_ad22 ;
+          P2_dout  <=( P2_tad3 * P2_tad4 )%2**19;
+         if ( P2_sel ==1'b0)
+            begin 
+               P2_td1  <=0;
+               P2_td2  <= P2_din ;
+            end 
+          else 
+            begin 
+               P2_td1  <= P2_din ;
+               P2_td2  <=0;
+            end 
+          P2_di1  <= P2_do4 * P2_td1 ;
+          P2_di2  <= P2_do3 * P2_td2 ;
+          P2_aux  <=( P2_tad1 * P2_tad2 )%2**3;
+       end
+ 
+
    
    
    always @(posedge clock or posedge reset)
@@ -7462,6 +8442,9 @@ assign P1_wr3 = P1_P3_wr;
    end
    
 endmodule
+
+
+
 
 
 
