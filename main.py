@@ -131,18 +131,22 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
 
               if child.REG() is not None:
                 self.list_of_ports_type.append(child.REG().getText())
-                self.list_of_ports_lhs.append(child.list_of_variable_port_identifiers().getText())
               else:
                 self.list_of_ports_type.append('wire')
-                self.list_of_ports_lhs.append(child.list_of_port_identifiers().getText())
+
               
+              if child.list_of_port_identifiers() is not None:
+                self.list_of_ports_lhs.append(child.list_of_port_identifiers().getText())
+              else:
+                self.list_of_ports_lhs.append(child.list_of_variable_port_identifiers().getText())
+
               if child.range_() is not None:
                 self.list_of_ports_width.append(child.range_().getText())  
               else:
                  self.list_of_ports_width.append('')
 
-              if child.SIGNED() is not None:
-                self.list_of_data_type.append(child.SIGNED().getText())
+              if child.output_variable_type() is not None:
+                self.list_of_data_type.append(child.output_variable_type().getText())
               else:
                 self.list_of_data_type.append('')
 
@@ -176,15 +180,23 @@ def pyflattenverilog(design:str, top_module:str, output_file:str):
 
 
   for i in range(0,len(cur_list_of_ports_lhs)):
-    if cur_list_of_ports_type[i] == 'reg':
-      cur_new_variable.append('reg ' + cur_list_of_data_type[i] + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
+    if cur_list_of_data_type[i] != '':
+       cur_new_variable.append(cur_list_of_data_type[i]  + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
+    elif cur_list_of_ports_type[i] == 'reg':
+      cur_new_variable.append('reg '  + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
     else:
-      cur_new_variable.append('wire ' + cur_list_of_data_type[i] + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
+      cur_new_variable.append('wire '  + cur_list_of_ports_lhs_width[i] + ' '+cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
   
     if cur_list_of_ports_direction[i] == 'input': 
-      cur_new_assign.append('assign ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ' = '+ cur_list_of_ports_rhs[i] + ';')
+      # if cur_list_of_ports_type[i] == 'reg' :
+      #   cur_new_assign.append('always @(*)' + ' ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ' = '+ cur_list_of_ports_rhs[i] + ';')
+      # else:
+       cur_new_assign.append('assign ' + cur_prefix + '_' + cur_list_of_ports_lhs[i] + ' = '+ cur_list_of_ports_rhs[i] + ';')
     else:
-      cur_new_assign.append('assign ' + cur_list_of_ports_rhs[i] + ' = '+ cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
+      # if cur_list_of_ports_type[i] == 'reg' :
+      #   cur_new_assign.append('always @(*) ' + ' ' + cur_list_of_ports_rhs[i] + ' = '+ cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
+      # else:
+        cur_new_assign.append('assign ' +  cur_list_of_ports_rhs[i] + ' = '+ cur_prefix + '_' + cur_list_of_ports_lhs[i] + ';')
 
 
   # 5. TODO: Rename all variable

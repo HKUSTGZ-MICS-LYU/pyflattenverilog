@@ -1,6 +1,7 @@
-read_verilog -r /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/usb_phy/unflatten/usb_phy.v
-set_top usb_phy
-read_verilog -i /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/usb_phy/flatten/res.v
-set_top usb_phy
+set synopsys_auto_setup true
+read_verilog -r /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/b19/unflatten/b19.v
+set_top b19
+read_verilog -i /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/b19/flatten/f_b19_2.v
+set_top b19
 verify
 exit
