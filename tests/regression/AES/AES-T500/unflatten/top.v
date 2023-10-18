@@ -92,31 +92,28 @@ module aes_128(
         k0 <= key;
       end
 
-    expand_key_128
-        a1 (clk, k0, k1, k0b, 8'h1),
-        a2 (clk, k1, k2, k1b, 8'h2),
-        a3 (clk, k2, k3, k2b, 8'h4),
-        a4 (clk, k3, k4, k3b, 8'h8),
-        a5 (clk, k4, k5, k4b, 8'h10),
-        a6 (clk, k5, k6, k5b, 8'h20),
-        a7 (clk, k6, k7, k6b, 8'h40),
-        a8 (clk, k7, k8, k7b, 8'h80),
-        a9 (clk, k8, k9, k8b, 8'h1b),
-       a10 (clk, k9, k10, k9b, 8'h36);
+    expand_key_128 a1 (clk, k0, 8'h1, k1, k0b);
+    expand_key_128 a2 (clk, k1, 8'h2, k2, k1b);
+    expand_key_128 a3 (clk, k2, 8'h4, k3, k2b);
+    expand_key_128 a4 (clk, k3, 8'h8, k4, k3b);
+    expand_key_128 a5 (clk, k4, 8'h10,k5, k4b);
+    expand_key_128 a6 (clk, k5, 8'h20,k6, k5b);
+    expand_key_128 a7 (clk, k6, 8'h40,k7, k6b);
+    expand_key_128 a8 (clk, k7, 8'h80,k8, k7b);
+    expand_key_128 a9 (clk, k8, 8'h1b,k9, k8b);
+    expand_key_128 a10 (clk,k9, 8'h36,k10, k9b);
 
-    one_round
-        r1 (clk, s0, k0b, s1),
-        r2 (clk, s1, k1b, s2),
-        r3 (clk, s2, k2b, s3),
-        r4 (clk, s3, k3b, s4),
-        r5 (clk, s4, k4b, s5),
-        r6 (clk, s5, k5b, s6),
-        r7 (clk, s6, k6b, s7),
-        r8 (clk, s7, k7b, s8),
-        r9 (clk, s8, k8b, s9);
+    one_round r1 (clk, s0, k0b, s1);
+    one_round r2 (clk, s1, k1b, s2);
+    one_round r3 (clk, s2, k2b, s3);
+    one_round r4 (clk, s3, k3b, s4);
+    one_round r5 (clk, s4, k4b, s5);
+    one_round r6 (clk, s5, k5b, s6);
+    one_round r7 (clk, s6, k6b, s7);
+    one_round r8 (clk, s7, k7b, s8);
+    one_round r9 (clk, s8, k8b, s9);
 
-    final_round
-        rf (clk, s9, k9b, out);
+    final_round rf (clk, s9, k9b, out);
 endmodule
 
 module expand_key_128(
@@ -165,8 +162,7 @@ module expand_key_128(
         k3a <= v3;
     end
 
-    S4
-        S4_0 (clk, {k3[23:0], k3[31:24]}, k4a);
+    S4 S4_0 (clk, {k3[23:0], k3[31:24]}, k4a);
 
     assign k0b = k0a ^ k4a;
     assign k1b = k1a ^ k4a;
@@ -311,11 +307,10 @@ module one_round (
     assign s2 = state_in[63:32];
     assign s3 = state_in[31:0];
 
-    table_lookup
-        t0 (clk, s0, p00, p01, p02, p03),
-        t1 (clk, s1, p10, p11, p12, p13),
-        t2 (clk, s2, p20, p21, p22, p23),
-        t3 (clk, s3, p30, p31, p32, p33);
+    table_lookup  t0 (clk, s0, p00, p01, p02, p03);
+    table_lookup  t1 (clk, s1, p10, p11, p12, p13);
+    table_lookup  t2 (clk, s2, p20, p21, p22, p23);
+    table_lookup  t3 (clk, s3, p30, p31, p32, p33);
 
     assign z0 = p00 ^ p11 ^ p22 ^ p33 ^ k0;
     assign z1 = p03 ^ p10 ^ p21 ^ p32 ^ k1;
@@ -376,11 +371,11 @@ module final_round (
     assign s2 = state_in[63:32];
     assign s3 = state_in[31:0];
 
-    S4
-        S4_1 (clk, s0, {p00, p01, p02, p03}),
-        S4_2 (clk, s1, {p10, p11, p12, p13}),
-        S4_3 (clk, s2, {p20, p21, p22, p23}),
-        S4_4 (clk, s3, {p30, p31, p32, p33});
+ 
+    S4 S4_1 (clk, s0, {p00, p01, p02, p03});
+    S4 S4_2 (clk, s1, {p10, p11, p12, p13});
+    S4 S4_3 (clk, s2, {p20, p21, p22, p23});
+    S4 S4_4 (clk, s3, {p30, p31, p32, p33});
 
     assign z0 = {p00, p11, p22, p33} ^ k0;
     assign z1 = {p10, p21, p32, p03} ^ k1;
@@ -435,11 +430,11 @@ module table_lookup (
     assign b2 = state[15:8];
     assign b3 = state[7:0];
     
-    T
-        t0 (clk, b0, k0),
-        t1 (clk, b1, k1),
-        t2 (clk, b2, k2 ),
-        t3 (clk, b3, p3);
+    T    t0 (clk, b0, k0);
+    T    t1 (clk, b1, k1);
+    T    t2 (clk, b2, k2);
+    T    t3 (clk, b3, p3);
+
 endmodule
 
 /* substitue four bytes in a word */
@@ -453,12 +448,10 @@ module S4 (
     wire [7:0] k2;
     wire [7:0] k3;
 
-    
-    S
-        S_0 (clk, in[31:24], k0),
-        S_1 (clk, in[23:16], k1),
-        S_2 (clk, in[15:8],  k2 ),
-        S_3 (clk, in[7:0],   k3  );
+    S    S_0 (clk, in[31:24], k0);
+    S    S_1 (clk, in[23:16], k1);
+    S    S_2 (clk, in[15:8],  k2);
+    S    S_3 (clk, in[7:0],   k3);
         
     assign out = {k0, k1, k2, k3};
 endmodule

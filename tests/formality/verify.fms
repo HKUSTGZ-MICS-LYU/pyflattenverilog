@@ -1,7 +1,8 @@
 set synopsys_auto_setup true
 read_verilog -r /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/b19/unflatten/b19.v
 set_top b19
-read_verilog -i /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/b19/flatten/f_b19_0.v
+read_verilog -i /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/b19/flatten/f_b19_3.v
 set_top b19
 verify
+report_failing_points
 exit

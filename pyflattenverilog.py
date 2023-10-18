@@ -1,7 +1,7 @@
 import main
 import os
 
-folder_path = "tests/regression/b19/flatten"
+folder_path = "tests/regression/AES/AES-T500/flatten"
 
 
 file_list = os.listdir(folder_path)
@@ -10,9 +10,9 @@ for filename in file_list:
     os.remove(file_path)
 
 
-file_path = 'tests/regression/b19/unflatten/b19.v'
-output_path = 'tests/regression/b19/flatten/f_b19.v'
-top_module = 'b19'
+file_path = 'tests/regression/AES/AES-T500/unflatten/top.v'
+output_path = 'tests/regression/AES/AES-T500/flatten/top.v'
+top_module = 'top'
 
 
 with open(file_path,"r") as file:

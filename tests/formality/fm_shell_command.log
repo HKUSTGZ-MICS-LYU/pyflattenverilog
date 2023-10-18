@@ -1,6 +1,6 @@
 #@ # 
 #@ # Running fm_shell Version T-2022.03-SP5 for linux64 -- Oct 18, 2022
-#@ # Date:   Wed Oct 18 08:45:42 2023
+#@ # Date:   Wed Oct 18 22:45:05 2023
 #@ # Run by: xiangchenmeng@mics-eda
 #@ 
 
@@ -54,7 +54,8 @@ source -echo -verbose verify.fms
 #@ set synopsys_auto_setup true
 #@ read_verilog -r /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/b19/unflatten/b19.v
 #@ set_top b19
-#@ read_verilog -i /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/b19/flatten/f_b19_0.v
+#@ read_verilog -i /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/b19/flatten/f_b19_3.v
 #@ set_top b19
 #@ verify
+#@ report_failing_points
 #@ exit
