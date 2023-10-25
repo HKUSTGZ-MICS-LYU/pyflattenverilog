@@ -89,13 +89,22 @@ def formatter_file(design, outputpath):
             
          # visit output declaration
          def _visit_output_declaration(self, ctx: VerilogParser.Output_declarationContext):
-            for name in ctx.list_of_port_identifiers().getText().split(','):
-               if name in self.module_port:
-                  self.module_port[name]['port_direction'] = 'output'
-               if ctx.range_() != None:
-                  self.module_port[name]['port_width'] = ctx.range_().getText()
-               if ctx.SIGNED() != None:
-                  self.module_port[name]['data_type'] = ctx.SIGNED().getText()
+            if ctx.list_of_port_identifiers() != None:
+               for name in ctx.list_of_port_identifiers().getText().split(','):
+                  if name in self.module_port:
+                     self.module_port[name]['port_direction'] = 'output'
+                  if ctx.range_() != None:
+                     self.module_port[name]['port_width'] = ctx.range_().getText()
+                  if ctx.SIGNED() != None:
+                     self.module_port[name]['data_type'] = ctx.SIGNED().getText()
+            else:
+               for name in ctx.list_of_variable_port_identifiers().getText().split(','):
+                  if name in self.module_port:
+                     self.module_port[name]['port_direction'] = 'output'
+                  if ctx.range_() != None:
+                     self.module_port[name]['port_width'] = ctx.range_().getText()
+                  if ctx.SIGNED() != None:
+                     self.module_port[name]['data_type'] = ctx.SIGNED().getText()
 
          # visit port list
          def _visit_port_list(self,ctx):
