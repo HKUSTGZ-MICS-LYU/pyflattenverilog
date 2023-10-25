@@ -137,9 +137,8 @@ def formatter_design(tree):
 
       def _modify_port_list(self, ctx):
          port_defination = '('
-         while module_port:
-            key, value = module_port.popitem()
-            if len(module_port) == 0:
+         for index, (key, value) in enumerate(module_port.items()):
+            if index == len(module_port) - 1:
                if value['port_type'] == 'wire':
                   port_defination += '\n' + value['port_direction']  + ' ' + value['data_type'] + ' ' + value['port_width'] + ' ' + key + ');' + '\n'
                else:
@@ -209,7 +208,7 @@ def formatter_design(tree):
    module = visitor.module
 
 
-   class InstBodyVisitor(VerilogParserVisitor):
+   class FormatVisitor(VerilogParserVisitor):
       def __init__(self):
          super().__init__()
          self.module_node = None
@@ -233,6 +232,8 @@ def formatter_design(tree):
                   self.text += char
                
       def _traverse_children(self,ctx,indent = 0):  
+         if isinstance(ctx, VerilogParser.Module_declarationContext):
+            ctx.stop.text = '#' + ctx.stop.text + '#'
          if isinstance(ctx, antlr4.tree.Tree.TerminalNodeImpl):
             pass
          else:
@@ -347,9 +348,9 @@ def formatter_design(tree):
                   for i, item in enumerate(child.getChildren()):
                      if i == 0:
                         if isinstance(item, antlr4.tree.Tree.TerminalNodeImpl):
-                           item.symbol.text = '#' + ' ' + item.symbol.text 
+                           item.symbol.text = '#' + ' ' * indent + item.symbol.text 
                         else:
-                           item.start.text = '#' + ' ' + item.start.text
+                           item.start.text = '#' + ' ' * indent + item.start.text
                      else:
                         if isinstance(item, antlr4.tree.Tree.TerminalNodeImpl):
                            item.symbol.text = ' ' + item.symbol.text 
@@ -363,27 +364,34 @@ def formatter_design(tree):
                # Module declaration
                if isinstance(child, VerilogParser.Module_declarationContext):
                   child.start.text = '#' + ' ' * indent + child.start.text 
-               # EndModule block
-               if isinstance(child, VerilogParser.Module_declarationContext):
-                  child.ENDMODULE().symbol.text = child.ENDMODULE().symbol.text + '#'
+       
+
                self._traverse_children(child,indent+1)
 
       def visitModule_declaration(self, ctx: VerilogParser.Module_declarationContext):
          self.module_node = ctx
+         print(self.module_node.module_identifier().getText())
          self.formatProcess(self.module_node)
-         self.module_node = Design2Tree(self.text)
 
-   visitor = InstBodyVisitor()
+   visitor = FormatVisitor()
    visitor.visit(module)
    module_design = visitor.text
-   with open('tmp.v', 'a+') as f:
+   with open(path+outputfile, 'a+') as f:
       f.write(module_design)
       f.write('\n')
-if os.path.exists('./tmp.v'):
-   os.remove(path='./tmp.v')
-path = 'tests/regression/b30/b30.v'
-with open(path, 'r') as f:
+
+path = 'tests/regression/b30'
+inputfile = '/b30.v'
+outputfile = '/pre_b30.v'
+
+if os.path.exists(path+outputfile):
+   os.remove(path=path+outputfile)
+
+
+with open(path+inputfile, 'r') as f:
    design = f.read()
+
+
 
 class visitModule(VerilogParserVisitor):
    def __init__(self):

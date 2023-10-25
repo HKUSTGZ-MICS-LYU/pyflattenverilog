@@ -1,25 +1,21 @@
-module b19(
-        input         clock,
-        input         reset,
-        input         bs,
-        input         na,
-        input         hold,
-        input [10:0]  in1,
-        input [10:0]  in2,
-        input [19:0]  in3,
-        output reg [29:0] ris
-    );
-
-    reg           sel1;
-    reg           sel2;
-    wire [19:0]   do1;
-    wire [19:0]   do2;
-    integer       di1;
-    integer       di2;
-    wire [2:0]    ax1;
-    wire [2:0]    ax2;
-
-
+module b19 (
+        input clock,
+        input reset,
+        input bs,
+        input na,
+        input hold,
+        input [10:0] in1,
+        input [10:0] in2,
+        input [19:0] in3,
+        output reg  [29:0] ris) ;
+    reg sel1 ;
+    reg sel2 ;
+    wire [19:0] do1 ;
+    wire [19:0] do2 ;
+    integer di1 ;
+    integer di2 ;
+    wire [2:0] ax1 ;
+    wire [2:0] ax2 ;
 
     wire  P1_clock;
     wire  P1_reset;
@@ -491,14 +487,7 @@ module b19(
         if ( P1_P1_P1_RESET ==1'b1)
         begin
             P1_P1_P1_State2  = P1_P1_P1_Si ;
-            P1_P1_P1_InstQueue  [0]=16*{0};
-            P1_P1_P1_InstQueue  [1]=16*{0};
-            P1_P1_P1_InstQueue  [2]=16*{0};
-            P1_P1_P1_InstQueue  [3]=16*{0};
-            P1_P1_P1_InstQueue  [4]=16*{0};
-            P1_P1_P1_InstQueue  [5]=16*{0};
-            P1_P1_P1_InstQueue  [6]=16*{0};
-            P1_P1_P1_InstQueue  [7]=16*{0};
+            P1_P1_P1_InstQueue  ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             P1_P1_P1_InstQueueRd_Addr  =0;
             P1_P1_P1_InstQueueWr_Addr  =0;
             P1_P1_P1_InstAddrPointer  =0;
@@ -1251,14 +1240,7 @@ module b19(
         if ( P1_P1_P2_RESET ==1'b1)
         begin
             P1_P1_P2_State2  = P1_P1_P2_Si ;
-            P1_P1_P2_InstQueue  [0]=16*{0};
-            P1_P1_P2_InstQueue  [1]=16*{0};
-            P1_P1_P2_InstQueue  [2]=16*{0};
-            P1_P1_P2_InstQueue  [3]=16*{0};
-            P1_P1_P2_InstQueue  [4]=16*{0};
-            P1_P1_P2_InstQueue  [5]=16*{0};
-            P1_P1_P2_InstQueue  [6]=16*{0};
-            P1_P1_P2_InstQueue  [7]=16*{0};
+            P1_P1_P2_InstQueue  ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             P1_P1_P2_InstQueueRd_Addr  =0;
             P1_P1_P2_InstQueueWr_Addr  =0;
             P1_P1_P2_InstAddrPointer  =0;
@@ -2011,14 +1993,7 @@ module b19(
         if ( P1_P1_P3_RESET ==1'b1)
         begin
             P1_P1_P3_State2  = P1_P1_P3_Si ;
-            P1_P1_P3_InstQueue  [0]=16*{0};
-            P1_P1_P3_InstQueue  [1]=16*{0};
-            P1_P1_P3_InstQueue  [2]=16*{0};
-            P1_P1_P3_InstQueue  [3]=16*{0};
-            P1_P1_P3_InstQueue  [4]=16*{0};
-            P1_P1_P3_InstQueue  [5]=16*{0};
-            P1_P1_P3_InstQueue  [6]=16*{0};
-            P1_P1_P3_InstQueue  [7]=16*{0};
+            P1_P1_P3_InstQueue  ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             P1_P1_P3_InstQueueRd_Addr  =0;
             P1_P1_P3_InstQueueWr_Addr  =0;
             P1_P1_P3_InstAddrPointer  =0;
@@ -2929,14 +2904,7 @@ module b19(
         if ( P1_P2_P1_RESET ==1'b1)
         begin
             P1_P2_P1_State2  = P1_P2_P1_Si ;
-            P1_P2_P1_InstQueue  [0]=16*{0};
-            P1_P2_P1_InstQueue  [1]=16*{0};
-            P1_P2_P1_InstQueue  [2]=16*{0};
-            P1_P2_P1_InstQueue  [3]=16*{0};
-            P1_P2_P1_InstQueue  [4]=16*{0};
-            P1_P2_P1_InstQueue  [5]=16*{0};
-            P1_P2_P1_InstQueue  [6]=16*{0};
-            P1_P2_P1_InstQueue  [7]=16*{0};
+            P1_P2_P1_InstQueue  ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             P1_P2_P1_InstQueueRd_Addr  =0;
             P1_P2_P1_InstQueueWr_Addr  =0;
             P1_P2_P1_InstAddrPointer  =0;
@@ -3689,14 +3657,7 @@ module b19(
         if ( P1_P2_P2_RESET ==1'b1)
         begin
             P1_P2_P2_State2  = P1_P2_P2_Si ;
-            P1_P2_P2_InstQueue  [0]=16*{0};
-            P1_P2_P2_InstQueue  [1]=16*{0};
-            P1_P2_P2_InstQueue  [2]=16*{0};
-            P1_P2_P2_InstQueue  [3]=16*{0};
-            P1_P2_P2_InstQueue  [4]=16*{0};
-            P1_P2_P2_InstQueue  [5]=16*{0};
-            P1_P2_P2_InstQueue  [6]=16*{0};
-            P1_P2_P2_InstQueue  [7]=16*{0};
+            P1_P2_P2_InstQueue  ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             P1_P2_P2_InstQueueRd_Addr  =0;
             P1_P2_P2_InstQueueWr_Addr  =0;
             P1_P2_P2_InstAddrPointer  =0;
@@ -4449,14 +4410,7 @@ module b19(
         if ( P1_P2_P3_RESET ==1'b1)
         begin
             P1_P2_P3_State2  = P1_P2_P3_Si ;
-            P1_P2_P3_InstQueue  [0]=16*{0};
-            P1_P2_P3_InstQueue  [1]=16*{0};
-            P1_P2_P3_InstQueue  [2]=16*{0};
-            P1_P2_P3_InstQueue  [3]=16*{0};
-            P1_P2_P3_InstQueue  [4]=16*{0};
-            P1_P2_P3_InstQueue  [5]=16*{0};
-            P1_P2_P3_InstQueue  [6]=16*{0};
-            P1_P2_P3_InstQueue  [7]=16*{0};
+            P1_P2_P3_InstQueue  ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             P1_P2_P3_InstQueueRd_Addr  =0;
             P1_P2_P3_InstQueueWr_Addr  =0;
             P1_P2_P3_InstAddrPointer  =0;
@@ -6462,7 +6416,6 @@ module b19(
 
 
 
-
     wire  P2_clock;
     wire  P2_reset;
     wire  P2_hold;
@@ -6933,14 +6886,7 @@ module b19(
         if ( P2_P1_P1_RESET ==1'b1)
         begin
             P2_P1_P1_State2  = P2_P1_P1_Si ;
-            P2_P1_P1_InstQueue  [0]=16*{0};
-            P2_P1_P1_InstQueue  [1]=16*{0};
-            P2_P1_P1_InstQueue  [2]=16*{0};
-            P2_P1_P1_InstQueue  [3]=16*{0};
-            P2_P1_P1_InstQueue  [4]=16*{0};
-            P2_P1_P1_InstQueue  [5]=16*{0};
-            P2_P1_P1_InstQueue  [6]=16*{0};
-            P2_P1_P1_InstQueue  [7]=16*{0};
+            P2_P1_P1_InstQueue  ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             P2_P1_P1_InstQueueRd_Addr  =0;
             P2_P1_P1_InstQueueWr_Addr  =0;
             P2_P1_P1_InstAddrPointer  =0;
@@ -7693,14 +7639,7 @@ module b19(
         if ( P2_P1_P2_RESET ==1'b1)
         begin
             P2_P1_P2_State2  = P2_P1_P2_Si ;
-            P2_P1_P2_InstQueue  [0]=16*{0};
-            P2_P1_P2_InstQueue  [1]=16*{0};
-            P2_P1_P2_InstQueue  [2]=16*{0};
-            P2_P1_P2_InstQueue  [3]=16*{0};
-            P2_P1_P2_InstQueue  [4]=16*{0};
-            P2_P1_P2_InstQueue  [5]=16*{0};
-            P2_P1_P2_InstQueue  [6]=16*{0};
-            P2_P1_P2_InstQueue  [7]=16*{0};
+            P2_P1_P2_InstQueue  ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             P2_P1_P2_InstQueueRd_Addr  =0;
             P2_P1_P2_InstQueueWr_Addr  =0;
             P2_P1_P2_InstAddrPointer  =0;
@@ -8453,14 +8392,7 @@ module b19(
         if ( P2_P1_P3_RESET ==1'b1)
         begin
             P2_P1_P3_State2  = P2_P1_P3_Si ;
-            P2_P1_P3_InstQueue  [0]=16*{0};
-            P2_P1_P3_InstQueue  [1]=16*{0};
-            P2_P1_P3_InstQueue  [2]=16*{0};
-            P2_P1_P3_InstQueue  [3]=16*{0};
-            P2_P1_P3_InstQueue  [4]=16*{0};
-            P2_P1_P3_InstQueue  [5]=16*{0};
-            P2_P1_P3_InstQueue  [6]=16*{0};
-            P2_P1_P3_InstQueue  [7]=16*{0};
+            P2_P1_P3_InstQueue  ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             P2_P1_P3_InstQueueRd_Addr  =0;
             P2_P1_P3_InstQueueWr_Addr  =0;
             P2_P1_P3_InstAddrPointer  =0;
@@ -9371,14 +9303,7 @@ module b19(
         if ( P2_P2_P1_RESET ==1'b1)
         begin
             P2_P2_P1_State2  = P2_P2_P1_Si ;
-            P2_P2_P1_InstQueue  [0]=16*{0};
-            P2_P2_P1_InstQueue  [1]=16*{0};
-            P2_P2_P1_InstQueue  [2]=16*{0};
-            P2_P2_P1_InstQueue  [3]=16*{0};
-            P2_P2_P1_InstQueue  [4]=16*{0};
-            P2_P2_P1_InstQueue  [5]=16*{0};
-            P2_P2_P1_InstQueue  [6]=16*{0};
-            P2_P2_P1_InstQueue  [7]=16*{0};
+            P2_P2_P1_InstQueue  ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             P2_P2_P1_InstQueueRd_Addr  =0;
             P2_P2_P1_InstQueueWr_Addr  =0;
             P2_P2_P1_InstAddrPointer  =0;
@@ -10131,14 +10056,7 @@ module b19(
         if ( P2_P2_P2_RESET ==1'b1)
         begin
             P2_P2_P2_State2  = P2_P2_P2_Si ;
-            P2_P2_P2_InstQueue  [0]=16*{0};
-            P2_P2_P2_InstQueue  [1]=16*{0};
-            P2_P2_P2_InstQueue  [2]=16*{0};
-            P2_P2_P2_InstQueue  [3]=16*{0};
-            P2_P2_P2_InstQueue  [4]=16*{0};
-            P2_P2_P2_InstQueue  [5]=16*{0};
-            P2_P2_P2_InstQueue  [6]=16*{0};
-            P2_P2_P2_InstQueue  [7]=16*{0};
+            P2_P2_P2_InstQueue  ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             P2_P2_P2_InstQueueRd_Addr  =0;
             P2_P2_P2_InstQueueWr_Addr  =0;
             P2_P2_P2_InstAddrPointer  =0;
@@ -10891,14 +10809,7 @@ module b19(
         if ( P2_P2_P3_RESET ==1'b1)
         begin
             P2_P2_P3_State2  = P2_P2_P3_Si ;
-            P2_P2_P3_InstQueue  [0]=16*{0};
-            P2_P2_P3_InstQueue  [1]=16*{0};
-            P2_P2_P3_InstQueue  [2]=16*{0};
-            P2_P2_P3_InstQueue  [3]=16*{0};
-            P2_P2_P3_InstQueue  [4]=16*{0};
-            P2_P2_P3_InstQueue  [5]=16*{0};
-            P2_P2_P3_InstQueue  [6]=16*{0};
-            P2_P2_P3_InstQueue  [7]=16*{0};
+            P2_P2_P3_InstQueue  ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             P2_P2_P3_InstQueueRd_Addr  =0;
             P2_P2_P3_InstQueueWr_Addr  =0;
             P2_P2_P3_InstAddrPointer  =0;
@@ -12903,40 +12814,39 @@ module b19(
     end
 
 
-
-
-    always @(posedge clock or posedge reset)
-        if (reset == 1'b1)
+    always @(  posedge clock or  posedge reset)
+        if (reset==1'b1)
         begin
-            sel1 <= 1'b0;
-            sel2 <= 1'b0;
+            sel1 <=1'b0;
+            sel2 <=1'b0;
         end
         else
         begin
-            if (do1 == 39)
-                sel2 <= 1'b1;
-            else if (do1 == 1735)
-                sel2 <= 1'b0;
-            if (do2 == 398)
-                sel1 <= 1'b1;
-            else if (do2 == 1013)
-                sel1 <= 1'b0;
+            if (do1==39)
+                sel2 <=1'b1;
+            else
+                if (do1==1735)
+                    sel2 <=1'b0;
+            if (do2==398)
+                sel1 <=1'b1;
+            else
+                if (do2==1013)
+                    sel1 <=1'b0;
         end
 
-
-    always @(sel1 or sel2 or in1 or in2 or in3 or do1 or do2 or ax1 or ax2)
+    always @(         sel1 or  sel2 or  in1 or  in2 or  in3 or  do1 or  do2 or  ax1 or  ax2)
     begin
-        if (sel1 == 1'b0 & sel2 == 1'b1)
+        if (sel1==1'b0&sel2==1'b1)
         begin
-            di1 <= in1/2;
-            di2 <= in2/16;
+            di1 <=in1/2;
+            di2 <=in2/16;
         end
         else
         begin
-            di1 <= in1/2;
-            di2 <= in2/8;
+            di1 <=in1/2;
+            di2 <=in2/8;
         end
-        ris <= ((ax1 - ax2) * do1) - ((ax1 - ax2) * do2);
+        ris <=((ax1-ax2)*do1)-((ax1-ax2)*do2);
     end
 
 endmodule

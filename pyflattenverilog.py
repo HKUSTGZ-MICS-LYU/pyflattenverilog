@@ -1,7 +1,7 @@
 import main
 import os
 
-file_path = 'tests/regression/b30/b30.v'
+file_path = 'tests/regression/b30/pre_b30.v'
 top_module = 'b30'
 folder_path = os.path.dirname(file_path)+'/tmp'
 

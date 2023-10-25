@@ -1,14 +1,14 @@
 module add_dec (
-  output [TWO_BIT-1:0] a_fault_dec_r,
-  output reg  [TWO_BIT-1:0] a_fault_dec,
-  output reg  a_dig_out,
-  output [BANKS_NUMBER-1:0] a_dig_in,
-  output reg  add_test_en,
-  output [THIRTEEN_BIT-1:0] add_decoded_r,
-  output reg  [THIRTEEN_BIT-1:0] add_decoded,
-  input rst,
+  input [A_BUS_NUMBER-1:0] a_bus,
   input clock,
-  input [A_BUS_NUMBER-1:0] a_bus) ; 
+  input rst,
+  output reg  [THIRTEEN_BIT-1:0] add_decoded,
+  output [THIRTEEN_BIT-1:0] add_decoded_r,
+  output reg  add_test_en,
+  output [BANKS_NUMBER-1:0] a_dig_in,
+  output reg  a_dig_out,
+  output reg  [TWO_BIT-1:0] a_fault_dec,
+  output [TWO_BIT-1:0] a_fault_dec_r) ; 
    wire [THIRTEEN_BIT-1:0] add_decoded_int ;  
    wire [TWO_BIT-1:0] a_fault_dec_int ;  
    wire [BANKS_NUMBER-1:0] a_dig_in_int ;  
@@ -17,7 +17,7 @@ module add_dec (
    wire [4:0] not_a_bus ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_add_dec
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             begin 
               add_decoded <={THIRTEEN_BIT{1'b0}};
@@ -60,16 +60,18 @@ module add_dec (
   dwand dwand_a_dig_in_int(not_a_bus[4],a_bus[3],a_bus[2],a_bus[1],a_bus[0]); 
   dwand dwand_a_dig_in_int1(a_bus[4],not_a_bus[3],not_a_bus[2],not_a_bus[1],not_a_bus[0]); 
   dwand dwand_a_dig_out(a_bus[4],not_a_bus[3],not_a_bus[2],not_a_bus[1],a_bus[0]); 
-  dwand dwand_add_test_en_int(a_bus[4],not_a_bus[3],not_a_bus[2],a_bus[1],not_a_bus[0]); endmodule 
+  dwand dwand_add_test_en_int(a_bus[4],not_a_bus[3],not_a_bus[2],a_bus[1],not_a_bus[0]); 
+endmodule
+ 
 module anti_glitch (
-  output end_t0,
-  input rst,
+  input clock,
   input cs8,
-  input clock) ; 
+  input rst,
+  output end_t0) ; 
    reg [2:0] counter ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_count
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             counter <=3'b000;
           else 
@@ -81,19 +83,62 @@ module anti_glitch (
             end 
        end
   
-  assign end_t0=counter[0]&counter[1]&counter[2]; endmodule 
-module b30 (d_bus_ext,outputvehicle,outputturbo_speed_lev,outputturbo,output[BANKS_NUMBER-1:0]t3,output[INJ_NUMBER-1:0]t2,output[INJ_NUMBER-1:0]t1,outputsmot60,outputseg_speed_lev,outputrpm_out,outputrelpot,outputknock2u,output[BANKS_NUMBER-1:0]knock2,outputknock1u,output[BANKS_NUMBER-1:0]knock1,outputirq,outputin_speed_lev,output[BANKS_NUMBER-1:0]hlo,output[7:0]digital_output,outputcam_smot,input[INJ_NUMBER-1:0]v_fbk,inputvehicle_speed,inputturbo_speed,inputtrg_knock2,inputtrg_knock1,inputseg_speed_pickup,inputseg_speed_hall,inputr_w,inputrpm_in,inputreset,input[SEVEN_BIT-1:0]nssm_in,input[BANKS_NUMBER-1:0]i_fbk,inputin_speed,input[INJ_NUMBER-1:0]inj_cmd,input[SPLIT_NUMBER-1:0]fbk_pwm,inputds,input[TWENTYONE_BIT-1:0]digital_input,inputcs,inputclock,input[A_BUS_NUMBER-1:0]a_bus) ; 
+  assign end_t0=counter[0]&counter[1]&counter[2]; 
+endmodule
+ 
+module b30 (
+  input [A_BUS_NUMBER-1:0] a_bus,
+  input clock,
+  input cs,
+  input [TWENTYONE_BIT-1:0] digital_input,
+  input ds,
+  input [SPLIT_NUMBER-1:0] fbk_pwm,
+  input [INJ_NUMBER-1:0] inj_cmd,
+  input in_speed,
+  input [BANKS_NUMBER-1:0] i_fbk,
+  input [SEVEN_BIT-1:0] nssm_in,
+  input reset,
+  input rpm_in,
+  input r_w,
+  input seg_speed_hall,
+  input seg_speed_pickup,
+  input trg_knock1,
+  input trg_knock2,
+  input turbo_speed,
+  input vehicle_speed,
+  input [INJ_NUMBER-1:0] v_fbk,
+  output cam_smot,
+  output [7:0] digital_output,
+  output [BANKS_NUMBER-1:0] hlo,
+  output in_speed_lev,
+  output irq,
+  output [BANKS_NUMBER-1:0] knock1,
+  output knock1u,
+  output [BANKS_NUMBER-1:0] knock2,
+  output knock2u,
+  output relpot,
+  output rpm_out,
+  output seg_speed_lev,
+  output smot60,
+  output [INJ_NUMBER-1:0] t1,
+  output [INJ_NUMBER-1:0] t2,
+  output [BANKS_NUMBER-1:0] t3,
+  output turbo,
+  output turbo_speed_lev,
+  output vehicle,d_bus_ext) ; 
   inj_ctrl instance_inj_ctrl(a_bus,clock,cs,digital_input,ds,fbk_pwm,inj_cmd,in_speed,i_fbk,nssm_in,rpm_in,reset,r_w,seg_speed_hall,seg_speed_pickup,trg_knock1,trg_knock2,turbo_speed,vehicle_speed,v_fbk,cam_smot,clock,digital_output,hlo,in_speed_lev,irq,knock1,knock1u,knock2,knock2u,relpot,rpm_out,seg_speed_lev,smot60,t1,t2,t3,turbo,turbo_speed_lev,vehicle,d_bus_ext); 
-  rst_inv instance_rst_inv(reset); endmodule 
+  rst_inv instance_rst_inv(reset); 
+endmodule
+ 
 module chopper_count (
-  output [SEVEN_BIT-1:0] chop_count,
-  input rst,
+  input clock,
   input cs4,
-  input clock) ; 
+  input rst,
+  output [SEVEN_BIT-1:0] chop_count) ; 
    reg [SEVEN_BIT-1:0] int_counter ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_chopper_count
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             int_counter <={SEVEN_BIT{1'b0}};
           else 
@@ -105,15 +150,15 @@ module chopper_count (
             end 
        end
   
-  assign chop_count=int_counter; endmodule 
-module clock_gen (
-  output clock_o,
-  input rst,clock_i) ; 
+  assign chop_count=int_counter; 
+endmodule
+ 
+module clock_gen (clock_i,inputrst,outputclock_o) ; 
    reg [3:0] counter ;  
    reg clock_int ;  
   always @(  posedge clock_i or  negedge rst)
        begin :vhdl_clock_gen
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             begin 
               counter <={4{1'b0}};
@@ -131,29 +176,33 @@ module clock_gen (
             end 
        end
   
-  assign clock_o=clock_int; endmodule 
+  assign clock_o=clock_int; 
+endmodule
+ 
 module comparator (
-  output reg  comp,
+  input [REG_BITS-1:0] count,
   input [REG_BITS-1:0] stop_count_bus,
-  input [REG_BITS-1:0] count) ; 
+  output reg  comp) ; 
   always @(  count or  stop_count_bus)
        begin :vhdl_comparator
- time prop_delay ;
+        time prop_delay ;
          if (count==stop_count_bus)
             comp <=1'b1;
           else 
             comp <=1'b0;
        end
-  endmodule 
+  
+endmodule
+ 
 module counter (
-  output [REG_BITS-1:0] count,
-  input rst,
+  input clock,
   input cs1,
-  input clock) ; 
+  input rst,
+  output [REG_BITS-1:0] count) ; 
    reg [REG_BITS-1:0] int_counter ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_counter
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             int_counter <={REG_BITS{1'b0}};
           else 
@@ -165,36 +214,53 @@ module counter (
             end 
        end
   
-  assign count=int_counter; endmodule 
-module d_bus_handle (d_bus_ext,d_bus,inputwr_en,inputrst,inputrd_en,inputclock) ; 
+  assign count=int_counter; 
+endmodule
+ 
+module d_bus_handle (
+  input clock,
+  input rd_en,
+  input rst,
+  input wr_en,d_bus,d_bus_ext) ; 
    reg [D_BUS_NUMBER-1:0] d_bus_int ;  
   assign d_bus=((wr_en==1'b1))?d_bus_int:16'bZZZZZZZZZZZZZZZZ; 
   assign d_bus_ext=((rd_en==1'b1))?d_bus:16'bZZZZZZZZZZZZZZZZ; 
   always @(  posedge clock or  negedge rst)
        begin :vhdl_d_bus_handle
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             d_bus_int <={D_BUS_NUMBER{1'b0}};
           else 
             d_bus_int <=d_bus_ext;
        end
-  endmodule 
-module d_bus_interface (d_bus_ext,d_bus,outputwr_en,outputrd_en,inputr_w,inputrst,inputds,inputcs,inputclock) ; 
+  
+endmodule
+ 
+module d_bus_interface (
+  input clock,
+  input cs,
+  input ds,
+  input rst,
+  input r_w,
+  output rd_en,
+  output wr_en,d_bus,d_bus_ext) ; 
    wire rd_en_internal ;  
    wire wr_en_internal ;  
   d_bus_handle instance_d_bus_handle(clock,rd_en_internal,rst,wr_en_internal,d_bus,d_bus_ext); 
   ds_handle instance_ds_handle(clock,cs,ds,rst,r_w,rd_en_internal,wr_en_internal); 
   assign rd_en=rd_en_internal; 
-  assign wr_en=wr_en_internal; endmodule 
+  assign wr_en=wr_en_internal; 
+endmodule
+ 
 module digital_inputs_handle (
-  output [D_BUS_NUMBER-1:0] d_bus,
-  input rst,
-  input rd_en,
-  input [SEVEN_BIT-1:0] nssm_in,
-  input [SPLIT_NUMBER-1:0] fbk_pwm,
-  input [TWENTYONE_BIT-1:0] digital_input,
+  input [BANKS_NUMBER-1:0] a_dig_in,
   input clock,
-  input [BANKS_NUMBER-1:0] a_dig_in) ; 
+  input [TWENTYONE_BIT-1:0] digital_input,
+  input [SPLIT_NUMBER-1:0] fbk_pwm,
+  input [SEVEN_BIT-1:0] nssm_in,
+  input rd_en,
+  input rst,
+  output [D_BUS_NUMBER-1:0] d_bus) ; 
    reg [31:0] store_digital_input ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_digital_inputs_handle
@@ -209,22 +275,24 @@ module digital_inputs_handle (
        end
   
   assign d_bus=((a_dig_in[0]==1'b1&rd_en==1'b1))?store_digital_input[15:0]:16'bZZZZZZZZZZZZZZZZ; 
-  assign d_bus=((a_dig_in[1]==1'b1&rd_en==1'b1))?{1'b0,store_digital_input[30:16]}:16'bZZZZZZZZZZZZZZZZ; endmodule 
+  assign d_bus=((a_dig_in[1]==1'b1&rd_en==1'b1))?{1'b0,store_digital_input[30:16]}:16'bZZZZZZZZZZZZZZZZ; 
+endmodule
+ 
 module digital_outputs_handle (
-  output turbo_speed_lev,
-  output trg_knock_en,
-  output smot_camme_en,
-  output seg_speed_lev,
-  output pickup_hall,
-  output knock2u,
-  output knock1u,
-  output in_speed_lev,
-  output [7:0] digital_output,
-  input wr_en,
-  input rst,
-  input [D_BUS_NUMBER-1:0] d_bus,
+  input a_dig_out,
   input clock,
-  input a_dig_out) ; 
+  input [D_BUS_NUMBER-1:0] d_bus,
+  input rst,
+  input wr_en,
+  output [7:0] digital_output,
+  output in_speed_lev,
+  output knock1u,
+  output knock2u,
+  output pickup_hall,
+  output seg_speed_lev,
+  output smot_camme_en,
+  output trg_knock_en,
+  output turbo_speed_lev) ; 
    reg [7:0] digital_output_store ;  
    reg smot_camme_store ;  
    reg trg_knock_store ;  
@@ -245,7 +313,7 @@ module digital_outputs_handle (
   assign knock2u=knock2_store; 
   always @(  posedge clock or  negedge rst)
        begin :vhdl_digital_outputs_handle
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             begin 
               digital_output_store <={8{1'b0}};
@@ -274,44 +342,50 @@ module digital_outputs_handle (
                  end 
             end 
        end
-  endmodule 
+  
+endmodule
+ 
 module ds_handle (
-  output reg  wr_en,
-  output rd_en,
-  input r_w,
-  input rst,
-  input ds,
+  input clock,
   input cs,
-  input clock) ; 
+  input ds,
+  input rst,
+  input r_w,
+  output rd_en,
+  output reg  wr_en) ; 
    wire wr_en_int ;  
   assign rd_en=(~(cs))&r_w; 
   assign wr_en_int=(~(cs))&(~(ds))&(~(r_w)); 
   always @(  posedge clock or  negedge rst)
        begin :vhdl_ds_handle
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             wr_en <=1'b0;
           else 
             wr_en <=wr_en_int;
        end
-  endmodule 
+  
+endmodule
+ 
 module dwand (
-  output o,
-  input i4,
-  input i3,
-  input i2,
+  input i0,
   input i1,
-  input i0) ; 
-  assign o=(i0&i1&i2&i3&i4); endmodule 
+  input i2,
+  input i3,
+  input i4,
+  output o) ; 
+  assign o=(i0&i1&i2&i3&i4); 
+endmodule
+ 
 module enable_fbk_chk (
-  output [GLOB_STATE_BITS-1:0] global_state_store,
-  output reg  en_state_store,
-  output reg  en_fbk_store,
-  output reg  enable_check,
-  input test_en_cur,
-  input rst,
+  input clock,
   input [GLOB_STATE_BITS-1:0] global_state,
-  input clock) ; 
+  input rst,
+  input test_en_cur,
+  output reg  enable_check,
+  output reg  en_fbk_store,
+  output reg  en_state_store,
+  output [GLOB_STATE_BITS-1:0] global_state_store) ; 
    reg [6:0] global_state_store_int ;  
    reg [THREE_BIT-1:0] delay_counter ;  
   always @(  posedge clock or  negedge rst)
@@ -358,8 +432,28 @@ module enable_fbk_chk (
             end 
        end
   
-  assign global_state_store=global_state; endmodule 
-module error_handle (d_bus,output[ST_REG_NUM-1:0]status_reg_125,output[ST_REG_NUM-1:0]status_reg_034,outputrelpot,inputwr_en,input[INJ_NUMBER-1:0]v_fbk_f,inputrst,inputrel_pot_en,inputrd_en,input[BANKS_NUMBER-1:0]i_fbk_f,input[GLOB_STATE_BITS-1:0]global_state_125,input[GLOB_STATE_BITS-1:0]global_state_034,inputen_state_store_125,inputen_state_store_034,inputen_fbk_store_125,inputen_fbk_store_034,inputclock,input[TWO_BIT-1:0]a_fault_dec_r,input[TWO_BIT-1:0]a_fault_dec) ; 
+  assign global_state_store=global_state; 
+endmodule
+ 
+module error_handle (
+  input [TWO_BIT-1:0] a_fault_dec,
+  input [TWO_BIT-1:0] a_fault_dec_r,
+  input clock,
+  input en_fbk_store_034,
+  input en_fbk_store_125,
+  input en_state_store_034,
+  input en_state_store_125,
+  input [GLOB_STATE_BITS-1:0] global_state_034,
+  input [GLOB_STATE_BITS-1:0] global_state_125,
+  input [BANKS_NUMBER-1:0] i_fbk_f,
+  input rd_en,
+  input rel_pot_en,
+  input rst,
+  input [INJ_NUMBER-1:0] v_fbk_f,
+  input wr_en,
+  output relpot,
+  output [ST_REG_NUM-1:0] status_reg_034,
+  output [ST_REG_NUM-1:0] status_reg_125,d_bus) ; 
    reg [10:0] sr_034 ;  
    reg [10:0] sr_125 ;  
   assign status_reg_034=sr_034[10:0]; 
@@ -367,7 +461,7 @@ module error_handle (d_bus,output[ST_REG_NUM-1:0]status_reg_125,output[ST_REG_NU
   assign relpot=rel_pot_en; 
   always @(    posedge clock or  negedge rst or  a_fault_dec or  posedge wr_en)
        begin :vhdl_st_reg_wr_034
- time prop_delay ;
+        time prop_delay ;
          if ((rst==1'b0)|(a_fault_dec[0]==1'b1&wr_en==1'b1))
             sr_034 <={11{1'b0}};
           else 
@@ -386,7 +480,7 @@ module error_handle (d_bus,output[ST_REG_NUM-1:0]status_reg_125,output[ST_REG_NU
   
   always @(    posedge clock or  negedge rst or  a_fault_dec or  posedge wr_en)
        begin :vhdl_st_reg_wr_125
- time prop_delay ;
+        time prop_delay ;
          if ((rst==1'b0)|(a_fault_dec[1]==1'b1&wr_en==1'b1))
             sr_125 <={11{1'b0}};
           else 
@@ -404,12 +498,14 @@ module error_handle (d_bus,output[ST_REG_NUM-1:0]status_reg_125,output[ST_REG_NU
        end
   
   assign d_bus=((a_fault_dec_r[0]==1'b1&rd_en==1'b1))?{5'b00000,sr_034}:16'bZZZZZZZZZZZZZZZZ; 
-  assign d_bus=((a_fault_dec_r[1]==1'b1&rd_en==1'b1))?{5'b00000,sr_125}:16'bZZZZZZZZZZZZZZZZ; endmodule 
+  assign d_bus=((a_fault_dec_r[1]==1'b1&rd_en==1'b1))?{5'b00000,sr_125}:16'bZZZZZZZZZZZZZZZZ; 
+endmodule
+ 
 module filter (
-  output reg  filtered_value,
-  input rst,
+  input clock,
   input new_value,
-  input clock) ; 
+  input rst,
+  output reg  filtered_value) ; 
  parameter[2:0] filter_state_type_start_state =0,filter_state_type_zero_1=1,filter_state_type_zero_2=2,filter_state_type_zero_3=3,filter_state_type_one_0=4,filter_state_type_one_1=5,filter_state_type_one_2=6,filter_state_type_one_3=7; 
    reg [2:0] current_state ;  
    reg [2:0] next_state ;  
@@ -499,14 +595,16 @@ module filter (
           default :;
          endcase 
        end
-  endmodule 
+  
+endmodule
+ 
 module filter_feedback (
-  output [INJ_NUMBER-1:0] v_fbk_f,
-  output [BANKS_NUMBER-1:0] i_fbk_f,
-  input [INJ_NUMBER-1:0] v_fbk,
-  input rst,
+  input clock,
   input [BANKS_NUMBER-1:0] i_fbk,
-  input clock) ; 
+  input rst,
+  input [INJ_NUMBER-1:0] v_fbk,
+  output [BANKS_NUMBER-1:0] i_fbk_f,
+  output [INJ_NUMBER-1:0] v_fbk_f) ; 
    wire v_fbk_0 ;  
    wire v_fbk_f0 ;  
    wire v_fbk_1 ;  
@@ -531,44 +629,48 @@ module filter_feedback (
   filtering instance_filt5(clock,v_fbk_5,rst,v_fbk_f5); 
   filtering instance_filt6(clock,i_fbk_0,rst,i_fbk_f0); 
   filtering instance_filt7(clock,i_fbk_1,rst,i_fbk_f1); 
-  interface instance_interface(i_fbk,i_fbk_f0,i_fbk_f1,v_fbk,v_fbk_f0,v_fbk_f1,v_fbk_f2,v_fbk_f3,v_fbk_f4,v_fbk_f5,i_fbk_0,i_fbk_1,i_fbk_f,v_fbk_0,v_fbk_1,v_fbk_2,v_fbk_3,v_fbk_4,v_fbk_5,v_fbk_f); endmodule 
+  interface instance_interface(i_fbk,i_fbk_f0,i_fbk_f1,v_fbk,v_fbk_f0,v_fbk_f1,v_fbk_f2,v_fbk_f3,v_fbk_f4,v_fbk_f5,i_fbk_0,i_fbk_1,i_fbk_f,v_fbk_0,v_fbk_1,v_fbk_2,v_fbk_3,v_fbk_4,v_fbk_5,v_fbk_f); 
+endmodule
+ 
 module filtering (
-  output filtered_value,
-  input rst,
+  input clock,
   input new_value,
-  input clock) ; 
-  filter instance_filter(clock,new_value,rst,filtered_value); endmodule 
-module fsm (
-  output t3,
-  output t2,
-  output t1,
-  output relpot,
-  output hl,
-  output [GLOB_STATE_BITS-1:0] global_state_store,
-  output error,
-  output en_state_store,
-  output en_fbk_store,
-  output cs8,
-  output cs4,
-  output cs2,
-  output cs1,
-  output [FOUR_BIT-1:0] cs0,
-  input [SPLIT_NUMBER-1:0] v_fbk_mask,
-  input v_fbk_cur,
-  input th_0,
-  input test_en_cur,
-  input t4_0,
-  input [ST_REG_NUM-1:0] status_reg,
-  input sh_mode,
   input rst,
-  input i_fbk,
-  input [SPLIT_NUMBER-1:0] inj_cmd,
-  input end_t0,
-  input end_period,
-  input end_on,
-  input comp,
+  output filtered_value) ; 
+  filter instance_filter(clock,new_value,rst,filtered_value); 
+endmodule
+ 
+module fsm (
+  input clock,
   input [SPLIT_NUMBER-1:0] cmd_stored,
-  input clock) ; 
+  input comp,
+  input end_on,
+  input end_period,
+  input end_t0,
+  input [SPLIT_NUMBER-1:0] inj_cmd,
+  input i_fbk,
+  input rst,
+  input sh_mode,
+  input [ST_REG_NUM-1:0] status_reg,
+  input t4_0,
+  input test_en_cur,
+  input th_0,
+  input v_fbk_cur,
+  input [SPLIT_NUMBER-1:0] v_fbk_mask,
+  output [FOUR_BIT-1:0] cs0,
+  output cs1,
+  output cs2,
+  output cs4,
+  output cs8,
+  output en_fbk_store,
+  output en_state_store,
+  output error,
+  output [GLOB_STATE_BITS-1:0] global_state_store,
+  output hl,
+  output relpot,
+  output t1,
+  output t2,
+  output t3) ; 
    wire [GLOB_STATE_BITS-1:0] global_state ;  
    wire enable_check ;  
    wire [FIVE_BIT-1:0] cur_state ;  
@@ -596,14 +698,16 @@ module fsm (
   sel_glob_count_cs instance_sel_glob_count_cs(cs11,cs111,cur_state,global1_state,cs1,cs2,cs8); 
   sel_global_state instance_sel_global_state(cur_state,global1_state,global2_state,global4_state,global_state); 
   state_progression instance_state_progression(clock,cmd_stored,comp,enable_check,end_t0,global_state,inj_cmd,i_fbk,rst,sh_mode,status_reg,t4_0,th_0,v_fbk_cur,v_fbk_mask,cur_state); 
-  assign en_fbk_store=en_fbk_store_internal; endmodule 
+  assign en_fbk_store=en_fbk_store_internal; 
+endmodule
+ 
 module fsm_output_handle (
-  output relpot,
-  output error,
-  output reg  cs11,
-  output [FOUR_BIT-1:0] cs0,
+  input [FIVE_BIT-1:0] cur_state,
   input en_fbk_store,
-  input [FIVE_BIT-1:0] cur_state) ; 
+  output [FOUR_BIT-1:0] cs0,
+  output reg  cs11,
+  output error,
+  output relpot) ; 
   assign relpot=cur_state[4]&cur_state[3]&cur_state[2]&cur_state[0]; 
   assign cs0=cur_state[4:1]; 
   assign error=cur_state[4]&cur_state[3]&cur_state[2]&(~(en_fbk_store)); 
@@ -630,8 +734,29 @@ module fsm_output_handle (
         default :
            cs11 <=1'b0;
        endcase
-  endmodule 
-module in_reg (d_bus,output[SEVEN_BIT-1:0]r_tp,output[SEVEN_BIT-1:0]r_tonl,output[SEVEN_BIT-1:0]r_tonh,output[REG_BITS-1:0]r_th_125,output[REG_BITS-1:0]r_th_034,output[TEN_BIT-1:0]r_tb_125,output[TEN_BIT-1:0]r_tb_034,output[SEVEN_BIT-1:0]r_t4_125,output[SEVEN_BIT-1:0]r_t4_034,output[EIGHT_BIT-1:0]r_t3_125,output[EIGHT_BIT-1:0]r_t3_034,output[SEVEN_BIT-1:0]r_t2,output[EIGHT_BIT-1:0]r_t1,inputwr_en,inputrst,inputrd_en,inputclock,input[THIRTEEN_BIT-1:0]add_decoded_r,input[THIRTEEN_BIT-1:0]add_decoded) ; 
+  
+endmodule
+ 
+module in_reg (
+  input [THIRTEEN_BIT-1:0] add_decoded,
+  input [THIRTEEN_BIT-1:0] add_decoded_r,
+  input clock,
+  input rd_en,
+  input rst,
+  input wr_en,
+  output [EIGHT_BIT-1:0] r_t1,
+  output [SEVEN_BIT-1:0] r_t2,
+  output [EIGHT_BIT-1:0] r_t3_034,
+  output [EIGHT_BIT-1:0] r_t3_125,
+  output [SEVEN_BIT-1:0] r_t4_034,
+  output [SEVEN_BIT-1:0] r_t4_125,
+  output [TEN_BIT-1:0] r_tb_034,
+  output [TEN_BIT-1:0] r_tb_125,
+  output [REG_BITS-1:0] r_th_034,
+  output [REG_BITS-1:0] r_th_125,
+  output [SEVEN_BIT-1:0] r_tonh,
+  output [SEVEN_BIT-1:0] r_tonl,
+  output [SEVEN_BIT-1:0] r_tp,d_bus) ; 
    reg [REG_BITS-1:0] th_034 ;  
    reg [REG_BITS-1:0] th_125 ;  
    reg [SEVEN_BIT-1:0] t2 ;  
@@ -660,7 +785,7 @@ module in_reg (d_bus,output[SEVEN_BIT-1:0]r_tp,output[SEVEN_BIT-1:0]r_tonl,outpu
   assign r_t4_125=t4_125; 
   always @(  posedge clock or  negedge rst)
        begin :vhdl_in_reg
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             begin 
               t1 <={EIGHT_BIT{1'b0}};
@@ -723,37 +848,39 @@ module in_reg (d_bus,output[SEVEN_BIT-1:0]r_tp,output[SEVEN_BIT-1:0]r_tonl,outpu
   assign d_bus=((add_decoded_r[9]==1'b1&rd_en==1'b1))?{8'b00000000,t3_034}:16'bZZZZZZZZZZZZZZZZ; 
   assign d_bus=((add_decoded_r[10]==1'b1&rd_en==1'b1))?{8'b00000000,t3_125}:16'bZZZZZZZZZZZZZZZZ; 
   assign d_bus=((add_decoded_r[11]==1'b1&rd_en==1'b1))?{9'b000000000,t4_034}:16'bZZZZZZZZZZZZZZZZ; 
-  assign d_bus=((add_decoded_r[12]==1'b1&rd_en==1'b1))?{9'b000000000,t4_125}:16'bZZZZZZZZZZZZZZZZ; endmodule 
+  assign d_bus=((add_decoded_r[12]==1'b1&rd_en==1'b1))?{9'b000000000,t4_125}:16'bZZZZZZZZZZZZZZZZ; 
+endmodule
+ 
 module inj_block (
-  output t3,
-  output t2c,
-  output t2b,
-  output t2a,
-  output t1c,
-  output t1b,
-  output t1a,
-  output relpot,
-  output hl,
-  output [GLOB_STATE_BITS-1:0] global_state_store,
-  output error,
-  output en_state_store,
-  output en_fbk_store,
-  input [SPLIT_NUMBER-1:0] v_fbk,
-  input [THREE_BIT-1:0] test_en,
-  input [ST_REG_NUM-1:0] status_reg,
-  input [SEVEN_BIT-1:0] r_tp,
-  input [SEVEN_BIT-1:0] r_tonl,
-  input [SEVEN_BIT-1:0] r_tonh,
-  input [REG_BITS-1:0] r_th,
-  input [TEN_BIT-1:0] r_tb,
-  input [SEVEN_BIT-1:0] r_t4,
-  input [EIGHT_BIT-1:0] r_t3,
-  input [SEVEN_BIT-1:0] r_t2,
-  input [EIGHT_BIT-1:0] r_t1,
-  input rst,
-  input i_fbk,
+  input clock,
   input [SPLIT_NUMBER-1:0] inj_cmd,
-  input clock) ; 
+  input i_fbk,
+  input rst,
+  input [EIGHT_BIT-1:0] r_t1,
+  input [SEVEN_BIT-1:0] r_t2,
+  input [EIGHT_BIT-1:0] r_t3,
+  input [SEVEN_BIT-1:0] r_t4,
+  input [TEN_BIT-1:0] r_tb,
+  input [REG_BITS-1:0] r_th,
+  input [SEVEN_BIT-1:0] r_tonh,
+  input [SEVEN_BIT-1:0] r_tonl,
+  input [SEVEN_BIT-1:0] r_tp,
+  input [ST_REG_NUM-1:0] status_reg,
+  input [THREE_BIT-1:0] test_en,
+  input [SPLIT_NUMBER-1:0] v_fbk,
+  output en_fbk_store,
+  output en_state_store,
+  output error,
+  output [GLOB_STATE_BITS-1:0] global_state_store,
+  output hl,
+  output relpot,
+  output t1a,
+  output t1b,
+  output t1c,
+  output t2a,
+  output t2b,
+  output t2c,
+  output t3) ; 
    wire cs8 ;  
    wire end_t0 ;  
    wire cs4 ;  
@@ -786,8 +913,49 @@ module inj_block (
   on_comp instance_on_comp(chop_count,ton_reg,end_on); 
   output_decoder instance_output_decoder(cmd_stored,t1,t2,t1a,t1b,t1c,t2a,t2b,t2c); 
   period_comp instance_period_comp(chop_count,tp_reg,end_period); 
-  sel_cmd instance_sel_cmd(clock,cs2,inj_cmd,rst,test_en,v_fbk,cmd_stored,test_en_cur,v_fbk_cur,v_fbk_mask); endmodule 
-module inj_ctrl (d_bus_ext,outputvehicle,outputturbo_speed_lev,outputturbo,output[BANKS_NUMBER-1:0]t3,output[INJ_NUMBER-1:0]t2,output[INJ_NUMBER-1:0]t1,outputsmot60,outputseg_speed_lev,outputrpm_out,outputrelpot,outputknock2u,output[BANKS_NUMBER-1:0]knock2,outputknock1u,output[BANKS_NUMBER-1:0]knock1,outputirq,outputin_speed_lev,output[BANKS_NUMBER-1:0]hlo,output[7:0]digital_output,outputcam_smot,input[INJ_NUMBER-1:0]v_fbk,inputvehicle_speed,inputturbo_speed,inputtrg_knock2,inputtrg_knock1,inputseg_speed_pickup,inputseg_speed_hall,inputr_w,inputrst,inputrpm_in,input[SEVEN_BIT-1:0]nssm_in,input[BANKS_NUMBER-1:0]i_fbk,inputin_speed,input[INJ_NUMBER-1:0]inj_cmd,input[SPLIT_NUMBER-1:0]fbk_pwm,inputds,input[TWENTYONE_BIT-1:0]digital_input,inputcs,inputclock,input[A_BUS_NUMBER-1:0]a_bus) ; 
+  sel_cmd instance_sel_cmd(clock,cs2,inj_cmd,rst,test_en,v_fbk,cmd_stored,test_en_cur,v_fbk_cur,v_fbk_mask); 
+endmodule
+ 
+module inj_ctrl (
+  input [A_BUS_NUMBER-1:0] a_bus,
+  input clock,
+  input cs,
+  input [TWENTYONE_BIT-1:0] digital_input,
+  input ds,
+  input [SPLIT_NUMBER-1:0] fbk_pwm,
+  input [INJ_NUMBER-1:0] inj_cmd,
+  input in_speed,
+  input [BANKS_NUMBER-1:0] i_fbk,
+  input [SEVEN_BIT-1:0] nssm_in,
+  input rpm_in,
+  input rst,
+  input r_w,
+  input seg_speed_hall,
+  input seg_speed_pickup,
+  input trg_knock1,
+  input trg_knock2,
+  input turbo_speed,
+  input vehicle_speed,
+  input [INJ_NUMBER-1:0] v_fbk,
+  output cam_smot,
+  output [7:0] digital_output,
+  output [BANKS_NUMBER-1:0] hlo,
+  output in_speed_lev,
+  output irq,
+  output [BANKS_NUMBER-1:0] knock1,
+  output knock1u,
+  output [BANKS_NUMBER-1:0] knock2,
+  output knock2u,
+  output relpot,
+  output rpm_out,
+  output seg_speed_lev,
+  output smot60,
+  output [INJ_NUMBER-1:0] t1,
+  output [INJ_NUMBER-1:0] t2,
+  output [BANKS_NUMBER-1:0] t3,
+  output turbo,
+  output turbo_speed_lev,
+  output vehicle,d_bus_ext) ; 
    wire [SPLIT_NUMBER-1:0] inj_cmd_034 ;  
    wire i_fbk_034 ;  
    wire [EIGHT_BIT-1:0] r_t1 ;  
@@ -858,28 +1026,30 @@ module inj_ctrl (d_bus_ext,outputvehicle,outputturbo_speed_lev,outputturbo,outpu
   smot_knock_handle instance_smot_knock_handle(clock_internal,in_speed,pickup_hall,rst,seg_speed_hall,seg_speed_pickup,smot_camme_en,trg_knock1,trg_knock2,trg_knock_en,cam_smot,knock1,knock2,smot60); 
   split instance_split(clock_internal,rst,inj_cmd,i_fbk_f,v_fbk_f,inj_cmd_034,inj_cmd_125,i_fbk_034,i_fbk_125,v_fbk_034,v_fbk_125); 
   turbo_vehicle_speed instance_turbo_vehicle_speed(rpm_in,turbo_speed,vehicle_speed,rpm_out,turbo,vehicle); 
-  assign clock=clock_internal; endmodule 
+  assign clock=clock_internal; 
+endmodule
+ 
 module interface (
-  output [INJ_NUMBER-1:0] v_fbk_f,
-  output v_fbk_5,
-  output v_fbk_4,
-  output v_fbk_3,
-  output v_fbk_2,
-  output v_fbk_1,
-  output v_fbk_0,
-  output [BANKS_NUMBER-1:0] i_fbk_f,
-  output i_fbk_1,
-  output i_fbk_0,
-  input v_fbk_f5,
-  input v_fbk_f4,
-  input v_fbk_f3,
-  input v_fbk_f2,
-  input v_fbk_f1,
-  input v_fbk_f0,
-  input [INJ_NUMBER-1:0] v_fbk,
-  input i_fbk_f1,
+  input [BANKS_NUMBER-1:0] i_fbk,
   input i_fbk_f0,
-  input [BANKS_NUMBER-1:0] i_fbk) ; 
+  input i_fbk_f1,
+  input [INJ_NUMBER-1:0] v_fbk,
+  input v_fbk_f0,
+  input v_fbk_f1,
+  input v_fbk_f2,
+  input v_fbk_f3,
+  input v_fbk_f4,
+  input v_fbk_f5,
+  output i_fbk_0,
+  output i_fbk_1,
+  output [BANKS_NUMBER-1:0] i_fbk_f,
+  output v_fbk_0,
+  output v_fbk_1,
+  output v_fbk_2,
+  output v_fbk_3,
+  output v_fbk_4,
+  output v_fbk_5,
+  output [INJ_NUMBER-1:0] v_fbk_f) ; 
   assign v_fbk_0=v_fbk[0]; 
   assign v_fbk_1=v_fbk[1]; 
   assign v_fbk_2=v_fbk[2]; 
@@ -895,34 +1065,36 @@ module interface (
   assign i_fbk_0=(~(i_fbk[0])); 
   assign i_fbk_1=(~(i_fbk[1])); 
   assign i_fbk_f[0]=i_fbk_f0; 
-  assign i_fbk_f[1]=i_fbk_f1; endmodule 
+  assign i_fbk_f[1]=i_fbk_f1; 
+endmodule
+ 
 module internal_register (
-  output [SEVEN_BIT-1:0] tp_reg,
-  output [SEVEN_BIT-1:0] ton_reg,
-  output th_0,
-  output t4_0,
-  output [REG_BITS-1:0] stop_count_bus,
-  output sh_mode,
-  input [SEVEN_BIT-1:0] r_tp,
-  input [SEVEN_BIT-1:0] r_tonl,
-  input [SEVEN_BIT-1:0] r_tonh,
-  input [REG_BITS-1:0] r_th,
-  input [TEN_BIT-1:0] r_tb,
-  input [SEVEN_BIT-1:0] r_t4,
-  input [EIGHT_BIT-1:0] r_t3,
-  input [SEVEN_BIT-1:0] r_t2,
-  input [EIGHT_BIT-1:0] r_t1,
-  input rst,
-  input cs2,
+  input clock,
   input [FOUR_BIT-1:0] cs0,
-  input clock) ; 
+  input cs2,
+  input rst,
+  input [EIGHT_BIT-1:0] r_t1,
+  input [SEVEN_BIT-1:0] r_t2,
+  input [EIGHT_BIT-1:0] r_t3,
+  input [SEVEN_BIT-1:0] r_t4,
+  input [TEN_BIT-1:0] r_tb,
+  input [REG_BITS-1:0] r_th,
+  input [SEVEN_BIT-1:0] r_tonh,
+  input [SEVEN_BIT-1:0] r_tonl,
+  input [SEVEN_BIT-1:0] r_tp,
+  output sh_mode,
+  output [REG_BITS-1:0] stop_count_bus,
+  output t4_0,
+  output th_0,
+  output [SEVEN_BIT-1:0] ton_reg,
+  output [SEVEN_BIT-1:0] tp_reg) ; 
    reg [REG_BITS-1:0] th ;  
    reg [TEN_BIT-1:0] tb ;  
    reg [SEVEN_BIT-1:0] tonh ;  
    reg [SEVEN_BIT-1:0] tonl ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_internal_register
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             begin 
               tb <={TEN_BIT{1'b0}};
@@ -965,34 +1137,40 @@ module internal_register (
   assign stop_count_bus=(cs0==4'b1100)?{5'b00000,r_t4}:12'bZZZZZZZZZZZZ; 
   assign ton_reg=(cs0==4'b1100)?tonl:7'bZZZZZZZ; 
   assign stop_count_bus=(cs0[3:1]==3'b111)?{4'b0000,r_t1}:12'bZZZZZZZZZZZZ; 
-  assign ton_reg=(cs0[3:1]==3'b111)?tonl:7'bZZZZZZZ; endmodule 
+  assign ton_reg=(cs0[3:1]==3'b111)?tonl:7'bZZZZZZZ; 
+endmodule
+ 
 module knock_comp1 (
-  output long,
-  output impulse,
+  input [INJ_NUMBER-1:0] count1,
   input en_comp1,
-  input [INJ_NUMBER-1:0] count1) ; 
-  assign impulse=(count1[5]|count1[4]|count1[3])&(~(en_comp1)); 
-  assign long=count1[0]&count1[1]&count1[2]&count1[3]&count1[4]&count1[5]; endmodule 
-module knock_comp2 (
-  output long,
   output impulse,
+  output long) ; 
+  assign impulse=(count1[5]|count1[4]|count1[3])&(~(en_comp1)); 
+  assign long=count1[0]&count1[1]&count1[2]&count1[3]&count1[4]&count1[5]; 
+endmodule
+ 
+module knock_comp2 (
+  input [INJ_NUMBER-1:0] count2,
   input en_comp2,
-  input [INJ_NUMBER-1:0] count2) ; 
+  output impulse,
+  output long) ; 
   assign impulse=(count2[5]|count2[4]|count2[3])&(~(en_comp2)); 
-  assign long=count2[0]&count2[1]&count2[2]&count2[3]&count2[4]&count2[5]; endmodule 
+  assign long=count2[0]&count2[1]&count2[2]&count2[3]&count2[4]&count2[5]; 
+endmodule
+ 
 module knock_count1 (
-  output en_comp1,
-  output [INJ_NUMBER-1:0] count1,
-  input rst,
+  input clock,
   input internal_trg_knock1,
-  input clock) ; 
+  input rst,
+  output [INJ_NUMBER-1:0] count1,
+  output en_comp1) ; 
    reg store_trg_knock1 ;  
    reg store_reset_trg ;  
    wire rst_int ;  
    reg [INJ_NUMBER-1:0] int_counter1 ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_knock_store
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             begin 
               store_trg_knock1 <=1'b0;
@@ -1016,20 +1194,22 @@ module knock_count1 (
                int_counter1 <=int_counter1+6'b000001;
           end
   
-  assign count1=int_counter1; endmodule 
+  assign count1=int_counter1; 
+endmodule
+ 
 module knock_count2 (
-  output en_comp2,
-  output [INJ_NUMBER-1:0] count2,
-  input trg_knock2,
+  input clock,
   input rst,
-  input clock) ; 
+  input trg_knock2,
+  output [INJ_NUMBER-1:0] count2,
+  output en_comp2) ; 
    reg store_trg_knock2 ;  
    reg store_reset_trg ;  
    wire rst_int ;  
    reg [INJ_NUMBER-1:0] int_counter2 ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_knock_store
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             begin 
               store_trg_knock2 <=1'b0;
@@ -1053,37 +1233,43 @@ module knock_count2 (
                int_counter2 <=int_counter2+6'b000001;
           end
   
-  assign count2=int_counter2; endmodule 
+  assign count2=int_counter2; 
+endmodule
+ 
 module knock_detection_fsm1 (
-  output [BANKS_NUMBER-1:0] knock1,
-  input rst,
+  input clock,
   input internal_trg_knock1,
-  input clock) ; 
+  input rst,
+  output [BANKS_NUMBER-1:0] knock1) ; 
    wire [INJ_NUMBER-1:0] count1 ;  
    wire en_comp1 ;  
    wire impulse ;  
    wire long ;  
   knock_comp1 instance_knock_comp1(count1,en_comp1,impulse,long); 
   knock_count1 instance_knock_count1(clock,internal_trg_knock1,rst,count1,en_comp1); 
-  knock_fsm1 instance_knock_fsm1(clock,impulse,long,rst,knock1); endmodule 
+  knock_fsm1 instance_knock_fsm1(clock,impulse,long,rst,knock1); 
+endmodule
+ 
 module knock_detection_fsm2 (
-  output [BANKS_NUMBER-1:0] knock2,
-  input trg_knock2,
+  input clock,
   input rst,
-  input clock) ; 
+  input trg_knock2,
+  output [BANKS_NUMBER-1:0] knock2) ; 
    wire [INJ_NUMBER-1:0] count2 ;  
    wire en_comp2 ;  
    wire impulse ;  
    wire long ;  
   knock_comp2 instance_knock_comp2(count2,en_comp2,impulse,long); 
   knock_count2 instance_knock_count2(clock,rst,trg_knock2,count2,en_comp2); 
-  knock_fsm2 instance_knock_fsm2(clock,impulse,long,rst,knock2); endmodule 
+  knock_fsm2 instance_knock_fsm2(clock,impulse,long,rst,knock2); 
+endmodule
+ 
 module knock_fsm1 (
-  output reg  [BANKS_NUMBER-1:0] knock1,
-  input rst,
-  input long,
+  input clock,
   input impulse,
-  input clock) ; 
+  input long,
+  input rst,
+  output reg  [BANKS_NUMBER-1:0] knock1) ; 
  parameter[1:0] knock_fsm1_state_type_start_state =0,knock_fsm1_state_type_off1_state=1,knock_fsm1_state_type_sample_state=2,knock_fsm1_state_type_off2_state=3; 
    reg [1:0] current_state ;  
    reg [1:0] next_state ;  
@@ -1142,13 +1328,15 @@ module knock_fsm1 (
           default :;
          endcase 
        end
-  endmodule 
+  
+endmodule
+ 
 module knock_fsm2 (
-  output reg  [BANKS_NUMBER-1:0] knock2,
-  input rst,
-  input long,
+  input clock,
   input impulse,
-  input clock) ; 
+  input long,
+  input rst,
+  output reg  [BANKS_NUMBER-1:0] knock2) ; 
  parameter[1:0] knock_fsm2_state_type_start_state =0,knock_fsm2_state_type_off1_state=1,knock_fsm2_state_type_sample_state=2,knock_fsm2_state_type_off2_state=3; 
    reg [1:0] current_state ;  
    reg [1:0] next_state ;  
@@ -1207,53 +1395,59 @@ module knock_fsm2 (
           default :;
          endcase 
        end
-  endmodule 
+  
+endmodule
+ 
 module merge (
-  output rel_pot_en,
-  output irq,
-  output [BANKS_NUMBER-1:0] hlo,
-  input relpot2,
-  input relpot1,
-  input hl_125,
-  input hl_034,
+  input error1,
   input error2,
-  input error1) ; 
+  input hl_034,
+  input hl_125,
+  input relpot1,
+  input relpot2,
+  output [BANKS_NUMBER-1:0] hlo,
+  output irq,
+  output rel_pot_en) ; 
   assign rel_pot_en=relpot2|relpot1; 
   assign hlo[0]=(~(hl_034)); 
   assign hlo[1]=(~(hl_125)); 
-  assign irq=(~(error1|error2)); endmodule 
+  assign irq=(~(error1|error2)); 
+endmodule
+ 
 module merge_actuators (
-  output [BANKS_NUMBER-1:0] t3,
-  output [INJ_NUMBER-1:0] t2,
-  output [INJ_NUMBER-1:0] t1,
-  input t3_125,
-  input t3_034,
-  input t2_5,
-  input t2_4,
-  input t2_3,
-  input t2_2,
-  input t2_1,
-  input t2_0,
-  input t1_5,
-  input t1_4,
-  input t1_3,
-  input t1_2,
+  input t1_0,
   input t1_1,
-  input t1_0) ; 
+  input t1_2,
+  input t1_3,
+  input t1_4,
+  input t1_5,
+  input t2_0,
+  input t2_1,
+  input t2_2,
+  input t2_3,
+  input t2_4,
+  input t2_5,
+  input t3_034,
+  input t3_125,
+  output [INJ_NUMBER-1:0] t1,
+  output [INJ_NUMBER-1:0] t2,
+  output [BANKS_NUMBER-1:0] t3) ; 
   merge_t1 instance_merge_t1(t1_0,t1_1,t1_2,t1_3,t1_4,t1_5,t1); 
   merge_t2 instance_merge_t2(t2_0,t2_1,t2_2,t2_3,t2_4,t2_5,t2); 
-  merge_t3 instance_merge_t3(t3_034,t3_125,t3); endmodule 
+  merge_t3 instance_merge_t3(t3_034,t3_125,t3); 
+endmodule
+ 
 module merge_t1 (
-  output reg  [INJ_NUMBER-1:0] t1,
-  input t1_5,
-  input t1_4,
-  input t1_3,
-  input t1_2,
+  input t1_0,
   input t1_1,
-  input t1_0) ; 
+  input t1_2,
+  input t1_3,
+  input t1_4,
+  input t1_5,
+  output reg  [INJ_NUMBER-1:0] t1) ; 
   always @(      t1_0 or  t1_1 or  t1_2 or  t1_3 or  t1_4 or  t1_5)
        begin :vhdl_merge_t1
- time prop_delay ;
+        time prop_delay ;
          t1 [0]<=(~(t1_0));
          t1 [1]<=(~(t1_1));
          t1 [2]<=(~(t1_2));
@@ -1261,18 +1455,20 @@ module merge_t1 (
          t1 [4]<=(~(t1_4));
          t1 [5]<=(~(t1_5));
        end
-  endmodule 
+  
+endmodule
+ 
 module merge_t2 (
-  output reg  [INJ_NUMBER-1:0] t2,
-  input t2_5,
-  input t2_4,
-  input t2_3,
-  input t2_2,
+  input t2_0,
   input t2_1,
-  input t2_0) ; 
+  input t2_2,
+  input t2_3,
+  input t2_4,
+  input t2_5,
+  output reg  [INJ_NUMBER-1:0] t2) ; 
   always @(      t2_0 or  t2_1 or  t2_2 or  t2_3 or  t2_4 or  t2_5)
        begin :vhdl_merge_t2
- time prop_delay ;
+        time prop_delay ;
          t2 [0]<=t2_0;
          t2 [1]<=t2_1;
          t2 [2]<=t2_2;
@@ -1280,44 +1476,50 @@ module merge_t2 (
          t2 [4]<=t2_4;
          t2 [5]<=t2_5;
        end
-  endmodule 
+  
+endmodule
+ 
 module merge_t3 (
-  output reg  [BANKS_NUMBER-1:0] t3,
+  input t3_034,
   input t3_125,
-  input t3_034) ; 
+  output reg  [BANKS_NUMBER-1:0] t3) ; 
   always @(  t3_034 or  t3_125)
        begin :vhdl_merge_t3
- time prop_delay ;
+        time prop_delay ;
          t3 [0]<=(~(t3_034));
          t3 [1]<=(~(t3_125));
        end
-  endmodule 
+  
+endmodule
+ 
 module on_comp (
-  output reg  end_on,
+  input [SEVEN_BIT-1:0] chop_count,
   input [SEVEN_BIT-1:0] ton_reg,
-  input [SEVEN_BIT-1:0] chop_count) ; 
+  output reg  end_on) ; 
   always @(  chop_count or  ton_reg)
        begin :vhdl_on_comp
- time prop_delay ;
+        time prop_delay ;
          if (chop_count==ton_reg)
             end_on <=1'b1;
           else 
             end_on <=1'b0;
        end
-  endmodule 
+  
+endmodule
+ 
 module output_decoder (
-  output reg  t2c,
-  output reg  t2b,
-  output reg  t2a,
-  output reg  t1c,
-  output reg  t1b,
-  output reg  t1a,
-  input t2,
+  input [SPLIT_NUMBER-1:0] cmd_stored,
   input t1,
-  input [SPLIT_NUMBER-1:0] cmd_stored) ; 
+  input t2,
+  output reg  t1a,
+  output reg  t1b,
+  output reg  t1c,
+  output reg  t2a,
+  output reg  t2b,
+  output reg  t2c) ; 
   always @(   cmd_stored or  t1 or  t2)
        begin :vhdl_output_decoder
- time prop_delay ;
+        time prop_delay ;
          case (cmd_stored)
           3 'b001:
              begin 
@@ -1357,28 +1559,32 @@ module output_decoder (
              end 
          endcase 
        end
-  endmodule 
+  
+endmodule
+ 
 module period_comp (
-  output reg  end_period,
+  input [SEVEN_BIT-1:0] chop_count,
   input [SEVEN_BIT-1:0] tp_reg,
-  input [SEVEN_BIT-1:0] chop_count) ; 
+  output reg  end_period) ; 
   always @(  chop_count or  tp_reg)
        begin :vhdl_period_comp
- time prop_delay ;
+        time prop_delay ;
          if (chop_count==tp_reg)
             end_period <=1'b1;
           else 
             end_period <=1'b0;
        end
-  endmodule 
+  
+endmodule
+ 
 module ph1_handle (
-  output reg  global1_state,
-  input rst,
-  input [SPLIT_NUMBER-1:0] inj_cmd,
-  input end_t0,
-  input [FIVE_BIT-1:0] cur_state,
+  input clock,
   input [SPLIT_NUMBER-1:0] cmd_stored,
-  input clock) ; 
+  input [FIVE_BIT-1:0] cur_state,
+  input end_t0,
+  input [SPLIT_NUMBER-1:0] inj_cmd,
+  input rst,
+  output reg  global1_state) ; 
  parameter[1:0] ph1_handle_state_type_ph1_1_state =0,ph1_handle_state_type_ph1_2_state=1; 
    reg [1:0] current_state ;  
    reg [1:0] next_state ;  
@@ -1418,11 +1624,13 @@ module ph1_handle (
           default :;
          endcase 
        end
-  endmodule 
+  
+endmodule
+ 
 module ph1_output_handle (
-  output reg  t31,
+  input global1_state,
   output reg  cs111,
-  input global1_state) ; 
+  output reg  t31) ; 
   always @( global1_state)
        if (global1_state==1'b1)
           begin 
@@ -1434,16 +1642,18 @@ module ph1_output_handle (
             t31 <=1'b0;
             cs111 <=1'b1;
           end
-  endmodule 
+  
+endmodule
+ 
 module ph2_handle (
-  output reg  [TWO_BIT-1:0] global2_state,
-  input sh_mode,
-  input rst,
-  input i_fbk,
-  input end_period,
-  input end_on,
+  input clock,
   input [FIVE_BIT-1:0] cur_state,
-  input clock) ; 
+  input end_on,
+  input end_period,
+  input i_fbk,
+  input rst,
+  input sh_mode,
+  output reg  [TWO_BIT-1:0] global2_state) ; 
  parameter[1:0] ph2_handle_state_type_ph2_1_state =0,ph2_handle_state_type_ph2_2_state=1,ph2_handle_state_type_ph2_3_state=2,ph2_handle_state_type_ph2_4_state=3; 
    reg [1:0] current_state ;  
    reg [1:0] next_state ;  
@@ -1499,11 +1709,13 @@ module ph2_handle (
           default :;
          endcase 
        end
-  endmodule 
+  
+endmodule
+ 
 module ph2_output_handle (
-  output reg  t12,
+  input [TWO_BIT-1:0] global2_state,
   output reg  cs42,
-  input [TWO_BIT-1:0] global2_state) ; 
+  output reg  t12) ; 
   always @( global2_state)
        begin 
          if (global2_state==2'b00)
@@ -1515,16 +1727,18 @@ module ph2_output_handle (
           else 
             t12 <=1'b1;
        end
-  endmodule 
+  
+endmodule
+ 
 module ph4_handle (
-  output reg  [TWO_BIT-1:0] global4_state,
-  input sh_mode,
-  input rst,
-  input i_fbk,
-  input end_period,
-  input end_on,
+  input clock,
   input [FIVE_BIT-1:0] cur_state,
-  input clock) ; 
+  input end_on,
+  input end_period,
+  input i_fbk,
+  input rst,
+  input sh_mode,
+  output reg  [TWO_BIT-1:0] global4_state) ; 
  parameter[1:0] ph4_handle_state_type_ph4_1_state =0,ph4_handle_state_type_ph4_2_state=1,ph4_handle_state_type_ph4_3_state=2,ph4_handle_state_type_ph4_4_state=3; 
    reg [1:0] current_state ;  
    reg [1:0] next_state ;  
@@ -1586,11 +1800,13 @@ module ph4_handle (
           default :;
          endcase 
        end
-  endmodule 
+  
+endmodule
+ 
 module ph4_output_handle (
-  output reg  t14,
+  input [TWO_BIT-1:0] global4_state,
   output reg  cs44,
-  input [TWO_BIT-1:0] global4_state) ; 
+  output reg  t14) ; 
   always @( global4_state)
        begin 
          if (global4_state==2'b00)
@@ -1602,8 +1818,54 @@ module ph4_output_handle (
           else 
             t14 <=1'b1;
        end
-  endmodule 
-module registers (d_bus,outputturbo_speed_lev,outputtrg_knock_en,output[THREE_BIT-1:0]test_en_125,output[THREE_BIT-1:0]test_en_034,output[ST_REG_NUM-1:0]status_reg_125,output[ST_REG_NUM-1:0]status_reg_034,outputsmot_camme_en,outputseg_speed_lev,output[SEVEN_BIT-1:0]r_tp,output[SEVEN_BIT-1:0]r_tonl,output[SEVEN_BIT-1:0]r_tonh,output[REG_BITS-1:0]r_th_125,output[REG_BITS-1:0]r_th_034,output[TEN_BIT-1:0]r_tb_125,output[TEN_BIT-1:0]r_tb_034,output[SEVEN_BIT-1:0]r_t4_125,output[SEVEN_BIT-1:0]r_t4_034,output[EIGHT_BIT-1:0]r_t3_125,output[EIGHT_BIT-1:0]r_t3_034,output[SEVEN_BIT-1:0]r_t2,output[EIGHT_BIT-1:0]r_t1,outputrelpot,outputpickup_hall,outputknock2u,outputknock1u,outputin_speed_lev,output[7:0]digital_output,inputwr_en,input[INJ_NUMBER-1:0]v_fbk_f,inputrst,inputrel_pot_en,inputrd_en,input[SEVEN_BIT-1:0]nssm_in,input[BANKS_NUMBER-1:0]i_fbk_f,input[GLOB_STATE_BITS-1:0]global_state_125,input[GLOB_STATE_BITS-1:0]global_state_034,input[SPLIT_NUMBER-1:0]fbk_pwm,inputen_state_store_125,inputen_state_store_034,inputen_fbk_store_125,inputen_fbk_store_034,input[TWENTYONE_BIT-1:0]digital_input,inputclock,input[A_BUS_NUMBER-1:0]a_bus) ; 
+  
+endmodule
+ 
+module registers (
+  input [A_BUS_NUMBER-1:0] a_bus,
+  input clock,
+  input [TWENTYONE_BIT-1:0] digital_input,
+  input en_fbk_store_034,
+  input en_fbk_store_125,
+  input en_state_store_034,
+  input en_state_store_125,
+  input [SPLIT_NUMBER-1:0] fbk_pwm,
+  input [GLOB_STATE_BITS-1:0] global_state_034,
+  input [GLOB_STATE_BITS-1:0] global_state_125,
+  input [BANKS_NUMBER-1:0] i_fbk_f,
+  input [SEVEN_BIT-1:0] nssm_in,
+  input rd_en,
+  input rel_pot_en,
+  input rst,
+  input [INJ_NUMBER-1:0] v_fbk_f,
+  input wr_en,
+  output [7:0] digital_output,
+  output in_speed_lev,
+  output knock1u,
+  output knock2u,
+  output pickup_hall,
+  output relpot,
+  output [EIGHT_BIT-1:0] r_t1,
+  output [SEVEN_BIT-1:0] r_t2,
+  output [EIGHT_BIT-1:0] r_t3_034,
+  output [EIGHT_BIT-1:0] r_t3_125,
+  output [SEVEN_BIT-1:0] r_t4_034,
+  output [SEVEN_BIT-1:0] r_t4_125,
+  output [TEN_BIT-1:0] r_tb_034,
+  output [TEN_BIT-1:0] r_tb_125,
+  output [REG_BITS-1:0] r_th_034,
+  output [REG_BITS-1:0] r_th_125,
+  output [SEVEN_BIT-1:0] r_tonh,
+  output [SEVEN_BIT-1:0] r_tonl,
+  output [SEVEN_BIT-1:0] r_tp,
+  output seg_speed_lev,
+  output smot_camme_en,
+  output [ST_REG_NUM-1:0] status_reg_034,
+  output [ST_REG_NUM-1:0] status_reg_125,
+  output [THREE_BIT-1:0] test_en_034,
+  output [THREE_BIT-1:0] test_en_125,
+  output trg_knock_en,
+  output turbo_speed_lev,d_bus) ; 
    wire [THIRTEEN_BIT-1:0] add_decoded ;  
    wire [THIRTEEN_BIT-1:0] add_decoded_r ;  
    wire add_test_en ;  
@@ -1616,21 +1878,25 @@ module registers (d_bus,outputturbo_speed_lev,outputtrg_knock_en,output[THREE_BI
   digital_outputs_handle instance_digital_outputs_handle(a_dig_out,clock,d_bus,rst,wr_en,digital_output,in_speed_lev,knock1u,knock2u,pickup_hall,seg_speed_lev,smot_camme_en,trg_knock_en,turbo_speed_lev); 
   error_handle instance_error_handle(a_fault_dec,a_fault_dec_r,clock,en_fbk_store_034,en_fbk_store_125,en_state_store_034,en_state_store_125,global_state_034,global_state_125,i_fbk_f,rd_en,rel_pot_en,rst,v_fbk_f,wr_en,relpot,status_reg_034,status_reg_125,d_bus); 
   in_reg instance_in_reg(add_decoded,add_decoded_r,clock,rd_en,rst,wr_en,r_t1,r_t2,r_t3_034,r_t3_125,r_t4_034,r_t4_125,r_tb_034,r_tb_125,r_th_034,r_th_125,r_tonh,r_tonl,r_tp,d_bus); 
-  test_en instance_test_en(add_test_en,clock,d_bus,rd_en,rst,wr_en,test_en_034,test_en_125); endmodule 
+  test_en instance_test_en(add_test_en,clock,d_bus,rd_en,rst,wr_en,test_en_034,test_en_125); 
+endmodule
+ 
 module rst_inv (
   input reset) ; 
    wire rst_neg ;  
   assign rst_neg=(~(reset)); 
-  startup u0(.gsr(rst_neg)); endmodule 
+  startup u0(.gsr(rst_neg)); 
+endmodule
+ 
 module sel_actuator (
-  output reg  t3,
-  output reg  t2,
-  output reg  t1,
-  output reg  hl,
-  input t31,
-  input t14,
+  input [FIVE_BIT-1:0] cur_state,
   input t12,
-  input [FIVE_BIT-1:0] cur_state) ; 
+  input t14,
+  input t31,
+  output reg  hl,
+  output reg  t1,
+  output reg  t2,
+  output reg  t3) ; 
   always @(    t31 or  t12 or  t14 or  cur_state)
        begin :vhdl_sel_actuator
          case (cur_state)
@@ -1783,12 +2049,14 @@ module sel_actuator (
              end 
          endcase 
        end
-  endmodule 
+  
+endmodule
+ 
 module sel_chop_control (
-  output reg  cs4,
-  input [FIVE_BIT-1:0] cur_state,
+  input cs42,
   input cs44,
-  input cs42) ; 
+  input [FIVE_BIT-1:0] cur_state,
+  output reg  cs4) ; 
   always @(   cs42 or  cs44 or  cur_state)
        begin :vhdl_sel_chop_control
          case (cur_state)
@@ -1802,22 +2070,24 @@ module sel_chop_control (
              cs4 <=1'b1;
          endcase 
        end
-  endmodule 
+  
+endmodule
+ 
 module sel_cmd (
-  output [SPLIT_NUMBER-1:0] v_fbk_mask,
-  output reg  v_fbk_cur,
-  output reg  test_en_cur,
-  output [SPLIT_NUMBER-1:0] cmd_stored,
-  input [SPLIT_NUMBER-1:0] v_fbk,
-  input [THREE_BIT-1:0] test_en,
-  input rst,
-  input [SPLIT_NUMBER-1:0] inj_cmd,
+  input clock,
   input cs2,
-  input clock) ; 
+  input [SPLIT_NUMBER-1:0] inj_cmd,
+  input rst,
+  input [THREE_BIT-1:0] test_en,
+  input [SPLIT_NUMBER-1:0] v_fbk,
+  output [SPLIT_NUMBER-1:0] cmd_stored,
+  output reg  test_en_cur,
+  output reg  v_fbk_cur,
+  output [SPLIT_NUMBER-1:0] v_fbk_mask) ; 
    reg [2:0] cmd_stored_int ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_sel_cmd
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             cmd_stored_int <=3'b000;
           else 
@@ -1854,18 +2124,20 @@ module sel_cmd (
   assign v_fbk_mask[0]=v_fbk[0]&test_en[0]; 
   assign v_fbk_mask[1]=v_fbk[1]&test_en[1]; 
   assign v_fbk_mask[2]=v_fbk[2]&test_en[2]; 
-  assign cmd_stored=cmd_stored_int; endmodule 
+  assign cmd_stored=cmd_stored_int; 
+endmodule
+ 
 module sel_glob_count_cs (
-  output reg  cs8,
-  output reg  cs2,
-  output reg  cs1,
-  input global1_state,
-  input [FIVE_BIT-1:0] cur_state,
+  input cs11,
   input cs111,
-  input cs11) ; 
+  input [FIVE_BIT-1:0] cur_state,
+  input global1_state,
+  output reg  cs1,
+  output reg  cs2,
+  output reg  cs8) ; 
   always @(    cs11 or  cs111 or  cur_state or  global1_state)
        begin :vhdl_sel_glob_count_cs
- time prop_delay ;
+        time prop_delay ;
          if (cur_state==5'b00001)
             begin 
               cs1 <=cs111;
@@ -1889,13 +2161,15 @@ module sel_glob_count_cs (
                  cs8 <=1'b1;
                end 
        end
-  endmodule 
+  
+endmodule
+ 
 module sel_global_state (
-  output reg  [GLOB_STATE_BITS-1:0] global_state,
-  input [TWO_BIT-1:0] global4_state,
-  input [TWO_BIT-1:0] global2_state,
+  input [FIVE_BIT-1:0] cur_state,
   input global1_state,
-  input [FIVE_BIT-1:0] cur_state) ; 
+  input [TWO_BIT-1:0] global2_state,
+  input [TWO_BIT-1:0] global4_state,
+  output reg  [GLOB_STATE_BITS-1:0] global_state) ; 
   always @(    cur_state or  global1_state or  global2_state or  global4_state)
        begin 
          global_state [6:2]<=cur_state;
@@ -1912,17 +2186,19 @@ module sel_global_state (
              global_state [1:0]<=2'b00;
          endcase 
        end
-  endmodule 
+  
+endmodule
+ 
 module smot_camme_mux (
-  output reg  cam_smot,
-  input smot_camme_en,
-  input seg_speed_pickup,
-  input seg_speed_hall,
+  input in_speed,
   input pickup_hall,
-  input in_speed) ; 
+  input seg_speed_hall,
+  input seg_speed_pickup,
+  input smot_camme_en,
+  output reg  cam_smot) ; 
   always @(     seg_speed_pickup or  seg_speed_hall or  pickup_hall or  in_speed or  smot_camme_en)
        begin :vhdl_smot_camme_mux
- time prop_delay ;
+        time prop_delay ;
          if (smot_camme_en==1'b0)
             cam_smot <=in_speed;
           else 
@@ -1931,39 +2207,43 @@ module smot_camme_mux (
              else 
                cam_smot <=seg_speed_hall;
        end
-  endmodule 
+  
+endmodule
+ 
 module smot_knock_handle (
-  output smot60,
-  output [BANKS_NUMBER-1:0] knock2,
-  output [BANKS_NUMBER-1:0] knock1,
-  output cam_smot,
-  input trg_knock_en,
-  input trg_knock2,
-  input trg_knock1,
-  input smot_camme_en,
-  input seg_speed_pickup,
-  input seg_speed_hall,
-  input rst,
-  input pickup_hall,
+  input clock,
   input in_speed,
-  input clock) ; 
+  input pickup_hall,
+  input rst,
+  input seg_speed_hall,
+  input seg_speed_pickup,
+  input smot_camme_en,
+  input trg_knock1,
+  input trg_knock2,
+  input trg_knock_en,
+  output cam_smot,
+  output [BANKS_NUMBER-1:0] knock1,
+  output [BANKS_NUMBER-1:0] knock2,
+  output smot60) ; 
    wire internal_trg_knock1 ;  
   knock_detection_fsm1 instance_knock_detection_fsm1(clock,internal_trg_knock1,rst,knock1); 
   knock_detection_fsm2 instance_knock_detection_fsm2(clock,rst,trg_knock2,knock2); 
   smot_camme_mux instance_smot_camme_mux(in_speed,pickup_hall,seg_speed_hall,seg_speed_pickup,smot_camme_en,cam_smot); 
-  trg_knock1_handle instance_trg_knock1_handle(in_speed,trg_knock1,trg_knock_en,internal_trg_knock1,smot60); endmodule 
+  trg_knock1_handle instance_trg_knock1_handle(in_speed,trg_knock1,trg_knock_en,internal_trg_knock1,smot60); 
+endmodule
+ 
 module split (
-  output reg  [SPLIT_NUMBER-1:0] v_fbk_125,
-  output reg  [SPLIT_NUMBER-1:0] v_fbk_034,
-  output reg  i_fbk_125,
-  output reg  i_fbk_034,
-  output reg  [SPLIT_NUMBER-1:0] inj_cmd_125,
-  output reg  [SPLIT_NUMBER-1:0] inj_cmd_034,
-  input [INJ_NUMBER-1:0] v_fbk_f,
-  input [BANKS_NUMBER-1:0] i_fbk_f,
-  input [INJ_NUMBER-1:0] inj_cmd,
+  input clock,
   input rst,
-  input clock) ; 
+  input [INJ_NUMBER-1:0] inj_cmd,
+  input [BANKS_NUMBER-1:0] i_fbk_f,
+  input [INJ_NUMBER-1:0] v_fbk_f,
+  output reg  [SPLIT_NUMBER-1:0] inj_cmd_034,
+  output reg  [SPLIT_NUMBER-1:0] inj_cmd_125,
+  output reg  i_fbk_034,
+  output reg  i_fbk_125,
+  output reg  [SPLIT_NUMBER-1:0] v_fbk_034,
+  output reg  [SPLIT_NUMBER-1:0] v_fbk_125) ; 
    reg [5:0] inj_cmd_int ;  
   always @(  posedge clock or  negedge rst)
        if (rst==1'b0)
@@ -1973,7 +2253,7 @@ module split (
  
   always @(   i_fbk_f or  inj_cmd_int or  v_fbk_f)
        begin :vhdl_split
- time prop_delay ;
+        time prop_delay ;
          i_fbk_034 <=i_fbk_f[0];
          i_fbk_125 <=i_fbk_f[1];
          inj_cmd_034 [0]<=inj_cmd_int[0];
@@ -1989,26 +2269,30 @@ module split (
          v_fbk_125 [1]<=v_fbk_f[2];
          v_fbk_125 [2]<=v_fbk_f[5];
        end
-  endmodule 
+  
+endmodule
+ 
 module startup (
-  input gsr) ; endmodule 
+  input gsr) ; 
+endmodule
+ 
 module state_progression (
-  output reg  [FIVE_BIT-1:0] cur_state,
-  input [SPLIT_NUMBER-1:0] v_fbk_mask,
-  input v_fbk_cur,
-  input th_0,
-  input t4_0,
-  input [ST_REG_NUM-1:0] status_reg,
-  input sh_mode,
-  input rst,
-  input i_fbk,
-  input [SPLIT_NUMBER-1:0] inj_cmd,
-  input [GLOB_STATE_BITS-1:0] global_state,
-  input end_t0,
-  input enable_check,
-  input comp,
+  input clock,
   input [SPLIT_NUMBER-1:0] cmd_stored,
-  input clock) ; 
+  input comp,
+  input enable_check,
+  input end_t0,
+  input [GLOB_STATE_BITS-1:0] global_state,
+  input [SPLIT_NUMBER-1:0] inj_cmd,
+  input i_fbk,
+  input rst,
+  input sh_mode,
+  input [ST_REG_NUM-1:0] status_reg,
+  input t4_0,
+  input th_0,
+  input v_fbk_cur,
+  input [SPLIT_NUMBER-1:0] v_fbk_mask,
+  output reg  [FIVE_BIT-1:0] cur_state) ; 
  parameter[4:0] state_progression_state_type_start_state =0,state_progression_state_type_ph1bis_state=1,state_progression_state_type_ph2_state=2,state_progression_state_type_ph3_state=3,state_progression_state_type_ph4_state=4,state_progression_state_type_ph5_state=5,state_progression_state_type_ph1_state=6,state_progression_state_type_cc_vcc_state=7,state_progression_state_type_cc_gnd_state=8,state_progression_state_type_int1_state=9,state_progression_state_type_int_2_state=10,state_progression_state_type_int3_state=11,state_progression_state_type_int4_state=12,state_progression_state_type_int5_state=13,state_progression_state_type_int6_state=14,state_progression_state_type_ph6_state=15,state_progression_state_type_int7_state=16,state_progression_state_type_ph7_state=17,state_progression_state_type_int8_state=18,state_progression_state_type_ph8_state=19,state_progression_state_type_int9_state=20,state_progression_state_type_ph9_state=21; 
    reg [4:0] current_state ;  
    reg [4:0] next_state ;  
@@ -2217,19 +2501,21 @@ module state_progression (
           default :;
          endcase 
        end
-  endmodule 
+  
+endmodule
+ 
 module test_en (
-  output reg  [THREE_BIT-1:0] test_en_125,
-  output reg  [THREE_BIT-1:0] test_en_034,
-  input wr_en,
-  input rst,
-  input rd_en,
-  input [D_BUS_NUMBER-1:0] d_bus,
+  input add_test_en,
   input clock,
-  input add_test_en) ; 
+  input [D_BUS_NUMBER-1:0] d_bus,
+  input rd_en,
+  input rst,
+  input wr_en,
+  output reg  [THREE_BIT-1:0] test_en_034,
+  output reg  [THREE_BIT-1:0] test_en_125) ; 
   always @(  posedge clock or  negedge rst)
        begin :vhdl_test_en
- time prop_delay ;
+        time prop_delay ;
          if (rst==1'b0)
             begin 
               test_en_034 <={THREE_BIT{1'b0}};
@@ -2248,16 +2534,18 @@ module test_en (
                  end 
             end 
        end
-  endmodule 
+  
+endmodule
+ 
 module trg_knock1_handle (
-  output reg  smot60,
-  output reg  internal_trg_knock1,
-  input trg_knock_en,
+  input in_speed,
   input trg_knock1,
-  input in_speed) ; 
+  input trg_knock_en,
+  output reg  internal_trg_knock1,
+  output reg  smot60) ; 
   always @(   in_speed or  trg_knock1 or  trg_knock_en)
        begin :vhdl_trg_knock1_handle
- time prop_delay ;
+        time prop_delay ;
          if (trg_knock_en==1'b0)
             begin 
               smot60 <=in_speed|trg_knock1;
@@ -2269,14 +2557,18 @@ module trg_knock1_handle (
               internal_trg_knock1 <=trg_knock1;
             end 
        end
-  endmodule 
+  
+endmodule
+ 
 module turbo_vehicle_speed (
-  output vehicle,
-  output turbo,
-  output rpm_out,
-  input vehicle_speed,
+  input rpm_in,
   input turbo_speed,
-  input rpm_in) ; 
+  input vehicle_speed,
+  output rpm_out,
+  output turbo,
+  output vehicle) ; 
   assign turbo=turbo_speed; 
   assign vehicle=vehicle_speed; 
-  assign rpm_out=rpm_in; endmodule 
+  assign rpm_out=rpm_in; 
+endmodule
+ 
