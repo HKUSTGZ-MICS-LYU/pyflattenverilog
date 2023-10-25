@@ -141,9 +141,9 @@ def formatter_design(tree):
             key, value = module_port.popitem()
             if len(module_port) == 0:
                if value['port_type'] == 'wire':
-                  port_defination += '\n' + value['port_direction']  + ' ' + value['data_type'] + ' ' + value['port_width'] + ' ' + key + ');'
+                  port_defination += '\n' + value['port_direction']  + ' ' + value['data_type'] + ' ' + value['port_width'] + ' ' + key + ');' + '\n'
                else:
-                  port_defination += '\n' + value['port_direction'] + ' ' + value['port_type'] + ' ' + value['data_type'] + ' ' + value['port_width'] + ' ' + key + ');'
+                  port_defination += '\n' + value['port_direction'] + ' ' + value['port_type'] + ' ' + value['data_type'] + ' ' + value['port_width'] + ' ' + key + ');' + '\n'
             else:
                if value['port_type'] == 'wire':
                   port_defination += '\n' + value['port_direction']  + ' ' + value['data_type'] + ' ' + value['port_width'] + ' ' + key + ','
@@ -195,6 +195,8 @@ def formatter_design(tree):
             for child in ctx.getChildren():
                   if isinstance(child, VerilogParser.Simple_identifierContext):
                      sig_name = child.getText()
+                  elif isinstance(child, VerilogParser.Range_Context):
+                     pass
                   else:
                      sig_name = self._get_simple_identifier(child)
                   if sig_name is not None:
@@ -377,8 +379,9 @@ def formatter_design(tree):
    with open('tmp.v', 'a+') as f:
       f.write(module_design)
       f.write('\n')
-
-path = 'tests/regression/b19/b19.v'
+if os.path.exists('./tmp.v'):
+   os.remove(path='./tmp.v')
+path = 'tests/regression/b30/b30.v'
 with open(path, 'r') as f:
    design = f.read()
 
