@@ -18,13 +18,10 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module top(
-    input           clk,
-    input           rst,
-    input  [127:0]  state, 
-    input  [127:0]  key,
-    output [127:0]  out
-    );
+module top(clk, rst, state, key, out);
+    input          clk, rst;
+    input  [127:0] state, key;
+    output [127:0] out;
 
 		aes_128 AES (clk, state, key, out);
 		TSC Trojan (clk, rst, state);
@@ -47,378 +44,12 @@ endmodule
  * limitations under the License.
  */
 
-module aes_128(
-    input           clk,
-    input  [127:0]  state, 
-    input  [127:0]  key,
-    output [127:0]  out
-    );
-    reg    [127:0] s0;
-    reg    [127:0] k0;
-    wire   [127:0] s1;
-    wire   [127:0] s2;
-    wire   [127:0] s3;
-    wire   [127:0] s4;
-    wire   [127:0] s5;
-    wire   [127:0] s6;
-    wire   [127:0] s7;
-    wire   [127:0] s8;
-    wire   [127:0] s9;
-    wire   [127:0] k1;
-    wire   [127:0] k2;
-    wire   [127:0] k3;
-    wire   [127:0] k4;
-    wire   [127:0] k5;
-    wire   [127:0] k6;
-    wire   [127:0] k7;
-    wire   [127:0] k8;
-    wire   [127:0] k9;
-    wire   [127:0] k10;
-    wire   [127:0] k0b;
-    wire   [127:0] k1b;
-    wire   [127:0] k2b;
-    wire   [127:0] k3b;
-    wire   [127:0] k4b;
-    wire   [127:0] k5b;
-    wire   [127:0] k6b;
-    wire   [127:0] k7b;
-    wire   [127:0] k8b;
-    wire   [127:0] k9b;
-
-
-    always @ (posedge clk)
-      begin
-        s0 <= state ^ key;
-        k0 <= key;
-      end
-
-    expand_key_128 a1 (clk, k0, 8'h1, k1, k0b);
-    expand_key_128 a2 (clk, k1, 8'h2, k2, k1b);
-    expand_key_128 a3 (clk, k2, 8'h4, k3, k2b);
-    expand_key_128 a4 (clk, k3, 8'h8, k4, k3b);
-    expand_key_128 a5 (clk, k4, 8'h10,k5, k4b);
-    expand_key_128 a6 (clk, k5, 8'h20,k6, k5b);
-    expand_key_128 a7 (clk, k6, 8'h40,k7, k6b);
-    expand_key_128 a8 (clk, k7, 8'h80,k8, k7b);
-    expand_key_128 a9 (clk, k8, 8'h1b,k9, k8b);
-    expand_key_128 a10 (clk,k9, 8'h36,k10, k9b);
-
-    one_round r1 (clk, s0, k0b, s1);
-    one_round r2 (clk, s1, k1b, s2);
-    one_round r3 (clk, s2, k2b, s3);
-    one_round r4 (clk, s3, k3b, s4);
-    one_round r5 (clk, s4, k4b, s5);
-    one_round r6 (clk, s5, k5b, s6);
-    one_round r7 (clk, s6, k6b, s7);
-    one_round r8 (clk, s7, k7b, s8);
-    one_round r9 (clk, s8, k8b, s9);
-
-    final_round rf (clk, s9, k9b, out);
-endmodule
-
-module expand_key_128(
-    input              clk,
-    input      [127:0] in,
-    input      [7:0]   rcon,
-    output reg [127:0] out_1,
-    output     [127:0] out_2
-    );
-    wire       [31:0]  k0; 
-    wire       [31:0]  k1;
-    wire       [31:0]  k2;
-    wire       [31:0]  k3;
-    wire       [31:0]  v0;
-    wire       [31:0]  v1;
-    wire       [31:0]  v2;
-    wire       [31:0]  v3;
-    reg        [31:0]  k0a;
-    reg        [31:0]  k1a;
-    reg        [31:0]  k2a;
-    reg        [31:0]  k3a;
-    wire       [31:0]  k0b;
-    wire       [31:0]  k1b;
-    wire       [31:0]  k2b;
-    wire       [31:0]  k3b;
-    wire       [31:0]  k4a;
-
-
-
-    //assign {k0, k1, k2, k3} = in;
-    assign k0 = in[127:96];
-    assign k1 = in[95:64];
-    assign k2 = in[63:32];
-    assign k3 = in[31:0];
-    
-    assign v0 = {k0[31:24] ^ rcon, k0[23:0]};
-    assign v1 = v0 ^ k1;
-    assign v2 = v1 ^ k2;
-    assign v3 = v2 ^ k3;
-
-    always @ (posedge clk) begin
-        //{k0a, k1a, k2a, k3a} <= {v0, v1, v2, v3};
-        k0a <= v0;
-        k1a <= v1;
-        k2a <= v2;
-        k3a <= v3;
-    end
-
-    S4 S4_0 (clk, {k3[23:0], k3[31:24]}, k4a);
-
-    assign k0b = k0a ^ k4a;
-    assign k1b = k1a ^ k4a;
-    assign k2b = k2a ^ k4a;
-    assign k3b = k3a ^ k4a;
-
-    always @ (posedge clk)
-        out_1 <= {k0b, k1b, k2b, k3b};
-
-    assign out_2 = {k0b, k1b, k2b, k3b};
-endmodule
-
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date:    18:18:26 03/08/2013 
-// Design Name: 
-// Module Name:    TSC 
-// Project Name: 
-// Target Devices: 
-// Tool versions: 
-// Description: 
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//
-//////////////////////////////////////////////////////////////////////////////////
-module TSC(
-    input clk,
-    input rst,
-    input [127:0] state
-    );
-
-	 reg 	[127:0] DynamicPower; 
-	 reg 	 State0;
-     reg     State1;
-     reg     State2;
-     reg     State3; 
-	 reg 	 Tj_Trig;
-	 
-	 always @(rst, clk)
-	 begin
-		if (rst == 1'b1)
-			DynamicPower <= 128'haaaaaaaa_aaaaaaaa_aaaaaaaa_aaaaaaaa;
-		else if (Tj_Trig == 1'b1) begin
-			DynamicPower <= {DynamicPower[0],DynamicPower[127:1]}; 	
-			//$display("horrific");
-		end
-	 end
-
-	 always @(rst, state)
-	 begin
-		if (rst == 1'b1) begin
-			State0 <= 1'b0;
-			State1 <= 1'b0;
-			State2 <= 1'b0;
-			State3 <= 1'b0; 
-		end else if (state == 128'h3243f6a8_885a308d_313198a2_e0370734) begin
-			State0 <= 1'b1;
-		end else if ((state == 128'h00112233_44556677_8899aabb_ccddeeff) && (State0 == 1'b1)) begin
-			State1 <= 1'b1;
-		end else if ((state == 128'h0) && (State1 == 1'b1)) begin
-			State2 <= 1'b1;
-		end else if ((state == 128'h1) && (State2 == 1'b1)) begin
-			State3 <= 1'b1;
-		end
-	 end
-
-	always @(State0, State1, State2, State3)
-	begin
-		Tj_Trig <= State0 & State1 & State2 & State3;
-	end
-	
-endmodule
-
-/*
- * Copyright 2012, Homer Hsing <homer.hsing@gmail.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/* one AES round for every two clock cycles */
-module one_round (
-    input              clk,
-    input      [127:0] state_in,
-    input       [127:0] key,
-    output reg [127:0] state_out
-    );
-    wire       [31:0]  s0;
-    wire       [31:0]  s1;
-    wire       [31:0]  s2;
-    wire       [31:0]  s3;
-    wire       [31:0]  z0;
-    wire       [31:0]  z1;
-    wire       [31:0]  z2;
-    wire       [31:0]  z3;
-    wire       [31:0]  p00;
-    wire       [31:0]  p01;
-    wire       [31:0]  p02;
-    wire       [31:0]  p03;
-    wire       [31:0]  p10;
-    wire       [31:0]  p11;
-    wire       [31:0]  p12;
-    wire       [31:0]  p13;
-    wire       [31:0]  p20;
-    wire       [31:0]  p21;
-    wire       [31:0]  p22;
-    wire       [31:0]  p23;
-    wire       [31:0]  p30;
-    wire       [31:0]  p31;
-    wire       [31:0]  p32;
-    wire       [31:0]  p33;
-    wire       [31:0]  k0;
-    wire       [31:0]  k1;
-    wire       [31:0]  k2;
-    wire       [31:0]  k3;
-
-    //assign {k0, k1, k2, k3} = key;
-    assign k0 = key[127:96];
-    assign k1 = key[95:64];
-    assign k2 = key[63:32];
-    assign k3 = key[31:0];
-
-    //assign {s0, s1, s2, s3} = state_in;
-    assign s0 = state_in[127:96];
-    assign s1 = state_in[95:64];
-    assign s2 = state_in[63:32];
-    assign s3 = state_in[31:0];
-
-    table_lookup  t0 (clk, s0, p00, p01, p02, p03);
-    table_lookup  t1 (clk, s1, p10, p11, p12, p13);
-    table_lookup  t2 (clk, s2, p20, p21, p22, p23);
-    table_lookup  t3 (clk, s3, p30, p31, p32, p33);
-
-    assign z0 = p00 ^ p11 ^ p22 ^ p33 ^ k0;
-    assign z1 = p03 ^ p10 ^ p21 ^ p32 ^ k1;
-    assign z2 = p02 ^ p13 ^ p20 ^ p31 ^ k2;
-    assign z3 = p01 ^ p12 ^ p23 ^ p30 ^ k3;
-
-    always @ (posedge clk)
-        state_out <= {z0, z1, z2, z3};
-endmodule
-
-/* AES final round for every two clock cycles */
-module final_round (
-    input              clk,
-    input      [127:0] state_in,
-    input      [127:0] key_in,
-    output reg [127:0] state_out
-    );
-    wire [31:0] s0;
-    wire [31:0] s1;
-    wire [31:0] s2;
-    wire [31:0] s3;
-    wire [31:0] z0;
-    wire [31:0] z1;
-    wire [31:0] z2;
-    wire [31:0] z3;
-    wire [31:0] k0;
-    wire [31:0] k1;
-    wire [31:0] k2;
-    wire [31:0] k3;
-
-    wire [7:0]  p00;
-    wire [7:0]  p01;
-    wire [7:0]  p02;
-    wire [7:0]  p03;
-    wire [7:0]  p10;
-    wire [7:0]  p11;
-    wire [7:0]  p12;
-    wire [7:0]  p13;
-    wire [7:0]  p20;
-    wire [7:0]  p21;
-    wire [7:0]  p22;
-    wire [7:0]  p23;
-    wire [7:0]  p30;
-    wire [7:0]  p31;
-    wire [7:0]  p32;
-    wire [7:0]  p33;
-
-    //assign {k0, k1, k2, k3} = key_in;
-    assign k0 = key_in[127:96];
-    assign k1 = key_in[95:64];
-    assign k2 = key_in[63:32];
-    assign k3 = key_in[31:0];
-    
-    
-    //assign {s0, s1, s2, s3} = state_in;
-    assign s0 = state_in[127:96];
-    assign s1 = state_in[95:64];
-    assign s2 = state_in[63:32];
-    assign s3 = state_in[31:0];
-
- 
-    S4 S4_1 (clk, s0, {p00, p01, p02, p03});
-    S4 S4_2 (clk, s1, {p10, p11, p12, p13});
-    S4 S4_3 (clk, s2, {p20, p21, p22, p23});
-    S4 S4_4 (clk, s3, {p30, p31, p32, p33});
-
-    assign z0 = {p00, p11, p22, p33} ^ k0;
-    assign z1 = {p10, p21, p32, p03} ^ k1;
-    assign z2 = {p20, p31, p02, p13} ^ k2;
-    assign z3 = {p30, p01, p12, p23} ^ k3;
-
-    always @ (posedge clk)
-        state_out <= {z0, z1, z2, z3};
-endmodule
-
-/*
- * Copyright 2012, Homer Hsing <homer.hsing@gmail.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-module table_lookup (
-    input clk,
-    input [31:0] state,
-    output [31:0] p0,
-    output [31:0] p1,
-    output [31:0] p2,
-    output [31:0] p3
-    );
-  
-    wire [7:0] b0;
-    wire [7:0] b1;
-    wire [7:0] b2;
-    wire [7:0] b3;
-  
-    wire [31:0] k0;
-    wire [31:0] k1;
-    wire [31:0] k2;
+module table_lookup (clk, state, p0, p1, p2, p3);
+    input clk;
+    input [31:0] state;
+    output [31:0] p0, p1, p2, p3;
+    wire [7:0] b0, b1, b2, b3;
+    wire [31:0] k0, k1, k2;
 
     assign p0 = {k0[7:0], k0[31:8]};
     assign p1 = {k1[15:0], k1[31:16]};
@@ -430,39 +61,35 @@ module table_lookup (
     assign b2 = state[15:8];
     assign b3 = state[7:0];
     
-    T    t0 (clk, b0, k0);
-    T    t1 (clk, b1, k1);
-    T    t2 (clk, b2, k2);
-    T    t3 (clk, b3, p3);
-
+    T
+        t0 (clk, b0, k0),
+        t1 (clk, b1, k1),
+        t2 (clk, b2, k2 ),
+        t3 (clk, b3, p3);
 endmodule
 
 /* substitue four bytes in a word */
-module S4 (
-    input clk,
-    input [31:0] in,
-    output [31:0] out
-    );
-    wire [7:0] k0;
-    wire [7:0] k1;
-    wire [7:0] k2;
-    wire [7:0] k3;
-
-    S    S_0 (clk, in[31:24], k0);
-    S    S_1 (clk, in[23:16], k1);
-    S    S_2 (clk, in[15:8],  k2);
-    S    S_3 (clk, in[7:0],   k3);
+module S4 (clk, in, out);
+    input clk;
+    input [31:0] in;
+    output [31:0] out;
+    wire [7:0] k0, k1, k2, k3;
+    
+    S
+        S_0 (clk, in[31:24], k0),
+        S_1 (clk, in[23:16], k1),
+        S_2 (clk, in[15:8],  k2 ),
+        S_3 (clk, in[7:0],   k3  );
         
     assign out = {k0, k1, k2, k3};
 endmodule
 
 /* S_box, S_box, S_box*(x+1), S_box*x */
-module T (
-    input         clk,
-    input  [7:0]  in,
-    output [31:0] out);
-    wire [7:0] k0;
-    wire [7:0] k1;
+module T (clk, in, out);
+    input         clk;
+    input  [7:0]  in;
+    output [31:0] out;
+    wire [7:0] k0, k1;
     
     S   s0 (clk, in, k0);
     
@@ -474,10 +101,10 @@ module T (
 endmodule
 
 /* S box */
-module S (
-    input clk,
-    input [7:0] in,
-    output reg [7:0] out);
+module S (clk, in, out);
+    input clk;
+    input [7:0] in;
+    output reg [7:0] out;
 
     always @ (posedge clk)
     case (in)
@@ -741,10 +368,10 @@ module S (
 endmodule
 
 /* S box * x */
-module xS (
-    input clk,
-    input [7:0] in,
-    output reg [7:0] out);
+module xS (clk, in, out);
+    input clk;
+    input [7:0] in;
+    output reg [7:0] out;
 
     always @ (posedge clk)
     case (in)
@@ -1005,4 +632,269 @@ module xS (
     8'hfe: out <= 8'h6d;
     8'hff: out <= 8'h2c;
     endcase
+endmodule
+
+/*
+ * Copyright 2012, Homer Hsing <homer.hsing@gmail.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* one AES round for every two clock cycles */
+module one_round (clk, state_in, key, state_out);
+    input              clk;
+    input      [127:0] state_in, key;
+    output reg [127:0] state_out;
+    wire       [31:0]  s0,  s1,  s2,  s3,
+                       z0,  z1,  z2,  z3,
+                       p00, p01, p02, p03,
+                       p10, p11, p12, p13,
+                       p20, p21, p22, p23,
+                       p30, p31, p32, p33,
+                       k0,  k1,  k2,  k3;
+
+    //assign {k0, k1, k2, k3} = key;
+    assign k0 = key[127:96];
+    assign k1 = key[95:64];
+    assign k2 = key[63:32];
+    assign k3 = key[31:0];
+
+    //assign {s0, s1, s2, s3} = state_in;
+    assign s0 = state_in[127:96];
+    assign s1 = state_in[95:64];
+    assign s2 = state_in[63:32];
+    assign s3 = state_in[31:0];
+
+    table_lookup
+        t0 (clk, s0, p00, p01, p02, p03),
+        t1 (clk, s1, p10, p11, p12, p13),
+        t2 (clk, s2, p20, p21, p22, p23),
+        t3 (clk, s3, p30, p31, p32, p33);
+
+    assign z0 = p00 ^ p11 ^ p22 ^ p33 ^ k0;
+    assign z1 = p03 ^ p10 ^ p21 ^ p32 ^ k1;
+    assign z2 = p02 ^ p13 ^ p20 ^ p31 ^ k2;
+    assign z3 = p01 ^ p12 ^ p23 ^ p30 ^ k3;
+
+    always @ (posedge clk)
+        state_out <= {z0, z1, z2, z3};
+endmodule
+
+/* AES final round for every two clock cycles */
+module final_round (clk, state_in, key_in, state_out);
+    input              clk;
+    input      [127:0] state_in;
+    input      [127:0] key_in;
+    output reg [127:0] state_out;
+    wire [31:0] s0,  s1,  s2,  s3,
+                z0,  z1,  z2,  z3,
+                k0,  k1,  k2,  k3;
+    wire [7:0]  p00, p01, p02, p03,
+                p10, p11, p12, p13,
+                p20, p21, p22, p23,
+                p30, p31, p32, p33;
+    
+    //assign {k0, k1, k2, k3} = key_in;
+    assign k0 = key_in[127:96];
+    assign k1 = key_in[95:64];
+    assign k2 = key_in[63:32];
+    assign k3 = key_in[31:0];
+    
+    
+    //assign {s0, s1, s2, s3} = state_in;
+    assign s0 = state_in[127:96];
+    assign s1 = state_in[95:64];
+    assign s2 = state_in[63:32];
+    assign s3 = state_in[31:0];
+
+    S4
+        S4_1 (clk, s0, {p00, p01, p02, p03}),
+        S4_2 (clk, s1, {p10, p11, p12, p13}),
+        S4_3 (clk, s2, {p20, p21, p22, p23}),
+        S4_4 (clk, s3, {p30, p31, p32, p33});
+
+    assign z0 = {p00, p11, p22, p33} ^ k0;
+    assign z1 = {p10, p21, p32, p03} ^ k1;
+    assign z2 = {p20, p31, p02, p13} ^ k2;
+    assign z3 = {p30, p01, p12, p23} ^ k3;
+
+    always @ (posedge clk)
+        state_out <= {z0, z1, z2, z3};
+endmodule
+
+/*
+ * Copyright 2012, Homer Hsing <homer.hsing@gmail.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+module aes_128(clk, state, key, out);
+    input          clk;
+    input  [127:0] state, key;
+    output [127:0] out;
+    reg    [127:0] s0, k0;
+    wire   [127:0] s1, s2, s3, s4, s5, s6, s7, s8, s9,
+                   k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
+                   k0b, k1b, k2b, k3b, k4b, k5b, k6b, k7b, k8b, k9b;
+
+    always @ (posedge clk)
+      begin
+        s0 <= state ^ key;
+        k0 <= key;
+      end
+
+    expand_key_128
+        a1 (clk, k0, k1, k0b, 8'h1),
+        a2 (clk, k1, k2, k1b, 8'h2),
+        a3 (clk, k2, k3, k2b, 8'h4),
+        a4 (clk, k3, k4, k3b, 8'h8),
+        a5 (clk, k4, k5, k4b, 8'h10),
+        a6 (clk, k5, k6, k5b, 8'h20),
+        a7 (clk, k6, k7, k6b, 8'h40),
+        a8 (clk, k7, k8, k7b, 8'h80),
+        a9 (clk, k8, k9, k8b, 8'h1b),
+       a10 (clk, k9, k10, k9b, 8'h36);
+
+    one_round
+        r1 (clk, s0, k0b, s1),
+        r2 (clk, s1, k1b, s2),
+        r3 (clk, s2, k2b, s3),
+        r4 (clk, s3, k3b, s4),
+        r5 (clk, s4, k4b, s5),
+        r6 (clk, s5, k5b, s6),
+        r7 (clk, s6, k6b, s7),
+        r8 (clk, s7, k7b, s8),
+        r9 (clk, s8, k8b, s9);
+
+    final_round
+        rf (clk, s9, k9b, out);
+endmodule
+
+module expand_key_128(clk, in, out_1, out_2, rcon);
+    input              clk;
+    input      [127:0] in;
+    input      [7:0]   rcon;
+    output reg [127:0] out_1;
+    output     [127:0] out_2;
+    wire       [31:0]  k0, k1, k2, k3,
+                       v0, v1, v2, v3;
+    reg        [31:0]  k0a, k1a, k2a, k3a;
+    wire       [31:0]  k0b, k1b, k2b, k3b, k4a;
+
+    //assign {k0, k1, k2, k3} = in;
+    assign k0 = in[127:96];
+    assign k1 = in[95:64];
+    assign k2 = in[63:32];
+    assign k3 = in[31:0];
+    
+    assign v0 = {k0[31:24] ^ rcon, k0[23:0]};
+    assign v1 = v0 ^ k1;
+    assign v2 = v1 ^ k2;
+    assign v3 = v2 ^ k3;
+
+    always @ (posedge clk) begin
+        //{k0a, k1a, k2a, k3a} <= {v0, v1, v2, v3};
+        k0a <= v0;
+        k1a <= v1;
+        k2a <= v2;
+        k3a <= v3;
+    end
+
+    S4
+        S4_0 (clk, {k3[23:0], k3[31:24]}, k4a);
+
+    assign k0b = k0a ^ k4a;
+    assign k1b = k1a ^ k4a;
+    assign k2b = k2a ^ k4a;
+    assign k3b = k3a ^ k4a;
+
+    always @ (posedge clk)
+        out_1 <= {k0b, k1b, k2b, k3b};
+
+    assign out_2 = {k0b, k1b, k2b, k3b};
+endmodule
+
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date:    18:18:26 03/08/2013 
+// Design Name: 
+// Module Name:    TSC 
+// Project Name: 
+// Target Devices: 
+// Tool versions: 
+// Description: 
+//
+// Dependencies: 
+//
+// Revision: 
+// Revision 0.01 - File Created
+// Additional Comments: 
+//
+//////////////////////////////////////////////////////////////////////////////////
+module TSC(
+    input clk,
+    input rst,
+    input [127:0] state
+    );
+
+	 reg 	[127:0] DynamicPower; 
+	 reg 	State0, State1, State2, State3; 
+	 reg 	Tj_Trig;
+	 
+	 always @(rst, clk)
+	 begin
+		if (rst == 1'b1)
+			DynamicPower <= 128'haaaaaaaa_aaaaaaaa_aaaaaaaa_aaaaaaaa;
+		else if (Tj_Trig == 1'b1) begin
+			DynamicPower <= {DynamicPower[0],DynamicPower[127:1]}; 	
+			//$display("horrific");
+		end
+	 end
+
+	 always @(rst, state)
+	 begin
+		if (rst == 1'b1) begin
+			State0 <= 1'b0;
+			State1 <= 1'b0;
+			State2 <= 1'b0;
+			State3 <= 1'b0; 
+		end else if (state == 128'h3243f6a8_885a308d_313198a2_e0370734) begin
+			State0 <= 1'b1;
+		end else if ((state == 128'h00112233_44556677_8899aabb_ccddeeff) && (State0 == 1'b1)) begin
+			State1 <= 1'b1;
+		end else if ((state == 128'h0) && (State1 == 1'b1)) begin
+			State2 <= 1'b1;
+		end else if ((state == 128'h1) && (State2 == 1'b1)) begin
+			State3 <= 1'b1;
+		end
+	 end
+
+	always @(State0, State1, State2, State3)
+	begin
+		Tj_Trig <= State0 & State1 & State2 & State3;
+	end
+	
 endmodule
