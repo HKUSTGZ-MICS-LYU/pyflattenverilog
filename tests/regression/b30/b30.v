@@ -42,8 +42,6 @@ module add_dec(a_bus, clock, rst, add_decoded, add_decoded_r, add_test_en, a_dig
    
    always @(posedge clock or negedge rst)
    begin: vhdl_add_dec
-      
-      time                      prop_delay;
       if (rst == 1'b0)
       begin
          add_decoded <= {THIRTEEN_BIT{1'b0}};
@@ -152,7 +150,6 @@ module anti_glitch(clock, cs8, rst, end_t0);
    
    always @(posedge clock or negedge rst)
    begin: vhdl_count
-      time      prop_delay;
       if (rst == 1'b0)
          counter <= 3'b000;
       else 
@@ -256,7 +253,6 @@ module chopper_count(clock, cs4, rst, chop_count);
    
    always @(posedge clock or negedge rst)
    begin: vhdl_chopper_count
-      time                   prop_delay;
       if (rst == 1'b0)
          int_counter <= {SEVEN_BIT{1'b0}};
       else 
@@ -294,7 +290,6 @@ module clock_gen(clock_i, rst, clock_o);
    
    always @(posedge clock_i or negedge rst)
    begin: vhdl_clock_gen
-      time      prop_delay;
       if (rst == 1'b0)
       begin
          counter <= {4{1'b0}};
@@ -337,7 +332,6 @@ module comparator(count, stop_count_bus, comp);
    
    always @(count or stop_count_bus)
    begin: vhdl_comparator
-      time                 prop_delay;
       if (count == stop_count_bus)
          comp <= 1'b1;
       else
@@ -369,7 +363,6 @@ module counter(clock, cs1, rst, count);
    
    always @(posedge clock or negedge rst)
    begin: vhdl_counter
-      time                  prop_delay;
       if (rst == 1'b0)
          int_counter <= {REG_BITS{1'b0}};
       else 
@@ -413,7 +406,6 @@ module d_bus_handle(clock, rd_en, rst, wr_en, d_bus, d_bus_ext);
    
    always @(posedge clock or negedge rst)
    begin: vhdl_d_bus_handle
-      time                     prop_delay;
       if (rst == 1'b0)
          d_bus_int <= {D_BUS_NUMBER{1'b0}};
       else 
@@ -550,7 +542,6 @@ module digital_outputs_handle(a_dig_out, clock, d_bus, rst, wr_en, digital_outpu
    
    always @(posedge clock or negedge rst)
    begin: vhdl_digital_outputs_handle
-      time                     prop_delay;
       if (rst == 1'b0)
       begin
          digital_output_store <= {8{1'b0}};
@@ -611,7 +602,6 @@ module ds_handle(clock, cs, ds, rst, r_w, rd_en, wr_en);
    
    always @(posedge clock or negedge rst)
    begin: vhdl_ds_handle
-      time    prop_delay;
       if (rst == 1'b0)
          wr_en <= 1'b0;
       else 
@@ -762,7 +752,6 @@ module error_handle(a_fault_dec, a_fault_dec_r, clock, en_fbk_store_034, en_fbk_
    
    always @(posedge clock or negedge rst or a_fault_dec or posedge wr_en)
    begin: vhdl_st_reg_wr_034
-      time                        prop_delay;
       if ((rst == 1'b0) | (a_fault_dec[0] == 1'b1 & wr_en == 1'b1))
          sr_034 <= {11{1'b0}};
       else 
@@ -781,7 +770,6 @@ module error_handle(a_fault_dec, a_fault_dec_r, clock, en_fbk_store_034, en_fbk_
    
    always @(posedge clock or negedge rst or a_fault_dec or posedge wr_en)
    begin: vhdl_st_reg_wr_125
-      time                        prop_delay;
       if ((rst == 1'b0) | (a_fault_dec[1] == 1'b1 & wr_en == 1'b1))
          sr_125 <= {11{1'b0}};
       else 
@@ -1205,7 +1193,6 @@ module in_reg(add_decoded, add_decoded_r, clock, rd_en, rst, wr_en, r_t1, r_t2, 
    
    always @(posedge clock or negedge rst)
    begin: vhdl_in_reg
-      time                     prop_delay;
       if (rst == 1'b0)
       begin
          t1 <= {EIGHT_BIT{1'b0}};
@@ -1609,7 +1596,6 @@ module internal_register(clock, cs0, cs2, rst, r_t1, r_t2, r_t3, r_t4, r_tb, r_t
    
    always @(posedge clock or negedge rst)
    begin: vhdl_internal_register
-      time                   prop_delay;
       if (rst == 1'b0)
       begin
          tb <= {TEN_BIT{1'b0}};
@@ -1750,7 +1736,6 @@ module knock_count1(clock, internal_trg_knock1, rst, count1, en_comp1);
    
    always @(posedge clock or negedge rst)
    begin: vhdl_knock_store
-      time                    prop_delay;
       if (rst == 1'b0)
       begin
          store_trg_knock1 <= 1'b0;
@@ -1804,7 +1789,6 @@ module knock_count2(clock, rst, trg_knock2, count2, en_comp2);
    
    always @(posedge clock or negedge rst)
    begin: vhdl_knock_store
-      time                    prop_delay;
       if (rst == 1'b0)
       begin
          store_trg_knock2 <= 1'b0;
@@ -2161,7 +2145,6 @@ module merge_t1(t1_0, t1_1, t1_2, t1_3, t1_4, t1_5, t1);
    
    always @(t1_0 or t1_1 or t1_2 or t1_3 or t1_4 or t1_5)
    begin: vhdl_merge_t1
-      time                    prop_delay;
       t1[0] <= (~(t1_0));
       t1[1] <= (~(t1_1));
       t1[2] <= (~(t1_2));
@@ -2198,7 +2181,6 @@ module merge_t2(t2_0, t2_1, t2_2, t2_3, t2_4, t2_5, t2);
    
    always @(t2_0 or t2_1 or t2_2 or t2_3 or t2_4 or t2_5)
    begin: vhdl_merge_t2
-      time                    prop_delay;
       t2[0] <= t2_0;
       t2[1] <= t2_1;
       t2[2] <= t2_2;
@@ -2231,7 +2213,6 @@ module merge_t3(t3_034, t3_125, t3);
    
    always @(t3_034 or t3_125)
    begin: vhdl_merge_t3
-      time                      prop_delay;
       t3[0] <= (~(t3_034));
       t3[1] <= (~(t3_125));
    end
@@ -2260,7 +2241,6 @@ module on_comp(chop_count, ton_reg, end_on);
    
    always @(chop_count or ton_reg)
    begin: vhdl_on_comp
-      time                  prop_delay;
       if (chop_count == ton_reg)
          end_on <= 1'b1;
       else
@@ -2302,7 +2282,6 @@ module output_decoder(cmd_stored, t1, t2, t1a, t1b, t1c, t2a, t2b, t2c);
    
    always @(cmd_stored or t1 or t2)
    begin: vhdl_output_decoder
-      time                     prop_delay;
       case (cmd_stored)
          3'b001 :
             begin
@@ -2367,7 +2346,6 @@ module period_comp(chop_count, tp_reg, end_period);
    
    always @(chop_count or tp_reg)
    begin: vhdl_period_comp
-      time                  prop_delay;
       if (chop_count == tp_reg)
          end_period <= 1'b1;
       else
@@ -3079,7 +3057,6 @@ module sel_cmd(clock, cs2, inj_cmd, rst, test_en, v_fbk, cmd_stored, test_en_cur
    
    always @(posedge clock or negedge rst)
    begin: vhdl_sel_cmd
-      time                      prop_delay;
       if (rst == 1'b0)
          cmd_stored_int <= 3'b000;
       else 
@@ -3147,7 +3124,6 @@ module sel_glob_count_cs(cs11, cs111, cur_state, global1_state, cs1, cs2, cs8);
    
    always @(cs11 or cs111 or cur_state or global1_state)
    begin: vhdl_sel_glob_count_cs
-      time                 prop_delay;
       if (cur_state == 5'b00001)
       begin
          cs1 <= cs111;
@@ -3239,7 +3215,6 @@ module smot_camme_mux(in_speed, pickup_hall, seg_speed_hall, seg_speed_pickup, s
    
    always @(seg_speed_pickup or seg_speed_hall or pickup_hall or in_speed or smot_camme_en)
    begin: vhdl_smot_camme_mux
-      time    prop_delay;
       if (smot_camme_en == 1'b0)
          cam_smot <= in_speed;
       else
@@ -3334,7 +3309,6 @@ module split(clock, rst, inj_cmd, i_fbk_f, v_fbk_f, inj_cmd_034, inj_cmd_125, i_
    
    always @(i_fbk_f or inj_cmd_int or v_fbk_f)
    begin: vhdl_split
-      time                      prop_delay;
       i_fbk_034 <= i_fbk_f[0];
       i_fbk_125 <= i_fbk_f[1];
       inj_cmd_034[0] <= inj_cmd_int[0];
@@ -3643,7 +3617,6 @@ module test_en(add_test_en, clock, d_bus, rd_en, rst, wr_en, test_en_034, test_e
    
    always @(posedge clock or negedge rst)
    begin: vhdl_test_en
-      time                     prop_delay;
       if (rst == 1'b0)
       begin
          test_en_034 <= {THREE_BIT{1'b0}};
@@ -3690,7 +3663,6 @@ module trg_knock1_handle(in_speed, trg_knock1, trg_knock_en, internal_trg_knock1
    
    always @(in_speed or trg_knock1 or trg_knock_en)
    begin: vhdl_trg_knock1_handle
-      time    prop_delay;
       if (trg_knock_en == 1'b0)
       begin
          smot60 <= in_speed | trg_knock1;

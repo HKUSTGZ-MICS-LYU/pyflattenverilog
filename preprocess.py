@@ -56,6 +56,9 @@ def formatter_file(design, outputpath):
 
                   if isinstance(child.getChild(0), VerilogParser.Output_declarationContext):
                      self._visit_output_declaration(child.getChild(0))
+                  
+                  if isinstance(child.getChild(0), VerilogParser.Inout_declarationContext):
+                     self._visit_inout_declaration(child.getChild(0))
 
                   if isinstance(child, VerilogParser.Reg_declarationContext):
                      self._visit_reg_declaration(child)
@@ -105,6 +108,15 @@ def formatter_file(design, outputpath):
                      self.module_port[name]['port_width'] = ctx.range_().getText()
                   if ctx.SIGNED() != None:
                      self.module_port[name]['data_type'] = ctx.SIGNED().getText()
+         # visit inout declaration
+         def _visit_inout_declaration(self, ctx: VerilogParser.Inout_declarationContext):
+            for name in ctx.list_of_port_identifiers().getText().split(','):
+               if name in self.module_port:
+                  self.module_port[name]['port_direction'] = 'inout'
+               if ctx.range_() != None:
+                  self.module_port[name]['port_width'] = ctx.range_().getText()
+               if ctx.SIGNED() != None:
+                  self.module_port[name]['data_type'] = ctx.SIGNED().getText()
 
          # visit port list
          def _visit_port_list(self,ctx):

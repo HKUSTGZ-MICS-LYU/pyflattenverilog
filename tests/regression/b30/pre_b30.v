@@ -17,7 +17,6 @@ module add_dec (
    wire [4:0] not_a_bus ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_add_dec
-        time prop_delay ;
          if (rst==1'b0)
             begin 
               add_decoded <={THIRTEEN_BIT{1'b0}};
@@ -71,7 +70,6 @@ module anti_glitch (
    reg [2:0] counter ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_count
-        time prop_delay ;
          if (rst==1'b0)
             counter <=3'b000;
           else 
@@ -125,7 +123,7 @@ module b30 (
   output [BANKS_NUMBER-1:0] t3,
   output turbo,
   output turbo_speed_lev,
-  output vehicle,d_bus_ext) ; 
+  output vehicle,inout[D_BUS_NUMBER-1:0]d_bus_ext) ; 
   inj_ctrl instance_inj_ctrl(a_bus,clock,cs,digital_input,ds,fbk_pwm,inj_cmd,in_speed,i_fbk,nssm_in,rpm_in,reset,r_w,seg_speed_hall,seg_speed_pickup,trg_knock1,trg_knock2,turbo_speed,vehicle_speed,v_fbk,cam_smot,clock,digital_output,hlo,in_speed_lev,irq,knock1,knock1u,knock2,knock2u,relpot,rpm_out,seg_speed_lev,smot60,t1,t2,t3,turbo,turbo_speed_lev,vehicle,d_bus_ext); 
   rst_inv instance_rst_inv(reset); 
 endmodule
@@ -138,7 +136,6 @@ module chopper_count (
    reg [SEVEN_BIT-1:0] int_counter ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_chopper_count
-        time prop_delay ;
          if (rst==1'b0)
             int_counter <={SEVEN_BIT{1'b0}};
           else 
@@ -153,12 +150,13 @@ module chopper_count (
   assign chop_count=int_counter; 
 endmodule
  
-module clock_gen (clock_i,inputrst,outputclock_o) ; 
+module clock_gen (inoutclock_i,
+  input rst,
+  output clock_o) ; 
    reg [3:0] counter ;  
    reg clock_int ;  
   always @(  posedge clock_i or  negedge rst)
        begin :vhdl_clock_gen
-        time prop_delay ;
          if (rst==1'b0)
             begin 
               counter <={4{1'b0}};
@@ -185,7 +183,6 @@ module comparator (
   output reg  comp) ; 
   always @(  count or  stop_count_bus)
        begin :vhdl_comparator
-        time prop_delay ;
          if (count==stop_count_bus)
             comp <=1'b1;
           else 
@@ -202,7 +199,6 @@ module counter (
    reg [REG_BITS-1:0] int_counter ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_counter
-        time prop_delay ;
          if (rst==1'b0)
             int_counter <={REG_BITS{1'b0}};
           else 
@@ -221,13 +217,12 @@ module d_bus_handle (
   input clock,
   input rd_en,
   input rst,
-  input wr_en,d_bus,d_bus_ext) ; 
+  input wr_en,inout[D_BUS_NUMBER-1:0]d_bus,inout[D_BUS_NUMBER-1:0]d_bus_ext) ; 
    reg [D_BUS_NUMBER-1:0] d_bus_int ;  
   assign d_bus=((wr_en==1'b1))?d_bus_int:16'bZZZZZZZZZZZZZZZZ; 
   assign d_bus_ext=((rd_en==1'b1))?d_bus:16'bZZZZZZZZZZZZZZZZ; 
   always @(  posedge clock or  negedge rst)
        begin :vhdl_d_bus_handle
-        time prop_delay ;
          if (rst==1'b0)
             d_bus_int <={D_BUS_NUMBER{1'b0}};
           else 
@@ -243,7 +238,7 @@ module d_bus_interface (
   input rst,
   input r_w,
   output rd_en,
-  output wr_en,d_bus,d_bus_ext) ; 
+  output wr_en,inout[D_BUS_NUMBER-1:0]d_bus,inout[D_BUS_NUMBER-1:0]d_bus_ext) ; 
    wire rd_en_internal ;  
    wire wr_en_internal ;  
   d_bus_handle instance_d_bus_handle(clock,rd_en_internal,rst,wr_en_internal,d_bus,d_bus_ext); 
@@ -313,7 +308,6 @@ module digital_outputs_handle (
   assign knock2u=knock2_store; 
   always @(  posedge clock or  negedge rst)
        begin :vhdl_digital_outputs_handle
-        time prop_delay ;
          if (rst==1'b0)
             begin 
               digital_output_store <={8{1'b0}};
@@ -358,7 +352,6 @@ module ds_handle (
   assign wr_en_int=(~(cs))&(~(ds))&(~(r_w)); 
   always @(  posedge clock or  negedge rst)
        begin :vhdl_ds_handle
-        time prop_delay ;
          if (rst==1'b0)
             wr_en <=1'b0;
           else 
@@ -453,7 +446,7 @@ module error_handle (
   input wr_en,
   output relpot,
   output [ST_REG_NUM-1:0] status_reg_034,
-  output [ST_REG_NUM-1:0] status_reg_125,d_bus) ; 
+  output [ST_REG_NUM-1:0] status_reg_125,inout[D_BUS_NUMBER-1:0]d_bus) ; 
    reg [10:0] sr_034 ;  
    reg [10:0] sr_125 ;  
   assign status_reg_034=sr_034[10:0]; 
@@ -461,7 +454,6 @@ module error_handle (
   assign relpot=rel_pot_en; 
   always @(    posedge clock or  negedge rst or  a_fault_dec or  posedge wr_en)
        begin :vhdl_st_reg_wr_034
-        time prop_delay ;
          if ((rst==1'b0)|(a_fault_dec[0]==1'b1&wr_en==1'b1))
             sr_034 <={11{1'b0}};
           else 
@@ -480,7 +472,6 @@ module error_handle (
   
   always @(    posedge clock or  negedge rst or  a_fault_dec or  posedge wr_en)
        begin :vhdl_st_reg_wr_125
-        time prop_delay ;
          if ((rst==1'b0)|(a_fault_dec[1]==1'b1&wr_en==1'b1))
             sr_125 <={11{1'b0}};
           else 
@@ -756,7 +747,7 @@ module in_reg (
   output [REG_BITS-1:0] r_th_125,
   output [SEVEN_BIT-1:0] r_tonh,
   output [SEVEN_BIT-1:0] r_tonl,
-  output [SEVEN_BIT-1:0] r_tp,d_bus) ; 
+  output [SEVEN_BIT-1:0] r_tp,inout[D_BUS_NUMBER-1:0]d_bus) ; 
    reg [REG_BITS-1:0] th_034 ;  
    reg [REG_BITS-1:0] th_125 ;  
    reg [SEVEN_BIT-1:0] t2 ;  
@@ -785,7 +776,6 @@ module in_reg (
   assign r_t4_125=t4_125; 
   always @(  posedge clock or  negedge rst)
        begin :vhdl_in_reg
-        time prop_delay ;
          if (rst==1'b0)
             begin 
               t1 <={EIGHT_BIT{1'b0}};
@@ -955,7 +945,7 @@ module inj_ctrl (
   output [BANKS_NUMBER-1:0] t3,
   output turbo,
   output turbo_speed_lev,
-  output vehicle,d_bus_ext) ; 
+  output vehicle,inout[D_BUS_NUMBER-1:0]d_bus_ext) ; 
    wire [SPLIT_NUMBER-1:0] inj_cmd_034 ;  
    wire i_fbk_034 ;  
    wire [EIGHT_BIT-1:0] r_t1 ;  
@@ -1094,7 +1084,6 @@ module internal_register (
    reg [SEVEN_BIT-1:0] tonl ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_internal_register
-        time prop_delay ;
          if (rst==1'b0)
             begin 
               tb <={TEN_BIT{1'b0}};
@@ -1170,7 +1159,6 @@ module knock_count1 (
    reg [INJ_NUMBER-1:0] int_counter1 ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_knock_store
-        time prop_delay ;
          if (rst==1'b0)
             begin 
               store_trg_knock1 <=1'b0;
@@ -1209,7 +1197,6 @@ module knock_count2 (
    reg [INJ_NUMBER-1:0] int_counter2 ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_knock_store
-        time prop_delay ;
          if (rst==1'b0)
             begin 
               store_trg_knock2 <=1'b0;
@@ -1447,7 +1434,6 @@ module merge_t1 (
   output reg  [INJ_NUMBER-1:0] t1) ; 
   always @(      t1_0 or  t1_1 or  t1_2 or  t1_3 or  t1_4 or  t1_5)
        begin :vhdl_merge_t1
-        time prop_delay ;
          t1 [0]<=(~(t1_0));
          t1 [1]<=(~(t1_1));
          t1 [2]<=(~(t1_2));
@@ -1468,7 +1454,6 @@ module merge_t2 (
   output reg  [INJ_NUMBER-1:0] t2) ; 
   always @(      t2_0 or  t2_1 or  t2_2 or  t2_3 or  t2_4 or  t2_5)
        begin :vhdl_merge_t2
-        time prop_delay ;
          t2 [0]<=t2_0;
          t2 [1]<=t2_1;
          t2 [2]<=t2_2;
@@ -1485,7 +1470,6 @@ module merge_t3 (
   output reg  [BANKS_NUMBER-1:0] t3) ; 
   always @(  t3_034 or  t3_125)
        begin :vhdl_merge_t3
-        time prop_delay ;
          t3 [0]<=(~(t3_034));
          t3 [1]<=(~(t3_125));
        end
@@ -1498,7 +1482,6 @@ module on_comp (
   output reg  end_on) ; 
   always @(  chop_count or  ton_reg)
        begin :vhdl_on_comp
-        time prop_delay ;
          if (chop_count==ton_reg)
             end_on <=1'b1;
           else 
@@ -1519,7 +1502,6 @@ module output_decoder (
   output reg  t2c) ; 
   always @(   cmd_stored or  t1 or  t2)
        begin :vhdl_output_decoder
-        time prop_delay ;
          case (cmd_stored)
           3 'b001:
              begin 
@@ -1568,7 +1550,6 @@ module period_comp (
   output reg  end_period) ; 
   always @(  chop_count or  tp_reg)
        begin :vhdl_period_comp
-        time prop_delay ;
          if (chop_count==tp_reg)
             end_period <=1'b1;
           else 
@@ -1865,7 +1846,7 @@ module registers (
   output [THREE_BIT-1:0] test_en_034,
   output [THREE_BIT-1:0] test_en_125,
   output trg_knock_en,
-  output turbo_speed_lev,d_bus) ; 
+  output turbo_speed_lev,inout[D_BUS_NUMBER-1:0]d_bus) ; 
    wire [THIRTEEN_BIT-1:0] add_decoded ;  
    wire [THIRTEEN_BIT-1:0] add_decoded_r ;  
    wire add_test_en ;  
@@ -2087,7 +2068,6 @@ module sel_cmd (
    reg [2:0] cmd_stored_int ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_sel_cmd
-        time prop_delay ;
          if (rst==1'b0)
             cmd_stored_int <=3'b000;
           else 
@@ -2137,7 +2117,6 @@ module sel_glob_count_cs (
   output reg  cs8) ; 
   always @(    cs11 or  cs111 or  cur_state or  global1_state)
        begin :vhdl_sel_glob_count_cs
-        time prop_delay ;
          if (cur_state==5'b00001)
             begin 
               cs1 <=cs111;
@@ -2198,7 +2177,6 @@ module smot_camme_mux (
   output reg  cam_smot) ; 
   always @(     seg_speed_pickup or  seg_speed_hall or  pickup_hall or  in_speed or  smot_camme_en)
        begin :vhdl_smot_camme_mux
-        time prop_delay ;
          if (smot_camme_en==1'b0)
             cam_smot <=in_speed;
           else 
@@ -2253,7 +2231,6 @@ module split (
  
   always @(   i_fbk_f or  inj_cmd_int or  v_fbk_f)
        begin :vhdl_split
-        time prop_delay ;
          i_fbk_034 <=i_fbk_f[0];
          i_fbk_125 <=i_fbk_f[1];
          inj_cmd_034 [0]<=inj_cmd_int[0];
@@ -2515,7 +2492,6 @@ module test_en (
   output reg  [THREE_BIT-1:0] test_en_125) ; 
   always @(  posedge clock or  negedge rst)
        begin :vhdl_test_en
-        time prop_delay ;
          if (rst==1'b0)
             begin 
               test_en_034 <={THREE_BIT{1'b0}};
@@ -2545,7 +2521,6 @@ module trg_knock1_handle (
   output reg  smot60) ; 
   always @(   in_speed or  trg_knock1 or  trg_knock_en)
        begin :vhdl_trg_knock1_handle
-        time prop_delay ;
          if (trg_knock_en==1'b0)
             begin 
               smot60 <=in_speed|trg_knock1;
