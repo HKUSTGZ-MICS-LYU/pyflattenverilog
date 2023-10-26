@@ -986,7 +986,22 @@ module b15 (
          if (RESET==1'b1)
             begin 
               State2 =Si;
-              InstQueue ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+              InstQueue [0]=8'b0000_0000;
+              InstQueue [1]=8'b0000_0000;
+              InstQueue [2]=8'b0000_0000;
+              InstQueue [3]=8'b0000_0000;
+              InstQueue [4]=8'b0000_0000;
+              InstQueue [5]=8'b0000_0000;
+              InstQueue [6]=8'b0000_0000;
+              InstQueue [7]=8'b0000_0000;
+              InstQueue [8]=8'b0000_0000;
+              InstQueue [9]=8'b0000_0000;
+              InstQueue [10]=8'b0000_0000;
+              InstQueue [11]=8'b0000_0000;
+              InstQueue [12]=8'b0000_0000;
+              InstQueue [13]=8'b0000_0000;
+              InstQueue [14]=8'b0000_0000;
+              InstQueue [15]=8'b0000_0000;
               InstQueueRd_Addr =0;
               InstQueueWr_Addr =0;
               InstAddrPointer =0;

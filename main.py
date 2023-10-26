@@ -4,18 +4,18 @@ import os
 
 # formatted part
 
-path = 'tests/regression/mips/src'
-inputfile = '/top.v'
-outputfile = '/top.v'
-top_module = 'mips_16_core_top' 
-# inputpath = path+inputfile
+path = 'tests/regression/b19'
+inputfile = '/b19.v'
+outputfile = '/pre_b19.v'
+top_module = 'b19' 
+inputpath = path+inputfile
 formatpath = path+outputfile
 
-# if os.path.exists(formatpath):
-#    os.remove(path=formatpath)
-# with open(path+inputfile, 'r') as f:
-#    design = f.read()
-# preprocess.formatter_file(design, formatpath)
+if os.path.exists(formatpath):
+   os.remove(path=formatpath)
+with open(path+inputfile, 'r') as f:
+   design = f.read()
+preprocess.formatter_file(design, formatpath)
 
 # flatten part
 
