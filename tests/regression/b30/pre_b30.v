@@ -123,7 +123,8 @@ module b30 (
   output [BANKS_NUMBER-1:0] t3,
   output turbo,
   output turbo_speed_lev,
-  output vehicle,inout[D_BUS_NUMBER-1:0]d_bus_ext) ; 
+  output vehicle,
+  inout [D_BUS_NUMBER-1:0] d_bus_ext) ; 
   inj_ctrl instance_inj_ctrl(a_bus,clock,cs,digital_input,ds,fbk_pwm,inj_cmd,in_speed,i_fbk,nssm_in,rpm_in,reset,r_w,seg_speed_hall,seg_speed_pickup,trg_knock1,trg_knock2,turbo_speed,vehicle_speed,v_fbk,cam_smot,clock,digital_output,hlo,in_speed_lev,irq,knock1,knock1u,knock2,knock2u,relpot,rpm_out,seg_speed_lev,smot60,t1,t2,t3,turbo,turbo_speed_lev,vehicle,d_bus_ext); 
   rst_inv instance_rst_inv(reset); 
 endmodule
@@ -150,7 +151,8 @@ module chopper_count (
   assign chop_count=int_counter; 
 endmodule
  
-module clock_gen (inoutclock_i,
+module clock_gen (
+  inout clock_i,
   input rst,
   output clock_o) ; 
    reg [3:0] counter ;  
@@ -217,7 +219,9 @@ module d_bus_handle (
   input clock,
   input rd_en,
   input rst,
-  input wr_en,inout[D_BUS_NUMBER-1:0]d_bus,inout[D_BUS_NUMBER-1:0]d_bus_ext) ; 
+  input wr_en,
+  inout [D_BUS_NUMBER-1:0] d_bus,
+  inout [D_BUS_NUMBER-1:0] d_bus_ext) ; 
    reg [D_BUS_NUMBER-1:0] d_bus_int ;  
   assign d_bus=((wr_en==1'b1))?d_bus_int:16'bZZZZZZZZZZZZZZZZ; 
   assign d_bus_ext=((rd_en==1'b1))?d_bus:16'bZZZZZZZZZZZZZZZZ; 
@@ -238,7 +242,9 @@ module d_bus_interface (
   input rst,
   input r_w,
   output rd_en,
-  output wr_en,inout[D_BUS_NUMBER-1:0]d_bus,inout[D_BUS_NUMBER-1:0]d_bus_ext) ; 
+  output wr_en,
+  inout [D_BUS_NUMBER-1:0] d_bus,
+  inout [D_BUS_NUMBER-1:0] d_bus_ext) ; 
    wire rd_en_internal ;  
    wire wr_en_internal ;  
   d_bus_handle instance_d_bus_handle(clock,rd_en_internal,rst,wr_en_internal,d_bus,d_bus_ext); 
@@ -446,7 +452,8 @@ module error_handle (
   input wr_en,
   output relpot,
   output [ST_REG_NUM-1:0] status_reg_034,
-  output [ST_REG_NUM-1:0] status_reg_125,inout[D_BUS_NUMBER-1:0]d_bus) ; 
+  output [ST_REG_NUM-1:0] status_reg_125,
+  inout [D_BUS_NUMBER-1:0] d_bus) ; 
    reg [10:0] sr_034 ;  
    reg [10:0] sr_125 ;  
   assign status_reg_034=sr_034[10:0]; 
@@ -747,7 +754,8 @@ module in_reg (
   output [REG_BITS-1:0] r_th_125,
   output [SEVEN_BIT-1:0] r_tonh,
   output [SEVEN_BIT-1:0] r_tonl,
-  output [SEVEN_BIT-1:0] r_tp,inout[D_BUS_NUMBER-1:0]d_bus) ; 
+  output [SEVEN_BIT-1:0] r_tp,
+  inout [D_BUS_NUMBER-1:0] d_bus) ; 
    reg [REG_BITS-1:0] th_034 ;  
    reg [REG_BITS-1:0] th_125 ;  
    reg [SEVEN_BIT-1:0] t2 ;  
@@ -945,7 +953,8 @@ module inj_ctrl (
   output [BANKS_NUMBER-1:0] t3,
   output turbo,
   output turbo_speed_lev,
-  output vehicle,inout[D_BUS_NUMBER-1:0]d_bus_ext) ; 
+  output vehicle,
+  inout [D_BUS_NUMBER-1:0] d_bus_ext) ; 
    wire [SPLIT_NUMBER-1:0] inj_cmd_034 ;  
    wire i_fbk_034 ;  
    wire [EIGHT_BIT-1:0] r_t1 ;  
@@ -1846,7 +1855,8 @@ module registers (
   output [THREE_BIT-1:0] test_en_034,
   output [THREE_BIT-1:0] test_en_125,
   output trg_knock_en,
-  output turbo_speed_lev,inout[D_BUS_NUMBER-1:0]d_bus) ; 
+  output turbo_speed_lev,
+  inout [D_BUS_NUMBER-1:0] d_bus) ; 
    wire [THIRTEEN_BIT-1:0] add_decoded ;  
    wire [THIRTEEN_BIT-1:0] add_decoded_r ;  
    wire add_test_en ;  

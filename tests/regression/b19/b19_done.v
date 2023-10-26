@@ -105,7 +105,7 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                begin
                   if (IR < 0)
                      IR = -IR;
-                  mf = IR[28:27];
+                  mf = (IR >> 27)[1:0];
                   
                   df = (IR >> 24)[2:0];
                   

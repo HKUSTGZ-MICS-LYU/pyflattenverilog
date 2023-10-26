@@ -260,7 +260,7 @@ def formatter_file(design, outputpath):
                for child in ctx.getChildren():
                # Adjust the indent
                # Port defination
-                  if isinstance(child, VerilogParser.Input_declarationContext) or isinstance(child, VerilogParser.Output_declarationContext):
+                  if isinstance(child, VerilogParser.Input_declarationContext) or isinstance(child, VerilogParser.Output_declarationContext) or isinstance(child, VerilogParser.Inout_declarationContext):
                      for i, item in enumerate(child.getChildren()):
                         if i == 0:
                            item.symbol.text = '#' + ' ' * indent + item.symbol.text
