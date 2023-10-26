@@ -1,7 +1,7 @@
 set_mismatch_message_filter -warn FMR_ELAB-147
-read_verilog -r /home/ziyuezheng/researchlib/pyflattenverilog/tests/regression/b19/b19.v
+read_verilog -r /home/meng/Code/pyflattenverilog/tests/regression/b19/b19_temp.v
 set_top b19
-read_verilog -i /home/ziyuezheng/researchlib/pyflattenverilog/tests/regression/b19/b19_flatten.v
+read_verilog -i /home/meng/Code/pyflattenverilog/tests/regression/b19/b19.v
 set_top b19
 verify
 exit
