@@ -26,10 +26,9 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
    output        wr;
    reg           wr;
    
+
    
-   
-   always @(posedge clock or posedge reset)
-   begin: xhdl0
+
       
       integer       reg0;
       integer       reg1;
@@ -58,9 +57,22 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
       integer       temp;
       reg [1:0]     s;
       
+      wire     [32:0]  tmp1;
+      assign   tmp1 = tail + reg1;
+      wire     [32:0]   tmp2;
+      assign   tmp2 = tail + reg2;
+      wire     [32:0]   tmp3;
+      assign   tmp3 = r + m;
+      wire     [32:0]   tmp4;
+      assign   tmp4 = r - m;
+
+
+
       parameter     FETCH = 0;
       parameter     EXEC = 1;
-      
+         
+   always @(posedge clock or posedge reset)
+      begin: xhdl0
       if (reset == 1'b1)
       begin
          MAR = 0;
@@ -140,13 +152,13 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                                  end
                               2 :
                                  begin
-                                    addr <= (tail + reg1)[19:0];
+                                    addr <= tmp1[19:0];
                                     rd <= 1'b1;
                                     m = datai;
                                  end
                               3 :
                                  begin
-                                    addr <= (tail + reg2)[19:0];
+                                    addr <= tmp2[19:0];
                                     rd <= 1'b1;
                                     m = datai;
                                  end
@@ -285,13 +297,13 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                                           end
                                        2 :
                                           begin
-                                             addr <= (tail + reg1)[19:0];
+                                             addr <= tmp1[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                        3 :
                                           begin
-                                             addr <= (tail + reg2)[19:0];
+                                             addr <= tmp2[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
@@ -323,13 +335,13 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                                           end
                                        2 :
                                           begin
-                                             addr <= (tail + reg1)[19:0];
+                                             addr <= tmp1[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                        3 :
                                           begin
-                                             addr <= (tail + reg2)[19:0];
+                                             addr <= tmp2[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
@@ -350,13 +362,13 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                                           end
                                        2 :
                                           begin
-                                             addr <= (tail + reg1)[19:0];
+                                             addr <= tmp1[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                        3 :
                                           begin
-                                             addr <= (tail + reg2)[19:0];
+                                             addr <= tmp2[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
@@ -387,13 +399,13 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                                           end
                                        2 :
                                           begin
-                                             addr <= (tail + reg1)[19:0];
+                                             addr <= tmp1[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                        3 :
                                           begin
-                                             addr <= (tail + reg2)[19:0];
+                                             addr <= tmp2[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
@@ -424,26 +436,26 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                                           end
                                        2 :
                                           begin
-                                             addr <= (tail + reg1)[19:0];
+                                             addr <= tmp1[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                        3 :
                                           begin
-                                             addr <= (tail + reg2)[19:0];
+                                             addr <= tmp2[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                     endcase
                                     case (d)
                                        0 :
-                                          reg0 = (r + m)[29:0];
+                                          reg0 = tmp3[29:0];
                                        1 :
-                                          reg1 = (r + m)[29:0];
+                                          reg1 = tmp3[29:0];
                                        2 :
-                                          reg2 = (r + m)[29:0];
+                                          reg2 = tmp3[29:0];
                                        3 :
-                                          reg3 = (r + m)[29:0];
+                                          reg3 = tmp3[29:0];
                                        default :
                                           ;
                                     endcase
@@ -461,26 +473,26 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                                           end
                                        2 :
                                           begin
-                                             addr <= (tail + reg1)[19:0];
+                                             addr <= tmp1[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                        3 :
                                           begin
-                                             addr <= (tail + reg2)[19:0];
+                                             addr <= tmp2[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                     endcase
                                     case (d)
                                        0 :
-                                          reg0 = (r + m)[29:0];
+                                          reg0 = tmp3[29:0];
                                        1 :
-                                          reg1 = (r + m)[29:0];
+                                          reg1 = tmp3[29:0];
                                        2 :
-                                          reg2 = (r + m)[29:0];
+                                          reg2 = tmp3[29:0];
                                        3 :
-                                          reg3 = (r + m)[29:0];
+                                          reg3 = tmp3[29:0];
                                        default :
                                           ;
                                     endcase
@@ -498,26 +510,26 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                                           end
                                        2 :
                                           begin
-                                             addr <= (tail + reg1)[19:0];
+                                             addr <= tmp1[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                        3 :
                                           begin
-                                             addr <= (tail + reg2)[19:0];
+                                             addr <= tmp2[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                     endcase
                                     case (d)
                                        0 :
-                                          reg0 = (r - m)[29:0];
+                                          reg0 = tmp4[29:0];
                                        1 :
-                                          reg1 = (r - m)[29:0];
+                                          reg1 = tmp4[29:0];
                                        2 :
-                                          reg2 = (r - m)[29:0];
+                                          reg2 = tmp4[29:0];
                                        3 :
-                                          reg3 = (r - m)[29:0];
+                                          reg3 = tmp4[29:0];
                                        default :
                                           ;
                                     endcase
@@ -535,26 +547,26 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                                           end
                                        2 :
                                           begin
-                                             addr <= (tail + reg1)[19:0];
+                                             addr <= tmp1[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                        3 :
                                           begin
-                                             addr <= (tail + reg2)[19:0];
+                                             addr <= tmp2[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                     endcase
                                     case (d)
                                        0 :
-                                          reg0 = (r - m)[29:0];
+                                          reg0 = tmp4[29:0];
                                        1 :
-                                          reg1 = (r - m)[29:0];
+                                          reg1 = tmp4[29:0];
                                        2 :
-                                          reg2 = (r - m)[29:0];
+                                          reg2 = tmp4[29:0];
                                        3 :
-                                          reg3 = (r - m)[29:0];
+                                          reg3 = tmp4[29:0];
                                        default :
                                           ;
                                     endcase
@@ -572,26 +584,26 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                                           end
                                        2 :
                                           begin
-                                             addr <= (tail + reg1)[19:0];
+                                             addr <= tmp1[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                        3 :
                                           begin
-                                             addr <= (tail + reg2)[19:0];
+                                             addr <= tmp2[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                     endcase
                                     case (d)
                                        0 :
-                                          reg0 = (r + m)[29:0];
+                                          reg0 = tmp3[29:0];
                                        1 :
-                                          reg1 = (r + m)[29:0];
+                                          reg1 = tmp3[29:0];
                                        2 :
-                                          reg2 = (r + m)[29:0];
+                                          reg2 = tmp3[29:0];
                                        3 :
-                                          reg3 = (r + m)[29:0];
+                                          reg3 = tmp3[29:0];
                                        default :
                                           ;
                                     endcase
@@ -609,26 +621,26 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                                           end
                                        2 :
                                           begin
-                                             addr <= (tail + reg1)[19:0];
+                                             addr <= tmp1[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                        3 :
                                           begin
-                                             addr <= (tail + reg2)[19:0];
+                                             addr <= tmp2[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                     endcase
                                     case (d)
                                        0 :
-                                          reg0 = (r - m)[29:0];
+                                          reg0 = tmp4[29:0];
                                        1 :
-                                          reg1 = (r - m)[29:0];
+                                          reg1 = tmp4[29:0];
                                        2 :
-                                          reg2 = (r - m)[29:0];
+                                          reg2 = tmp4[29:0];
                                        3 :
-                                          reg3 = (r - m)[29:0];
+                                          reg3 = tmp4[29:0];
                                        default :
                                           ;
                                     endcase
@@ -646,26 +658,26 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                                           end
                                        2 :
                                           begin
-                                             addr <= (tail + reg1)[19:0];
+                                             addr <= tmp1[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                        3 :
                                           begin
-                                             addr <= (tail + reg2)[19:0];
+                                             addr <= tmp2[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                     endcase
                                     case (d)
                                        0 :
-                                          reg0 = (r + m)[29:0];
+                                          reg0 = tmp3[29:0];
                                        1 :
-                                          reg1 = (r + m)[29:0];
+                                          reg1 = tmp3[29:0];
                                        2 :
-                                          reg2 = (r + m)[29:0];
+                                          reg2 = tmp3[29:0];
                                        3 :
-                                          reg3 = (r + m)[29:0];
+                                          reg3 = tmp3[29:0];
                                        default :
                                           ;
                                     endcase
@@ -683,26 +695,26 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
                                           end
                                        2 :
                                           begin
-                                             addr <= (tail + reg1)[19:0];
+                                             addr <= tmp1[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                        3 :
                                           begin
-                                             addr <= (tail + reg2)[19:0];
+                                             addr <= tmp2[19:0];
                                              rd <= 1'b1;
                                              m = datai;
                                           end
                                     endcase
                                     case (d)
                                        0 :
-                                          reg0 = (r - m)[29:0];
+                                          reg0 = tmp4[29:0];
                                        1 :
-                                          reg1 = (r - m)[29:0];
+                                          reg1 = tmp4[29:0];
                                        2 :
-                                          reg2 = (r - m)[29:0];
+                                          reg2 = tmp4[29:0];
                                        3 :
-                                          reg3 = (r - m)[29:0];
+                                          reg3 = tmp4[29:0];
                                        default :
                                           ;
                                     endcase
@@ -1113,15 +1125,15 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                begin
                   RequestPending <= NotPending;
                   InstQueue[InstQueueWr_Addr] = Datai[7:0];
-                  InstQueueWr_Addr = (InstQueueWr_Addr + 1)[3:0];
+                  InstQueueWr_Addr = InstQueueWr_Addr [3:0]+ 1;
                   InstQueue[InstQueueWr_Addr] = Datai[7:0];
-                  InstQueueWr_Addr = (InstQueueWr_Addr + 1)[3:0];
+                  InstQueueWr_Addr = InstQueueWr_Addr [3:0]+ 1;
                   if (StateBS16 == 1'b1)
                   begin
                      InstQueue[InstQueueWr_Addr] = Datai[23:16];
-                     InstQueueWr_Addr = (InstQueueWr_Addr + 1)[3:0];
+                     InstQueueWr_Addr = InstQueueWr_Addr [3:0]+ 1;
                      InstQueue[InstQueueWr_Addr] = Datai[23:16];
-                     InstQueueWr_Addr = (InstQueueWr_Addr + 1)[3:0];
+                     InstQueueWr_Addr = InstQueueWr_Addr [3:0]+ 1;
                      PhyAddrPointer = PhyAddrPointer + 4;
                      State2 = S5;
                   end
@@ -1147,9 +1159,9 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                begin
                   RequestPending <= NotPending;
                   InstQueue[InstQueueWr_Addr] = Datai[7:0];
-                  InstQueueWr_Addr = (InstQueueWr_Addr + 1)[3:0];
+                  InstQueueWr_Addr = InstQueueWr_Addr [3:0]+ 1;
                   InstQueue[InstQueueWr_Addr] = Datai[7:0];
-                  InstQueueWr_Addr = (InstQueueWr_Addr + 1)[3:0];
+                  InstQueueWr_Addr = InstQueueWr_Addr [3:0]+ 1;
                   PhyAddrPointer = PhyAddrPointer + 2;
                   State2 = S5;
                end
@@ -1159,14 +1171,14 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                      NOP :
                         begin
                            InstAddrPointer = InstAddrPointer + 1;
-                           InstQueueRd_Addr = (InstQueueRd_Addr + 1)[3:0];
+                           InstQueueRd_Addr = InstQueueRd_Addr [3:0]+ 1;
                            Flush = 1'b0;
                            More = 1'b0;
                         end
                      OPsop :
                         begin
                            InstAddrPointer = InstAddrPointer + 1;
-                           InstQueueRd_Addr = (InstQueueRd_Addr + 1)[3:0];
+                           InstQueueRd_Addr = InstQueueRd_Addr [3:0]+ 1;
                            Extended = 1'b1;
                            Flush = 1'b0;
                            More = 1'b0;
@@ -1174,14 +1186,14 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                      JMP_rel_short :
                         if ((InstQueueWr_Addr - InstQueueRd_Addr) >= 3)
                         begin
-                           if (InstQueue[(InstQueueRd_Addr + 1)[3:0]] > 127)
+                           if (InstQueue[InstQueueRd_Addr [3:0]+ 1] > 127)
                            begin
-                              PhyAddrPointer = InstAddrPointer + 1 - (8'hFF - InstQueue[(InstQueueRd_Addr + 1)[3:0]]);
+                              PhyAddrPointer = InstAddrPointer + 1 - (8'hFF - InstQueue[InstQueueRd_Addr [3:0]+ 1]);
                               InstAddrPointer = PhyAddrPointer;
                            end
                            else
                            begin
-                              PhyAddrPointer = InstAddrPointer + 2 + InstQueue[(InstQueueRd_Addr + 1)[3:0]];
+                              PhyAddrPointer = InstAddrPointer + 2 + InstQueue[InstQueueRd_Addr [3:0]+ 1];
                               InstAddrPointer = PhyAddrPointer;
                            end
                            Flush = 1'b1;
@@ -1195,7 +1207,7 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                      JMP_rel_near :
                         if ((InstQueueWr_Addr - InstQueueRd_Addr) >= 5)
                         begin
-                           PhyAddrPointer = InstAddrPointer + 5 + InstQueue[(InstQueueRd_Addr + 1)[3:0]];
+                           PhyAddrPointer = InstAddrPointer + 5 + InstQueue[InstQueueRd_Addr [3:0]+ 1];
                            InstAddrPointer = PhyAddrPointer;
                            Flush = 1'b1;
                            More = 1'b0;
@@ -1208,25 +1220,25 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                      JMP_intseg_immed :
                         begin
                            InstAddrPointer = InstAddrPointer + 1;
-                           InstQueueRd_Addr = (InstQueueRd_Addr + 1)[3:0];
+                           InstQueueRd_Addr = InstQueueRd_Addr [3:0]+ 1;
                            Flush = 1'b0;
                            More = 1'b0;
                         end
                      MOV_al_b :
                         begin
                            InstAddrPointer = InstAddrPointer + 1;
-                           InstQueueRd_Addr = (InstQueueRd_Addr + 1)[3:0];
+                           InstQueueRd_Addr = InstQueueRd_Addr [3:0]+ 1;
                            Flush = 1'b0;
                            More = 1'b0;
                         end
                      MOV_eax_dw :
                         if ((InstQueueWr_Addr - InstQueueRd_Addr) >= 5)
                         begin
-                           EAX <= InstQueue[(InstQueueRd_Addr + 4)[3:0]] * (2 ** 23) + InstQueue[(InstQueueRd_Addr + 3)[3:0]] * (2 ** 16) + InstQueue[(InstQueueRd_Addr + 2)[3:0]] * (2 ** 8) + InstQueue[(InstQueueRd_Addr + 1)[3:0]];
+                           EAX <= InstQueue[InstQueueRd_Addr[3:0] + 4] * (2 ** 23) + InstQueue[InstQueueRd_Addr[3:0] + 3] * (2 ** 16) + InstQueue[InstQueueRd_Addr[3:0] + 2] * (2 ** 8) + InstQueue[InstQueueRd_Addr [3:0]+ 1];
                            More = 1'b0;
                            Flush = 1'b0;
                            InstAddrPointer = InstAddrPointer + 5;
-                           InstQueueRd_Addr = (InstQueueRd_Addr + 5)[3:0];
+                           InstQueueRd_Addr = InstQueueRd_Addr[3:0] + 5;
                         end
                         else
                         begin
@@ -1236,11 +1248,11 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                      MOV_ebx_dw :
                         if ((InstQueueWr_Addr - InstQueueRd_Addr) >= 5)
                         begin
-                           EBX <= InstQueue[(InstQueueRd_Addr + 4)[3:0]] * (2 ** 23) + InstQueue[(InstQueueRd_Addr + 3)[3:0]] * (2 ** 16) + InstQueue[(InstQueueRd_Addr + 2)[3:0]] * (2 ** 8) ; // + InstQueue[(InstQueueRd_Addr + 1) % 1]
+                           EBX <= InstQueue[InstQueueRd_Addr[3:0] + 4] * (2 ** 23) + InstQueue[InstQueueRd_Addr[3:0] + 3] * (2 ** 16) + InstQueue[InstQueueRd_Addr[3:0] + 2] * (2 ** 8) ; // + InstQueue[(InstQueueRd_Addr + 1) % 1]
                            More = 1'b0;
                            Flush = 1'b0;
                            InstAddrPointer = InstAddrPointer + 5;
-                           InstQueueRd_Addr = (InstQueueRd_Addr + 5)[3:0];
+                           InstQueueRd_Addr = InstQueueRd_Addr[3:0] + 5;
                         end
                         else
                         begin
@@ -1280,7 +1292,7 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                                  More = 1'b0;
                                  Flush = 1'b0;
                                  InstAddrPointer = InstAddrPointer + 2;
-                                 InstQueueRd_Addr = (InstQueueRd_Addr + 2)[3:0];
+                                 InstQueueRd_Addr = InstQueueRd_Addr[3:0] + 2;
                               end
                            end
                         end
@@ -1320,7 +1332,7 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                                  More = 1'b0;
                                  Flush = 1'b0;
                                  InstAddrPointer = InstAddrPointer + 2;
-                                 InstQueueRd_Addr = (InstQueueRd_Addr + 2)[3:0];
+                                 InstQueueRd_Addr = InstQueueRd_Addr[3:0] + 2;
                               end
                            end
                         end
@@ -1368,7 +1380,7 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                               begin
                                  RequestPending <= NotPending;
                                  InstAddrPointer = InstAddrPointer + 2;
-                                 InstQueueRd_Addr = (InstQueueRd_Addr + 2)[3:0];
+                                 InstQueueRd_Addr = InstQueueRd_Addr[3:0] + 2;
                                  Flush = 1'b0;
                                  More = 1'b0;
                               end
@@ -1382,28 +1394,28 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                      ADD_al_b :
                         begin
                            InstAddrPointer = InstAddrPointer + 1;
-                           InstQueueRd_Addr = (InstQueueRd_Addr + 1)[3:0];
+                           InstQueueRd_Addr = InstQueueRd_Addr [3:0]+ 1;
                            Flush = 1'b0;
                            More = 1'b0;
                         end
                      ADD_ax_w :
                         begin
                            InstAddrPointer = InstAddrPointer + 1;
-                           InstQueueRd_Addr = (InstQueueRd_Addr + 1)[3:0];
+                           InstQueueRd_Addr = InstQueueRd_Addr [3:0]+ 1;
                            Flush = 1'b0;
                            More = 1'b0;
                         end
                      ROL_al_1 :
                         begin
                            InstAddrPointer = InstAddrPointer + 2;
-                           InstQueueRd_Addr = (InstQueueRd_Addr + 2)[3:0];
+                           InstQueueRd_Addr = InstQueueRd_Addr[3:0] + 2;
                            Flush = 1'b0;
                            More = 1'b0;
                         end
                      ROL_al_n :
                         begin
                            InstAddrPointer = InstAddrPointer + 2;
-                           InstQueueRd_Addr = (InstQueueRd_Addr + 2)[3:0];
+                           InstQueueRd_Addr = InstQueueRd_Addr[3:0] + 2;
                            Flush = 1'b0;
                            More = 1'b0;
                         end
@@ -1411,7 +1423,7 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                         begin
                            EAX <= EAX + 1;
                            InstAddrPointer = InstAddrPointer + 1;
-                           InstQueueRd_Addr = (InstQueueRd_Addr + 1)[3:0];
+                           InstQueueRd_Addr = InstQueueRd_Addr [3:0]+ 1;
                            Flush = 1'b0;
                            More = 1'b0;
                         end
@@ -1419,14 +1431,14 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                         begin
                            EBX <= EBX + 1;
                            InstAddrPointer = InstAddrPointer + 1;
-                           InstQueueRd_Addr = (InstQueueRd_Addr + 1)[3:0];
+                           InstQueueRd_Addr = InstQueueRd_Addr [3:0]+ 1;
                            Flush = 1'b0;
                            More = 1'b0;
                         end
                      default :
                         begin
                            InstAddrPointer = InstAddrPointer + 1;
-                           InstQueueRd_Addr = (InstQueueRd_Addr + 1)[3:0];
+                           InstQueueRd_Addr = InstQueueRd_Addr [3:0]+ 1;
                            Flush = 1'b0;
                            More = 1'b0;
                         end
@@ -1458,7 +1470,7 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                         fWord = InstAddrPointer;
                      
                      if (fWord[0] == 1)
-                        InstQueueRd_Addr = (InstQueueRd_Addr + fWord [1:0])[3:0];
+                        InstQueueRd_Addr = InstQueueRd_Addr[3:0] + fWord [1:0];
                   end
                   if ((InstQueueLimit - InstQueueRd_Addr) < 3)
                   begin
@@ -1473,8 +1485,8 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
                if (InstQueueRd_Addr <= InstQueueLimit)
                begin
                   InstQueue[InstQueueWr_Addr] = InstQueue[InstQueueRd_Addr];
-                  InstQueueRd_Addr = (InstQueueRd_Addr + 1)[3:0];
-                  InstQueueWr_Addr = (InstQueueWr_Addr + 1)[3:0];
+                  InstQueueRd_Addr = InstQueueRd_Addr [3:0]+ 1;
+                  InstQueueWr_Addr = InstQueueWr_Addr [3:0]+ 1;
                   State2 = S8;
                end
                else
@@ -1818,6 +1830,10 @@ module b18(clock, reset, hold, na, bs, sel, dout, din, aux);
    wire          rd3;
    wire          rd4;
    
+   wire     [32:0]   tmp5;
+   assign   tmp5 = tad3 * tad4;
+   wire     [32:0]   tmp6;
+   assign   tmp6 = tad1 * tad2;
    
    b17 P1(clock, reset, di1, do1, hold, na, bs, ad11, ad12, wr1, dc1, mio1, as11, as12, r11, r12);
    
@@ -1853,7 +1869,7 @@ module b18(clock, reset, hold, na, bs, sel, dout, din, aux);
          tad2 <= ad21;
       else
          tad2 <= ad22;
-      dout <= (tad3 * tad4)[18:0];
+      dout <= tmp5[18:0];
       if (sel == 1'b0)
       begin
          td1 <= 0;
@@ -1866,7 +1882,7 @@ module b18(clock, reset, hold, na, bs, sel, dout, din, aux);
       end
       di1 <= do4 * td1;
       di2 <= do3 * td2;
-      aux <= (tad1 * tad2)[2:0];
+      aux <= tmp6[2:0];
    end
    
 endmodule
@@ -1938,7 +1954,7 @@ module b19(clock, reset, bs, na, hold, in1, in2, in3, ris);
       if (sel1 == 1'b0 & sel2 == 1'b1)
       begin
          di1 <= in1 >> 1;
-         di2 <= in >> 4;
+         di2 <= in2 >> 4;
       end
       else
       begin

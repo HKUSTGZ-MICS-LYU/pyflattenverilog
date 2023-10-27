@@ -1,17 +1,17 @@
 module add_dec (
-  input [A_BUS_NUMBER-1:0] a_bus,
+  input [6-1:0] a_bus,
   input clock,
   input rst,
-  output reg  [THIRTEEN_BIT-1:0] add_decoded,
-  output [THIRTEEN_BIT-1:0] add_decoded_r,
+  output reg  [13-1:0] add_decoded,
+  output [13-1:0] add_decoded_r,
   output reg  add_test_en,
-  output [BANKS_NUMBER-1:0] a_dig_in,
+  output [2-1:0] a_dig_in,
   output reg  a_dig_out,
-  output reg  [TWO_BIT-1:0] a_fault_dec,
-  output [TWO_BIT-1:0] a_fault_dec_r) ; 
-   wire [THIRTEEN_BIT-1:0] add_decoded_int ;  
-   wire [TWO_BIT-1:0] a_fault_dec_int ;  
-   wire [BANKS_NUMBER-1:0] a_dig_in_int ;  
+  output reg  [2-1:0] a_fault_dec,
+  output [2-1:0] a_fault_dec_r) ; 
+   wire [13-1:0] add_decoded_int ;  
+   wire [2-1:0] a_fault_dec_int ;  
+   wire [2-1:0] a_dig_in_int ;  
    wire a_dig_out_int ;  
    wire add_test_en_int ;  
    wire [4:0] not_a_bus ;  
@@ -19,8 +19,8 @@ module add_dec (
        begin :vhdl_add_dec
          if (rst==1'b0)
             begin 
-              add_decoded <={THIRTEEN_BIT{1'b0}};
-              a_fault_dec <={TWO_BIT{1'b0}};
+              add_decoded <={13{1'b0}};
+              a_fault_dec <={2{1'b0}};
               a_dig_out <=1'b0;
               add_test_en <=1'b0;
             end 
@@ -85,16 +85,16 @@ module anti_glitch (
 endmodule
  
 module b30 (
-  input [A_BUS_NUMBER-1:0] a_bus,
+  input [6-1:0] a_bus,
   input clock,
   input cs,
-  input [TWENTYONE_BIT-1:0] digital_input,
+  input [21-1:0] digital_input,
   input ds,
-  input [SPLIT_NUMBER-1:0] fbk_pwm,
-  input [INJ_NUMBER-1:0] inj_cmd,
+  input [3-1:0] fbk_pwm,
+  input [6-1:0] inj_cmd,
   input in_speed,
-  input [BANKS_NUMBER-1:0] i_fbk,
-  input [SEVEN_BIT-1:0] nssm_in,
+  input [2-1:0] i_fbk,
+  input [7-1:0] nssm_in,
   input reset,
   input rpm_in,
   input r_w,
@@ -104,27 +104,27 @@ module b30 (
   input trg_knock2,
   input turbo_speed,
   input vehicle_speed,
-  input [INJ_NUMBER-1:0] v_fbk,
+  input [6-1:0] v_fbk,
   output cam_smot,
   output [7:0] digital_output,
-  output [BANKS_NUMBER-1:0] hlo,
+  output [2-1:0] hlo,
   output in_speed_lev,
   output irq,
-  output [BANKS_NUMBER-1:0] knock1,
+  output [2-1:0] knock1,
   output knock1u,
-  output [BANKS_NUMBER-1:0] knock2,
+  output [2-1:0] knock2,
   output knock2u,
   output relpot,
   output rpm_out,
   output seg_speed_lev,
   output smot60,
-  output [INJ_NUMBER-1:0] t1,
-  output [INJ_NUMBER-1:0] t2,
-  output [BANKS_NUMBER-1:0] t3,
+  output [6-1:0] t1,
+  output [6-1:0] t2,
+  output [2-1:0] t3,
   output turbo,
   output turbo_speed_lev,
   output vehicle,
-  inout [D_BUS_NUMBER-1:0] d_bus_ext) ; 
+  inout [16-1:0] d_bus_ext) ; 
   inj_ctrl instance_inj_ctrl(a_bus,clock,cs,digital_input,ds,fbk_pwm,inj_cmd,in_speed,i_fbk,nssm_in,rpm_in,reset,r_w,seg_speed_hall,seg_speed_pickup,trg_knock1,trg_knock2,turbo_speed,vehicle_speed,v_fbk,cam_smot,clock,digital_output,hlo,in_speed_lev,irq,knock1,knock1u,knock2,knock2u,relpot,rpm_out,seg_speed_lev,smot60,t1,t2,t3,turbo,turbo_speed_lev,vehicle,d_bus_ext); 
   rst_inv instance_rst_inv(reset); 
 endmodule
@@ -133,16 +133,16 @@ module chopper_count (
   input clock,
   input cs4,
   input rst,
-  output [SEVEN_BIT-1:0] chop_count) ; 
-   reg [SEVEN_BIT-1:0] int_counter ;  
+  output [7-1:0] chop_count) ; 
+   reg [7-1:0] int_counter ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_chopper_count
          if (rst==1'b0)
-            int_counter <={SEVEN_BIT{1'b0}};
+            int_counter <={7{1'b0}};
           else 
             begin 
               if (cs4==1'b1)
-                 int_counter <={SEVEN_BIT{1'b0}};
+                 int_counter <={7{1'b0}};
                else 
                  int_counter <=int_counter+7'b0000001;
             end 
@@ -180,8 +180,8 @@ module clock_gen (
 endmodule
  
 module comparator (
-  input [REG_BITS-1:0] count,
-  input [REG_BITS-1:0] stop_count_bus,
+  input [12-1:0] count,
+  input [12-1:0] stop_count_bus,
   output reg  comp) ; 
   always @(  count or  stop_count_bus)
        begin :vhdl_comparator
@@ -197,16 +197,16 @@ module counter (
   input clock,
   input cs1,
   input rst,
-  output [REG_BITS-1:0] count) ; 
-   reg [REG_BITS-1:0] int_counter ;  
+  output [12-1:0] count) ; 
+   reg [12-1:0] int_counter ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_counter
          if (rst==1'b0)
-            int_counter <={REG_BITS{1'b0}};
+            int_counter <={12{1'b0}};
           else 
             begin 
               if (cs1==1'b1)
-                 int_counter <={REG_BITS{1'b0}};
+                 int_counter <={12{1'b0}};
                else 
                  int_counter <=int_counter+11'b00000000001;
             end 
@@ -220,15 +220,15 @@ module d_bus_handle (
   input rd_en,
   input rst,
   input wr_en,
-  inout [D_BUS_NUMBER-1:0] d_bus,
-  inout [D_BUS_NUMBER-1:0] d_bus_ext) ; 
-   reg [D_BUS_NUMBER-1:0] d_bus_int ;  
+  inout [16-1:0] d_bus,
+  inout [16-1:0] d_bus_ext) ; 
+   reg [16-1:0] d_bus_int ;  
   assign d_bus=((wr_en==1'b1))?d_bus_int:16'bZZZZZZZZZZZZZZZZ; 
   assign d_bus_ext=((rd_en==1'b1))?d_bus:16'bZZZZZZZZZZZZZZZZ; 
   always @(  posedge clock or  negedge rst)
        begin :vhdl_d_bus_handle
          if (rst==1'b0)
-            d_bus_int <={D_BUS_NUMBER{1'b0}};
+            d_bus_int <={16{1'b0}};
           else 
             d_bus_int <=d_bus_ext;
        end
@@ -243,8 +243,8 @@ module d_bus_interface (
   input r_w,
   output rd_en,
   output wr_en,
-  inout [D_BUS_NUMBER-1:0] d_bus,
-  inout [D_BUS_NUMBER-1:0] d_bus_ext) ; 
+  inout [16-1:0] d_bus,
+  inout [16-1:0] d_bus_ext) ; 
    wire rd_en_internal ;  
    wire wr_en_internal ;  
   d_bus_handle instance_d_bus_handle(clock,rd_en_internal,rst,wr_en_internal,d_bus,d_bus_ext); 
@@ -254,14 +254,14 @@ module d_bus_interface (
 endmodule
  
 module digital_inputs_handle (
-  input [BANKS_NUMBER-1:0] a_dig_in,
+  input [2-1:0] a_dig_in,
   input clock,
-  input [TWENTYONE_BIT-1:0] digital_input,
-  input [SPLIT_NUMBER-1:0] fbk_pwm,
-  input [SEVEN_BIT-1:0] nssm_in,
+  input [21-1:0] digital_input,
+  input [3-1:0] fbk_pwm,
+  input [7-1:0] nssm_in,
   input rd_en,
   input rst,
-  output [D_BUS_NUMBER-1:0] d_bus) ; 
+  output [16-1:0] d_bus) ; 
    reg [31:0] store_digital_input ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_digital_inputs_handle
@@ -282,7 +282,7 @@ endmodule
 module digital_outputs_handle (
   input a_dig_out,
   input clock,
-  input [D_BUS_NUMBER-1:0] d_bus,
+  input [16-1:0] d_bus,
   input rst,
   input wr_en,
   output [7:0] digital_output,
@@ -378,15 +378,15 @@ endmodule
  
 module enable_fbk_chk (
   input clock,
-  input [GLOB_STATE_BITS-1:0] global_state,
+  input [7-1:0] global_state,
   input rst,
   input test_en_cur,
   output reg  enable_check,
   output reg  en_fbk_store,
   output reg  en_state_store,
-  output [GLOB_STATE_BITS-1:0] global_state_store) ; 
+  output [7-1:0] global_state_store) ; 
    reg [6:0] global_state_store_int ;  
-   reg [THREE_BIT-1:0] delay_counter ;  
+   reg [3-1:0] delay_counter ;  
   always @(  posedge clock or  negedge rst)
        if (rst==1'b0)
           global_state_store_int <=7'b0000000;
@@ -435,25 +435,25 @@ module enable_fbk_chk (
 endmodule
  
 module error_handle (
-  input [TWO_BIT-1:0] a_fault_dec,
-  input [TWO_BIT-1:0] a_fault_dec_r,
+  input [2-1:0] a_fault_dec,
+  input [2-1:0] a_fault_dec_r,
   input clock,
   input en_fbk_store_034,
   input en_fbk_store_125,
   input en_state_store_034,
   input en_state_store_125,
-  input [GLOB_STATE_BITS-1:0] global_state_034,
-  input [GLOB_STATE_BITS-1:0] global_state_125,
-  input [BANKS_NUMBER-1:0] i_fbk_f,
+  input [7-1:0] global_state_034,
+  input [7-1:0] global_state_125,
+  input [2-1:0] i_fbk_f,
   input rd_en,
   input rel_pot_en,
   input rst,
-  input [INJ_NUMBER-1:0] v_fbk_f,
+  input [6-1:0] v_fbk_f,
   input wr_en,
   output relpot,
-  output [ST_REG_NUM-1:0] status_reg_034,
-  output [ST_REG_NUM-1:0] status_reg_125,
-  inout [D_BUS_NUMBER-1:0] d_bus) ; 
+  output [11-1:0] status_reg_034,
+  output [11-1:0] status_reg_125,
+  inout [16-1:0] d_bus) ; 
    reg [10:0] sr_034 ;  
    reg [10:0] sr_125 ;  
   assign status_reg_034=sr_034[10:0]; 
@@ -598,11 +598,11 @@ endmodule
  
 module filter_feedback (
   input clock,
-  input [BANKS_NUMBER-1:0] i_fbk,
+  input [2-1:0] i_fbk,
   input rst,
-  input [INJ_NUMBER-1:0] v_fbk,
-  output [BANKS_NUMBER-1:0] i_fbk_f,
-  output [INJ_NUMBER-1:0] v_fbk_f) ; 
+  input [6-1:0] v_fbk,
+  output [2-1:0] i_fbk_f,
+  output [6-1:0] v_fbk_f) ; 
    wire v_fbk_0 ;  
    wire v_fbk_f0 ;  
    wire v_fbk_1 ;  
@@ -640,22 +640,22 @@ endmodule
  
 module fsm (
   input clock,
-  input [SPLIT_NUMBER-1:0] cmd_stored,
+  input [3-1:0] cmd_stored,
   input comp,
   input end_on,
   input end_period,
   input end_t0,
-  input [SPLIT_NUMBER-1:0] inj_cmd,
+  input [3-1:0] inj_cmd,
   input i_fbk,
   input rst,
   input sh_mode,
-  input [ST_REG_NUM-1:0] status_reg,
+  input [11-1:0] status_reg,
   input t4_0,
   input test_en_cur,
   input th_0,
   input v_fbk_cur,
-  input [SPLIT_NUMBER-1:0] v_fbk_mask,
-  output [FOUR_BIT-1:0] cs0,
+  input [3-1:0] v_fbk_mask,
+  output [4-1:0] cs0,
   output cs1,
   output cs2,
   output cs4,
@@ -663,23 +663,23 @@ module fsm (
   output en_fbk_store,
   output en_state_store,
   output error,
-  output [GLOB_STATE_BITS-1:0] global_state_store,
+  output [7-1:0] global_state_store,
   output hl,
   output relpot,
   output t1,
   output t2,
   output t3) ; 
-   wire [GLOB_STATE_BITS-1:0] global_state ;  
+   wire [7-1:0] global_state ;  
    wire enable_check ;  
-   wire [FIVE_BIT-1:0] cur_state ;  
+   wire [5-1:0] cur_state ;  
    wire cs11 ;  
    wire global1_state ;  
    wire cs111 ;  
    wire t31 ;  
-   wire [TWO_BIT-1:0] global2_state ;  
+   wire [2-1:0] global2_state ;  
    wire cs42 ;  
    wire t12 ;  
-   wire [TWO_BIT-1:0] global4_state ;  
+   wire [2-1:0] global4_state ;  
    wire cs44 ;  
    wire t14 ;  
    wire en_fbk_store_internal ;  
@@ -700,9 +700,9 @@ module fsm (
 endmodule
  
 module fsm_output_handle (
-  input [FIVE_BIT-1:0] cur_state,
+  input [5-1:0] cur_state,
   input en_fbk_store,
-  output [FOUR_BIT-1:0] cs0,
+  output [4-1:0] cs0,
   output reg  cs11,
   output error,
   output relpot) ; 
@@ -736,39 +736,39 @@ module fsm_output_handle (
 endmodule
  
 module in_reg (
-  input [THIRTEEN_BIT-1:0] add_decoded,
-  input [THIRTEEN_BIT-1:0] add_decoded_r,
+  input [13-1:0] add_decoded,
+  input [13-1:0] add_decoded_r,
   input clock,
   input rd_en,
   input rst,
   input wr_en,
-  output [EIGHT_BIT-1:0] r_t1,
-  output [SEVEN_BIT-1:0] r_t2,
-  output [EIGHT_BIT-1:0] r_t3_034,
-  output [EIGHT_BIT-1:0] r_t3_125,
-  output [SEVEN_BIT-1:0] r_t4_034,
-  output [SEVEN_BIT-1:0] r_t4_125,
-  output [TEN_BIT-1:0] r_tb_034,
-  output [TEN_BIT-1:0] r_tb_125,
-  output [REG_BITS-1:0] r_th_034,
-  output [REG_BITS-1:0] r_th_125,
-  output [SEVEN_BIT-1:0] r_tonh,
-  output [SEVEN_BIT-1:0] r_tonl,
-  output [SEVEN_BIT-1:0] r_tp,
-  inout [D_BUS_NUMBER-1:0] d_bus) ; 
-   reg [REG_BITS-1:0] th_034 ;  
-   reg [REG_BITS-1:0] th_125 ;  
-   reg [SEVEN_BIT-1:0] t2 ;  
-   reg [SEVEN_BIT-1:0] tp ;  
-   reg [SEVEN_BIT-1:0] t4_034 ;  
-   reg [SEVEN_BIT-1:0] t4_125 ;  
-   reg [SEVEN_BIT-1:0] tonh ;  
-   reg [SEVEN_BIT-1:0] tonl ;  
-   reg [EIGHT_BIT-1:0] t1 ;  
-   reg [EIGHT_BIT-1:0] t3_034 ;  
-   reg [EIGHT_BIT-1:0] t3_125 ;  
-   reg [TEN_BIT-1:0] tb_034 ;  
-   reg [TEN_BIT-1:0] tb_125 ;  
+  output [8-1:0] r_t1,
+  output [7-1:0] r_t2,
+  output [8-1:0] r_t3_034,
+  output [8-1:0] r_t3_125,
+  output [7-1:0] r_t4_034,
+  output [7-1:0] r_t4_125,
+  output [10-1:0] r_tb_034,
+  output [10-1:0] r_tb_125,
+  output [12-1:0] r_th_034,
+  output [12-1:0] r_th_125,
+  output [7-1:0] r_tonh,
+  output [7-1:0] r_tonl,
+  output [7-1:0] r_tp,
+  inout [16-1:0] d_bus) ; 
+   reg [12-1:0] th_034 ;  
+   reg [12-1:0] th_125 ;  
+   reg [7-1:0] t2 ;  
+   reg [7-1:0] tp ;  
+   reg [7-1:0] t4_034 ;  
+   reg [7-1:0] t4_125 ;  
+   reg [7-1:0] tonh ;  
+   reg [7-1:0] tonl ;  
+   reg [8-1:0] t1 ;  
+   reg [8-1:0] t3_034 ;  
+   reg [8-1:0] t3_125 ;  
+   reg [10-1:0] tb_034 ;  
+   reg [10-1:0] tb_125 ;  
   assign r_t1=t1; 
   assign r_t2=t2; 
   assign r_tb_034=tb_034; 
@@ -786,19 +786,19 @@ module in_reg (
        begin :vhdl_in_reg
          if (rst==1'b0)
             begin 
-              t1 <={EIGHT_BIT{1'b0}};
-              t2 <={SEVEN_BIT{1'b0}};
-              tb_034 <={TEN_BIT{1'b0}};
-              th_034 <={REG_BITS{1'b0}};
-              tb_125 <={TEN_BIT{1'b0}};
-              th_125 <={REG_BITS{1'b0}};
-              tonh <={SEVEN_BIT{1'b0}};
-              tonl <={SEVEN_BIT{1'b0}};
-              tp <={SEVEN_BIT{1'b0}};
-              t3_034 <={EIGHT_BIT{1'b0}};
-              t3_125 <={EIGHT_BIT{1'b0}};
-              t4_034 <={SEVEN_BIT{1'b0}};
-              t4_125 <={SEVEN_BIT{1'b0}};
+              t1 <={8{1'b0}};
+              t2 <={7{1'b0}};
+              tb_034 <={10{1'b0}};
+              th_034 <={12{1'b0}};
+              tb_125 <={10{1'b0}};
+              th_125 <={12{1'b0}};
+              tonh <={7{1'b0}};
+              tonl <={7{1'b0}};
+              tp <={7{1'b0}};
+              t3_034 <={8{1'b0}};
+              t3_125 <={8{1'b0}};
+              t4_034 <={7{1'b0}};
+              t4_125 <={7{1'b0}};
             end 
           else 
             begin 
@@ -851,25 +851,25 @@ endmodule
  
 module inj_block (
   input clock,
-  input [SPLIT_NUMBER-1:0] inj_cmd,
+  input [3-1:0] inj_cmd,
   input i_fbk,
   input rst,
-  input [EIGHT_BIT-1:0] r_t1,
-  input [SEVEN_BIT-1:0] r_t2,
-  input [EIGHT_BIT-1:0] r_t3,
-  input [SEVEN_BIT-1:0] r_t4,
-  input [TEN_BIT-1:0] r_tb,
-  input [REG_BITS-1:0] r_th,
-  input [SEVEN_BIT-1:0] r_tonh,
-  input [SEVEN_BIT-1:0] r_tonl,
-  input [SEVEN_BIT-1:0] r_tp,
-  input [ST_REG_NUM-1:0] status_reg,
-  input [THREE_BIT-1:0] test_en,
-  input [SPLIT_NUMBER-1:0] v_fbk,
+  input [8-1:0] r_t1,
+  input [7-1:0] r_t2,
+  input [8-1:0] r_t3,
+  input [7-1:0] r_t4,
+  input [10-1:0] r_tb,
+  input [12-1:0] r_th,
+  input [7-1:0] r_tonh,
+  input [7-1:0] r_tonl,
+  input [7-1:0] r_tp,
+  input [11-1:0] status_reg,
+  input [3-1:0] test_en,
+  input [3-1:0] v_fbk,
   output en_fbk_store,
   output en_state_store,
   output error,
-  output [GLOB_STATE_BITS-1:0] global_state_store,
+  output [7-1:0] global_state_store,
   output hl,
   output relpot,
   output t1a,
@@ -882,12 +882,12 @@ module inj_block (
    wire cs8 ;  
    wire end_t0 ;  
    wire cs4 ;  
-   wire [SEVEN_BIT-1:0] chop_count ;  
-   wire [REG_BITS-1:0] count ;  
-   wire [REG_BITS-1:0] stop_count_bus ;  
+   wire [7-1:0] chop_count ;  
+   wire [12-1:0] count ;  
+   wire [12-1:0] stop_count_bus ;  
    wire comp ;  
    wire cs1 ;  
-   wire [SPLIT_NUMBER-1:0] cmd_stored ;  
+   wire [3-1:0] cmd_stored ;  
    wire end_on ;  
    wire end_period ;  
    wire sh_mode ;  
@@ -895,13 +895,13 @@ module inj_block (
    wire test_en_cur ;  
    wire th_0 ;  
    wire v_fbk_cur ;  
-   wire [SPLIT_NUMBER-1:0] v_fbk_mask ;  
-   wire [FOUR_BIT-1:0] cs0 ;  
+   wire [3-1:0] v_fbk_mask ;  
+   wire [4-1:0] cs0 ;  
    wire cs2 ;  
    wire t1 ;  
    wire t2 ;  
-   wire [SEVEN_BIT-1:0] ton_reg ;  
-   wire [SEVEN_BIT-1:0] tp_reg ;  
+   wire [7-1:0] ton_reg ;  
+   wire [7-1:0] tp_reg ;  
   anti_glitch instance_anti_glitch(clock,cs8,rst,end_t0); 
   chopper_count instance_chopper_count(clock,cs4,rst,chop_count); 
   comparator instance_comparator(count,stop_count_bus,comp); 
@@ -915,16 +915,16 @@ module inj_block (
 endmodule
  
 module inj_ctrl (
-  input [A_BUS_NUMBER-1:0] a_bus,
+  input [6-1:0] a_bus,
   input clock,
   input cs,
-  input [TWENTYONE_BIT-1:0] digital_input,
+  input [21-1:0] digital_input,
   input ds,
-  input [SPLIT_NUMBER-1:0] fbk_pwm,
-  input [INJ_NUMBER-1:0] inj_cmd,
+  input [3-1:0] fbk_pwm,
+  input [6-1:0] inj_cmd,
   input in_speed,
-  input [BANKS_NUMBER-1:0] i_fbk,
-  input [SEVEN_BIT-1:0] nssm_in,
+  input [2-1:0] i_fbk,
+  input [7-1:0] nssm_in,
   input rpm_in,
   input rst,
   input r_w,
@@ -934,45 +934,45 @@ module inj_ctrl (
   input trg_knock2,
   input turbo_speed,
   input vehicle_speed,
-  input [INJ_NUMBER-1:0] v_fbk,
+  input [6-1:0] v_fbk,
   output cam_smot,
   output [7:0] digital_output,
-  output [BANKS_NUMBER-1:0] hlo,
+  output [2-1:0] hlo,
   output in_speed_lev,
   output irq,
-  output [BANKS_NUMBER-1:0] knock1,
+  output [2-1:0] knock1,
   output knock1u,
-  output [BANKS_NUMBER-1:0] knock2,
+  output [2-1:0] knock2,
   output knock2u,
   output relpot,
   output rpm_out,
   output seg_speed_lev,
   output smot60,
-  output [INJ_NUMBER-1:0] t1,
-  output [INJ_NUMBER-1:0] t2,
-  output [BANKS_NUMBER-1:0] t3,
+  output [6-1:0] t1,
+  output [6-1:0] t2,
+  output [2-1:0] t3,
   output turbo,
   output turbo_speed_lev,
   output vehicle,
-  inout [D_BUS_NUMBER-1:0] d_bus_ext) ; 
-   wire [SPLIT_NUMBER-1:0] inj_cmd_034 ;  
+  inout [16-1:0] d_bus_ext) ; 
+   wire [3-1:0] inj_cmd_034 ;  
    wire i_fbk_034 ;  
-   wire [EIGHT_BIT-1:0] r_t1 ;  
-   wire [SEVEN_BIT-1:0] r_t2 ;  
-   wire [EIGHT_BIT-1:0] r_t3_034 ;  
-   wire [SEVEN_BIT-1:0] r_t4_034 ;  
-   wire [TEN_BIT-1:0] r_tb_034 ;  
-   wire [REG_BITS-1:0] r_th_034 ;  
-   wire [SEVEN_BIT-1:0] r_tonh ;  
-   wire [SEVEN_BIT-1:0] r_tonl ;  
-   wire [SEVEN_BIT-1:0] r_tp ;  
-   wire [ST_REG_NUM-1:0] status_reg_034 ;  
-   wire [THREE_BIT-1:0] test_en_034 ;  
-   wire [SPLIT_NUMBER-1:0] v_fbk_034 ;  
+   wire [8-1:0] r_t1 ;  
+   wire [7-1:0] r_t2 ;  
+   wire [8-1:0] r_t3_034 ;  
+   wire [7-1:0] r_t4_034 ;  
+   wire [10-1:0] r_tb_034 ;  
+   wire [12-1:0] r_th_034 ;  
+   wire [7-1:0] r_tonh ;  
+   wire [7-1:0] r_tonl ;  
+   wire [7-1:0] r_tp ;  
+   wire [11-1:0] status_reg_034 ;  
+   wire [3-1:0] test_en_034 ;  
+   wire [3-1:0] v_fbk_034 ;  
    wire en_fbk_store_034 ;  
    wire en_state_store_034 ;  
    wire error1 ;  
-   wire [GLOB_STATE_BITS-1:0] global_state_034 ;  
+   wire [7-1:0] global_state_034 ;  
    wire hl_034 ;  
    wire relpot1 ;  
    wire t1_0 ;  
@@ -982,19 +982,19 @@ module inj_ctrl (
    wire t2_3 ;  
    wire t2_4 ;  
    wire t3_034 ;  
-   wire [SPLIT_NUMBER-1:0] inj_cmd_125 ;  
+   wire [3-1:0] inj_cmd_125 ;  
    wire i_fbk_125 ;  
-   wire [EIGHT_BIT-1:0] r_t3_125 ;  
-   wire [SEVEN_BIT-1:0] r_t4_125 ;  
-   wire [TEN_BIT-1:0] r_tb_125 ;  
-   wire [REG_BITS-1:0] r_th_125 ;  
-   wire [ST_REG_NUM-1:0] status_reg_125 ;  
-   wire [THREE_BIT-1:0] test_en_125 ;  
-   wire [SPLIT_NUMBER-1:0] v_fbk_125 ;  
+   wire [8-1:0] r_t3_125 ;  
+   wire [7-1:0] r_t4_125 ;  
+   wire [10-1:0] r_tb_125 ;  
+   wire [12-1:0] r_th_125 ;  
+   wire [11-1:0] status_reg_125 ;  
+   wire [3-1:0] test_en_125 ;  
+   wire [3-1:0] v_fbk_125 ;  
    wire en_fbk_store_125 ;  
    wire en_state_store_125 ;  
    wire error2 ;  
-   wire [GLOB_STATE_BITS-1:0] global_state_125 ;  
+   wire [7-1:0] global_state_125 ;  
    wire hl_125 ;  
    wire relpot2 ;  
    wire t1_1 ;  
@@ -1006,9 +1006,9 @@ module inj_ctrl (
    wire t3_125 ;  
    wire rd_en ;  
    wire wr_en ;  
-   wire [D_BUS_NUMBER-1:0] d_bus ;  
-   wire [BANKS_NUMBER-1:0] i_fbk_f ;  
-   wire [INJ_NUMBER-1:0] v_fbk_f ;  
+   wire [16-1:0] d_bus ;  
+   wire [2-1:0] i_fbk_f ;  
+   wire [6-1:0] v_fbk_f ;  
    wire rel_pot_en ;  
    wire pickup_hall ;  
    wire smot_camme_en ;  
@@ -1029,10 +1029,10 @@ module inj_ctrl (
 endmodule
  
 module interface (
-  input [BANKS_NUMBER-1:0] i_fbk,
+  input [2-1:0] i_fbk,
   input i_fbk_f0,
   input i_fbk_f1,
-  input [INJ_NUMBER-1:0] v_fbk,
+  input [6-1:0] v_fbk,
   input v_fbk_f0,
   input v_fbk_f1,
   input v_fbk_f2,
@@ -1041,14 +1041,14 @@ module interface (
   input v_fbk_f5,
   output i_fbk_0,
   output i_fbk_1,
-  output [BANKS_NUMBER-1:0] i_fbk_f,
+  output [2-1:0] i_fbk_f,
   output v_fbk_0,
   output v_fbk_1,
   output v_fbk_2,
   output v_fbk_3,
   output v_fbk_4,
   output v_fbk_5,
-  output [INJ_NUMBER-1:0] v_fbk_f) ; 
+  output [6-1:0] v_fbk_f) ; 
   assign v_fbk_0=v_fbk[0]; 
   assign v_fbk_1=v_fbk[1]; 
   assign v_fbk_2=v_fbk[2]; 
@@ -1069,36 +1069,36 @@ endmodule
  
 module internal_register (
   input clock,
-  input [FOUR_BIT-1:0] cs0,
+  input [4-1:0] cs0,
   input cs2,
   input rst,
-  input [EIGHT_BIT-1:0] r_t1,
-  input [SEVEN_BIT-1:0] r_t2,
-  input [EIGHT_BIT-1:0] r_t3,
-  input [SEVEN_BIT-1:0] r_t4,
-  input [TEN_BIT-1:0] r_tb,
-  input [REG_BITS-1:0] r_th,
-  input [SEVEN_BIT-1:0] r_tonh,
-  input [SEVEN_BIT-1:0] r_tonl,
-  input [SEVEN_BIT-1:0] r_tp,
+  input [8-1:0] r_t1,
+  input [7-1:0] r_t2,
+  input [8-1:0] r_t3,
+  input [7-1:0] r_t4,
+  input [10-1:0] r_tb,
+  input [12-1:0] r_th,
+  input [7-1:0] r_tonh,
+  input [7-1:0] r_tonl,
+  input [7-1:0] r_tp,
   output sh_mode,
-  output [REG_BITS-1:0] stop_count_bus,
+  output [12-1:0] stop_count_bus,
   output t4_0,
   output th_0,
-  output [SEVEN_BIT-1:0] ton_reg,
-  output [SEVEN_BIT-1:0] tp_reg) ; 
-   reg [REG_BITS-1:0] th ;  
-   reg [TEN_BIT-1:0] tb ;  
-   reg [SEVEN_BIT-1:0] tonh ;  
-   reg [SEVEN_BIT-1:0] tonl ;  
+  output [7-1:0] ton_reg,
+  output [7-1:0] tp_reg) ; 
+   reg [12-1:0] th ;  
+   reg [10-1:0] tb ;  
+   reg [7-1:0] tonh ;  
+   reg [7-1:0] tonl ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_internal_register
          if (rst==1'b0)
             begin 
-              tb <={TEN_BIT{1'b0}};
-              th <={REG_BITS{1'b0}};
-              tonh <={SEVEN_BIT{1'b0}};
-              tonl <={SEVEN_BIT{1'b0}};
+              tb <={10{1'b0}};
+              th <={12{1'b0}};
+              tonh <={7{1'b0}};
+              tonl <={7{1'b0}};
             end 
           else 
             begin 
@@ -1139,7 +1139,7 @@ module internal_register (
 endmodule
  
 module knock_comp1 (
-  input [INJ_NUMBER-1:0] count1,
+  input [6-1:0] count1,
   input en_comp1,
   output impulse,
   output long) ; 
@@ -1148,7 +1148,7 @@ module knock_comp1 (
 endmodule
  
 module knock_comp2 (
-  input [INJ_NUMBER-1:0] count2,
+  input [6-1:0] count2,
   input en_comp2,
   output impulse,
   output long) ; 
@@ -1160,12 +1160,12 @@ module knock_count1 (
   input clock,
   input internal_trg_knock1,
   input rst,
-  output [INJ_NUMBER-1:0] count1,
+  output [6-1:0] count1,
   output en_comp1) ; 
    reg store_trg_knock1 ;  
    reg store_reset_trg ;  
    wire rst_int ;  
-   reg [INJ_NUMBER-1:0] int_counter1 ;  
+   reg [6-1:0] int_counter1 ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_knock_store
          if (rst==1'b0)
@@ -1184,7 +1184,7 @@ module knock_count1 (
   assign en_comp1=store_trg_knock1; 
   always @(  posedge clock or  negedge rst_int)
        if (rst_int==1'b0)
-          int_counter1 <={INJ_NUMBER{1'b0}};
+          int_counter1 <={6{1'b0}};
         else 
           begin 
             if (store_trg_knock1==1'b1)
@@ -1198,12 +1198,12 @@ module knock_count2 (
   input clock,
   input rst,
   input trg_knock2,
-  output [INJ_NUMBER-1:0] count2,
+  output [6-1:0] count2,
   output en_comp2) ; 
    reg store_trg_knock2 ;  
    reg store_reset_trg ;  
    wire rst_int ;  
-   reg [INJ_NUMBER-1:0] int_counter2 ;  
+   reg [6-1:0] int_counter2 ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_knock_store
          if (rst==1'b0)
@@ -1222,7 +1222,7 @@ module knock_count2 (
   assign en_comp2=store_trg_knock2; 
   always @(  posedge clock or  negedge rst_int)
        if (rst_int==1'b0)
-          int_counter2 <={INJ_NUMBER{1'b0}};
+          int_counter2 <={6{1'b0}};
         else 
           begin 
             if (store_trg_knock2==1'b1)
@@ -1236,8 +1236,8 @@ module knock_detection_fsm1 (
   input clock,
   input internal_trg_knock1,
   input rst,
-  output [BANKS_NUMBER-1:0] knock1) ; 
-   wire [INJ_NUMBER-1:0] count1 ;  
+  output [2-1:0] knock1) ; 
+   wire [6-1:0] count1 ;  
    wire en_comp1 ;  
    wire impulse ;  
    wire long ;  
@@ -1250,8 +1250,8 @@ module knock_detection_fsm2 (
   input clock,
   input rst,
   input trg_knock2,
-  output [BANKS_NUMBER-1:0] knock2) ; 
-   wire [INJ_NUMBER-1:0] count2 ;  
+  output [2-1:0] knock2) ; 
+   wire [6-1:0] count2 ;  
    wire en_comp2 ;  
    wire impulse ;  
    wire long ;  
@@ -1265,7 +1265,7 @@ module knock_fsm1 (
   input impulse,
   input long,
   input rst,
-  output reg  [BANKS_NUMBER-1:0] knock1) ; 
+  output reg  [2-1:0] knock1) ; 
  parameter[1:0] knock_fsm1_state_type_start_state =0,knock_fsm1_state_type_off1_state=1,knock_fsm1_state_type_sample_state=2,knock_fsm1_state_type_off2_state=3; 
    reg [1:0] current_state ;  
    reg [1:0] next_state ;  
@@ -1332,7 +1332,7 @@ module knock_fsm2 (
   input impulse,
   input long,
   input rst,
-  output reg  [BANKS_NUMBER-1:0] knock2) ; 
+  output reg  [2-1:0] knock2) ; 
  parameter[1:0] knock_fsm2_state_type_start_state =0,knock_fsm2_state_type_off1_state=1,knock_fsm2_state_type_sample_state=2,knock_fsm2_state_type_off2_state=3; 
    reg [1:0] current_state ;  
    reg [1:0] next_state ;  
@@ -1401,7 +1401,7 @@ module merge (
   input hl_125,
   input relpot1,
   input relpot2,
-  output [BANKS_NUMBER-1:0] hlo,
+  output [2-1:0] hlo,
   output irq,
   output rel_pot_en) ; 
   assign rel_pot_en=relpot2|relpot1; 
@@ -1425,9 +1425,9 @@ module merge_actuators (
   input t2_5,
   input t3_034,
   input t3_125,
-  output [INJ_NUMBER-1:0] t1,
-  output [INJ_NUMBER-1:0] t2,
-  output [BANKS_NUMBER-1:0] t3) ; 
+  output [6-1:0] t1,
+  output [6-1:0] t2,
+  output [2-1:0] t3) ; 
   merge_t1 instance_merge_t1(t1_0,t1_1,t1_2,t1_3,t1_4,t1_5,t1); 
   merge_t2 instance_merge_t2(t2_0,t2_1,t2_2,t2_3,t2_4,t2_5,t2); 
   merge_t3 instance_merge_t3(t3_034,t3_125,t3); 
@@ -1440,7 +1440,7 @@ module merge_t1 (
   input t1_3,
   input t1_4,
   input t1_5,
-  output reg  [INJ_NUMBER-1:0] t1) ; 
+  output reg  [6-1:0] t1) ; 
   always @(      t1_0 or  t1_1 or  t1_2 or  t1_3 or  t1_4 or  t1_5)
        begin :vhdl_merge_t1
          t1 [0]<=(~(t1_0));
@@ -1460,7 +1460,7 @@ module merge_t2 (
   input t2_3,
   input t2_4,
   input t2_5,
-  output reg  [INJ_NUMBER-1:0] t2) ; 
+  output reg  [6-1:0] t2) ; 
   always @(      t2_0 or  t2_1 or  t2_2 or  t2_3 or  t2_4 or  t2_5)
        begin :vhdl_merge_t2
          t2 [0]<=t2_0;
@@ -1476,7 +1476,7 @@ endmodule
 module merge_t3 (
   input t3_034,
   input t3_125,
-  output reg  [BANKS_NUMBER-1:0] t3) ; 
+  output reg  [2-1:0] t3) ; 
   always @(  t3_034 or  t3_125)
        begin :vhdl_merge_t3
          t3 [0]<=(~(t3_034));
@@ -1486,8 +1486,8 @@ module merge_t3 (
 endmodule
  
 module on_comp (
-  input [SEVEN_BIT-1:0] chop_count,
-  input [SEVEN_BIT-1:0] ton_reg,
+  input [7-1:0] chop_count,
+  input [7-1:0] ton_reg,
   output reg  end_on) ; 
   always @(  chop_count or  ton_reg)
        begin :vhdl_on_comp
@@ -1500,7 +1500,7 @@ module on_comp (
 endmodule
  
 module output_decoder (
-  input [SPLIT_NUMBER-1:0] cmd_stored,
+  input [3-1:0] cmd_stored,
   input t1,
   input t2,
   output reg  t1a,
@@ -1554,8 +1554,8 @@ module output_decoder (
 endmodule
  
 module period_comp (
-  input [SEVEN_BIT-1:0] chop_count,
-  input [SEVEN_BIT-1:0] tp_reg,
+  input [7-1:0] chop_count,
+  input [7-1:0] tp_reg,
   output reg  end_period) ; 
   always @(  chop_count or  tp_reg)
        begin :vhdl_period_comp
@@ -1569,10 +1569,10 @@ endmodule
  
 module ph1_handle (
   input clock,
-  input [SPLIT_NUMBER-1:0] cmd_stored,
-  input [FIVE_BIT-1:0] cur_state,
+  input [3-1:0] cmd_stored,
+  input [5-1:0] cur_state,
   input end_t0,
-  input [SPLIT_NUMBER-1:0] inj_cmd,
+  input [3-1:0] inj_cmd,
   input rst,
   output reg  global1_state) ; 
  parameter[1:0] ph1_handle_state_type_ph1_1_state =0,ph1_handle_state_type_ph1_2_state=1; 
@@ -1637,13 +1637,13 @@ endmodule
  
 module ph2_handle (
   input clock,
-  input [FIVE_BIT-1:0] cur_state,
+  input [5-1:0] cur_state,
   input end_on,
   input end_period,
   input i_fbk,
   input rst,
   input sh_mode,
-  output reg  [TWO_BIT-1:0] global2_state) ; 
+  output reg  [2-1:0] global2_state) ; 
  parameter[1:0] ph2_handle_state_type_ph2_1_state =0,ph2_handle_state_type_ph2_2_state=1,ph2_handle_state_type_ph2_3_state=2,ph2_handle_state_type_ph2_4_state=3; 
    reg [1:0] current_state ;  
    reg [1:0] next_state ;  
@@ -1703,7 +1703,7 @@ module ph2_handle (
 endmodule
  
 module ph2_output_handle (
-  input [TWO_BIT-1:0] global2_state,
+  input [2-1:0] global2_state,
   output reg  cs42,
   output reg  t12) ; 
   always @( global2_state)
@@ -1722,13 +1722,13 @@ endmodule
  
 module ph4_handle (
   input clock,
-  input [FIVE_BIT-1:0] cur_state,
+  input [5-1:0] cur_state,
   input end_on,
   input end_period,
   input i_fbk,
   input rst,
   input sh_mode,
-  output reg  [TWO_BIT-1:0] global4_state) ; 
+  output reg  [2-1:0] global4_state) ; 
  parameter[1:0] ph4_handle_state_type_ph4_1_state =0,ph4_handle_state_type_ph4_2_state=1,ph4_handle_state_type_ph4_3_state=2,ph4_handle_state_type_ph4_4_state=3; 
    reg [1:0] current_state ;  
    reg [1:0] next_state ;  
@@ -1794,7 +1794,7 @@ module ph4_handle (
 endmodule
  
 module ph4_output_handle (
-  input [TWO_BIT-1:0] global4_state,
+  input [2-1:0] global4_state,
   output reg  cs44,
   output reg  t14) ; 
   always @( global4_state)
@@ -1812,22 +1812,22 @@ module ph4_output_handle (
 endmodule
  
 module registers (
-  input [A_BUS_NUMBER-1:0] a_bus,
+  input [6-1:0] a_bus,
   input clock,
-  input [TWENTYONE_BIT-1:0] digital_input,
+  input [21-1:0] digital_input,
   input en_fbk_store_034,
   input en_fbk_store_125,
   input en_state_store_034,
   input en_state_store_125,
-  input [SPLIT_NUMBER-1:0] fbk_pwm,
-  input [GLOB_STATE_BITS-1:0] global_state_034,
-  input [GLOB_STATE_BITS-1:0] global_state_125,
-  input [BANKS_NUMBER-1:0] i_fbk_f,
-  input [SEVEN_BIT-1:0] nssm_in,
+  input [3-1:0] fbk_pwm,
+  input [7-1:0] global_state_034,
+  input [7-1:0] global_state_125,
+  input [2-1:0] i_fbk_f,
+  input [7-1:0] nssm_in,
   input rd_en,
   input rel_pot_en,
   input rst,
-  input [INJ_NUMBER-1:0] v_fbk_f,
+  input [6-1:0] v_fbk_f,
   input wr_en,
   output [7:0] digital_output,
   output in_speed_lev,
@@ -1835,35 +1835,35 @@ module registers (
   output knock2u,
   output pickup_hall,
   output relpot,
-  output [EIGHT_BIT-1:0] r_t1,
-  output [SEVEN_BIT-1:0] r_t2,
-  output [EIGHT_BIT-1:0] r_t3_034,
-  output [EIGHT_BIT-1:0] r_t3_125,
-  output [SEVEN_BIT-1:0] r_t4_034,
-  output [SEVEN_BIT-1:0] r_t4_125,
-  output [TEN_BIT-1:0] r_tb_034,
-  output [TEN_BIT-1:0] r_tb_125,
-  output [REG_BITS-1:0] r_th_034,
-  output [REG_BITS-1:0] r_th_125,
-  output [SEVEN_BIT-1:0] r_tonh,
-  output [SEVEN_BIT-1:0] r_tonl,
-  output [SEVEN_BIT-1:0] r_tp,
+  output [8-1:0] r_t1,
+  output [7-1:0] r_t2,
+  output [8-1:0] r_t3_034,
+  output [8-1:0] r_t3_125,
+  output [7-1:0] r_t4_034,
+  output [7-1:0] r_t4_125,
+  output [10-1:0] r_tb_034,
+  output [10-1:0] r_tb_125,
+  output [12-1:0] r_th_034,
+  output [12-1:0] r_th_125,
+  output [7-1:0] r_tonh,
+  output [7-1:0] r_tonl,
+  output [7-1:0] r_tp,
   output seg_speed_lev,
   output smot_camme_en,
-  output [ST_REG_NUM-1:0] status_reg_034,
-  output [ST_REG_NUM-1:0] status_reg_125,
-  output [THREE_BIT-1:0] test_en_034,
-  output [THREE_BIT-1:0] test_en_125,
+  output [11-1:0] status_reg_034,
+  output [11-1:0] status_reg_125,
+  output [3-1:0] test_en_034,
+  output [3-1:0] test_en_125,
   output trg_knock_en,
   output turbo_speed_lev,
-  inout [D_BUS_NUMBER-1:0] d_bus) ; 
-   wire [THIRTEEN_BIT-1:0] add_decoded ;  
-   wire [THIRTEEN_BIT-1:0] add_decoded_r ;  
+  inout [16-1:0] d_bus) ; 
+   wire [13-1:0] add_decoded ;  
+   wire [13-1:0] add_decoded_r ;  
    wire add_test_en ;  
-   wire [BANKS_NUMBER-1:0] a_dig_in ;  
+   wire [2-1:0] a_dig_in ;  
    wire a_dig_out ;  
-   wire [TWO_BIT-1:0] a_fault_dec ;  
-   wire [TWO_BIT-1:0] a_fault_dec_r ;  
+   wire [2-1:0] a_fault_dec ;  
+   wire [2-1:0] a_fault_dec_r ;  
   add_dec instance_add_dec(a_bus,clock,rst,add_decoded,add_decoded_r,add_test_en,a_dig_in,a_dig_out,a_fault_dec,a_fault_dec_r); 
   digital_inputs_handle instance_digital_inputs_handle(a_dig_in,clock,digital_input,fbk_pwm,nssm_in,rd_en,rst,d_bus); 
   digital_outputs_handle instance_digital_outputs_handle(a_dig_out,clock,d_bus,rst,wr_en,digital_output,in_speed_lev,knock1u,knock2u,pickup_hall,seg_speed_lev,smot_camme_en,trg_knock_en,turbo_speed_lev); 
@@ -1880,7 +1880,7 @@ module rst_inv (
 endmodule
  
 module sel_actuator (
-  input [FIVE_BIT-1:0] cur_state,
+  input [5-1:0] cur_state,
   input t12,
   input t14,
   input t31,
@@ -2046,7 +2046,7 @@ endmodule
 module sel_chop_control (
   input cs42,
   input cs44,
-  input [FIVE_BIT-1:0] cur_state,
+  input [5-1:0] cur_state,
   output reg  cs4) ; 
   always @(   cs42 or  cs44 or  cur_state)
        begin :vhdl_sel_chop_control
@@ -2067,14 +2067,14 @@ endmodule
 module sel_cmd (
   input clock,
   input cs2,
-  input [SPLIT_NUMBER-1:0] inj_cmd,
+  input [3-1:0] inj_cmd,
   input rst,
-  input [THREE_BIT-1:0] test_en,
-  input [SPLIT_NUMBER-1:0] v_fbk,
-  output [SPLIT_NUMBER-1:0] cmd_stored,
+  input [3-1:0] test_en,
+  input [3-1:0] v_fbk,
+  output [3-1:0] cmd_stored,
   output reg  test_en_cur,
   output reg  v_fbk_cur,
-  output [SPLIT_NUMBER-1:0] v_fbk_mask) ; 
+  output [3-1:0] v_fbk_mask) ; 
    reg [2:0] cmd_stored_int ;  
   always @(  posedge clock or  negedge rst)
        begin :vhdl_sel_cmd
@@ -2120,7 +2120,7 @@ endmodule
 module sel_glob_count_cs (
   input cs11,
   input cs111,
-  input [FIVE_BIT-1:0] cur_state,
+  input [5-1:0] cur_state,
   input global1_state,
   output reg  cs1,
   output reg  cs2,
@@ -2154,11 +2154,11 @@ module sel_glob_count_cs (
 endmodule
  
 module sel_global_state (
-  input [FIVE_BIT-1:0] cur_state,
+  input [5-1:0] cur_state,
   input global1_state,
-  input [TWO_BIT-1:0] global2_state,
-  input [TWO_BIT-1:0] global4_state,
-  output reg  [GLOB_STATE_BITS-1:0] global_state) ; 
+  input [2-1:0] global2_state,
+  input [2-1:0] global4_state,
+  output reg  [7-1:0] global_state) ; 
   always @(    cur_state or  global1_state or  global2_state or  global4_state)
        begin 
          global_state [6:2]<=cur_state;
@@ -2210,8 +2210,8 @@ module smot_knock_handle (
   input trg_knock2,
   input trg_knock_en,
   output cam_smot,
-  output [BANKS_NUMBER-1:0] knock1,
-  output [BANKS_NUMBER-1:0] knock2,
+  output [2-1:0] knock1,
+  output [2-1:0] knock2,
   output smot60) ; 
    wire internal_trg_knock1 ;  
   knock_detection_fsm1 instance_knock_detection_fsm1(clock,internal_trg_knock1,rst,knock1); 
@@ -2223,15 +2223,15 @@ endmodule
 module split (
   input clock,
   input rst,
-  input [INJ_NUMBER-1:0] inj_cmd,
-  input [BANKS_NUMBER-1:0] i_fbk_f,
-  input [INJ_NUMBER-1:0] v_fbk_f,
-  output reg  [SPLIT_NUMBER-1:0] inj_cmd_034,
-  output reg  [SPLIT_NUMBER-1:0] inj_cmd_125,
+  input [6-1:0] inj_cmd,
+  input [2-1:0] i_fbk_f,
+  input [6-1:0] v_fbk_f,
+  output reg  [3-1:0] inj_cmd_034,
+  output reg  [3-1:0] inj_cmd_125,
   output reg  i_fbk_034,
   output reg  i_fbk_125,
-  output reg  [SPLIT_NUMBER-1:0] v_fbk_034,
-  output reg  [SPLIT_NUMBER-1:0] v_fbk_125) ; 
+  output reg  [3-1:0] v_fbk_034,
+  output reg  [3-1:0] v_fbk_125) ; 
    reg [5:0] inj_cmd_int ;  
   always @(  posedge clock or  negedge rst)
        if (rst==1'b0)
@@ -2265,21 +2265,21 @@ endmodule
  
 module state_progression (
   input clock,
-  input [SPLIT_NUMBER-1:0] cmd_stored,
+  input [3-1:0] cmd_stored,
   input comp,
   input enable_check,
   input end_t0,
-  input [GLOB_STATE_BITS-1:0] global_state,
-  input [SPLIT_NUMBER-1:0] inj_cmd,
+  input [7-1:0] global_state,
+  input [3-1:0] inj_cmd,
   input i_fbk,
   input rst,
   input sh_mode,
-  input [ST_REG_NUM-1:0] status_reg,
+  input [11-1:0] status_reg,
   input t4_0,
   input th_0,
   input v_fbk_cur,
-  input [SPLIT_NUMBER-1:0] v_fbk_mask,
-  output reg  [FIVE_BIT-1:0] cur_state) ; 
+  input [3-1:0] v_fbk_mask,
+  output reg  [5-1:0] cur_state) ; 
  parameter[4:0] state_progression_state_type_start_state =0,state_progression_state_type_ph1bis_state=1,state_progression_state_type_ph2_state=2,state_progression_state_type_ph3_state=3,state_progression_state_type_ph4_state=4,state_progression_state_type_ph5_state=5,state_progression_state_type_ph1_state=6,state_progression_state_type_cc_vcc_state=7,state_progression_state_type_cc_gnd_state=8,state_progression_state_type_int1_state=9,state_progression_state_type_int_2_state=10,state_progression_state_type_int3_state=11,state_progression_state_type_int4_state=12,state_progression_state_type_int5_state=13,state_progression_state_type_int6_state=14,state_progression_state_type_ph6_state=15,state_progression_state_type_int7_state=16,state_progression_state_type_ph7_state=17,state_progression_state_type_int8_state=18,state_progression_state_type_ph8_state=19,state_progression_state_type_int9_state=20,state_progression_state_type_ph9_state=21; 
    reg [4:0] current_state ;  
    reg [4:0] next_state ;  
@@ -2494,18 +2494,18 @@ endmodule
 module test_en (
   input add_test_en,
   input clock,
-  input [D_BUS_NUMBER-1:0] d_bus,
+  input [16-1:0] d_bus,
   input rd_en,
   input rst,
   input wr_en,
-  output reg  [THREE_BIT-1:0] test_en_034,
-  output reg  [THREE_BIT-1:0] test_en_125) ; 
+  output reg  [3-1:0] test_en_034,
+  output reg  [3-1:0] test_en_125) ; 
   always @(  posedge clock or  negedge rst)
        begin :vhdl_test_en
          if (rst==1'b0)
             begin 
-              test_en_034 <={THREE_BIT{1'b0}};
-              test_en_125 <={THREE_BIT{1'b0}};
+              test_en_034 <={3{1'b0}};
+              test_en_125 <={3{1'b0}};
             end 
           else 
             begin 

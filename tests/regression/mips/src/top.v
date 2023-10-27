@@ -4,7 +4,7 @@ module mips_16_core_top
 	input						clk,
 	input						rst,
 
-	output	[`PC_WIDTH-1:0]		pc
+	output	[8-1:0]		pc
 );
 	wire 						pipeline_stall_n ;
 	wire	[5:0]				branch_offset_imm;
@@ -154,9 +154,9 @@ module data_mem
 );
 
 
-	reg [15:0] ram [(2**`DATA_MEM_ADDR_WIDTH)-1:0];
+	reg [15:0] ram [(2**8)-1:0];
 
-	wire [`DATA_MEM_ADDR_WIDTH-1 : 0] ram_addr = mem_access_addr[`DATA_MEM_ADDR_WIDTH-1 : 0];
+	wire [8-1 : 0] ram_addr = mem_access_addr[8-1 : 0];
 
 	always @(posedge clk)
 		if (mem_write_en)
@@ -349,91 +349,91 @@ module ID_stage
 		end
 		else begin
 			case( ir_op_code_with_bubble )
-				`OP_NOP	:
+				4'b0000	:
 					begin
 						write_back_en			= 0;		// S3
 						write_back_result_mux	= 1'bx;		// S1
 						ex_alu_cmd				= `ALU_NC;	// S2
 						alu_src2_mux			= 1'bx;		// S4
 					end
-				`OP_ADD	:
+				4'b0001	:
 					begin
 						write_back_en			= 1;		// S3
 						write_back_result_mux	= 0;		// S1
 						ex_alu_cmd				= `ALU_ADD;	// S2
 						alu_src2_mux			= 0;		// S4
 					end
-				`OP_SUB	:
+				4'b0010	:
 					begin
 						write_back_en			= 1;		// S3
 						write_back_result_mux	= 0;		// S1
 						ex_alu_cmd				= `ALU_SUB;	// S2
 						alu_src2_mux			= 0;		// S4
 					end
-				`OP_AND	:
+				4'b0011	:
 					begin
 						write_back_en			= 1;		// S3
 						write_back_result_mux	= 0;		// S1
 						ex_alu_cmd				= `ALU_AND;	// S2
 						alu_src2_mux			= 0;		// S4
 					end
-				`OP_OR	:
+				4'b0100	:
 					begin
 						write_back_en			= 1;		// S3
 						write_back_result_mux	= 0;		// S1
 						ex_alu_cmd				= `ALU_OR;	// S2
 						alu_src2_mux			= 0;		// S4
 					end
-				`OP_XOR	:
+				4'b0101	:
 					begin
 						write_back_en			= 1;		// S3
 						write_back_result_mux	= 0;		// S1
 						ex_alu_cmd				= `ALU_XOR;	// S2
 						alu_src2_mux			= 1'bx;		// S4
 					end
-				`OP_SL	:
+				4'b0110	:
 					begin
 						write_back_en			= 1;		// S3
 						write_back_result_mux	= 0;		// S1
 						ex_alu_cmd				= `ALU_SL;	// S2
 						alu_src2_mux			= 0;		// S4
 					end
-				`OP_SR	:
+				4'b0111	:
 					begin
 						write_back_en			= 1;		// S3
 						write_back_result_mux	= 0;		// S1
 						ex_alu_cmd				= `ALU_SR;	// S2
 						alu_src2_mux			= 0;		// S4
 					end
-				`OP_SRU	:
+				4'b1000	:
 					begin
 						write_back_en			= 1;		// S3
 						write_back_result_mux	= 0;		// S1
 						ex_alu_cmd				= `ALU_SRU;	// S2
 						alu_src2_mux			= 0;		// S4
 					end
-				`OP_ADDI:
+				4'b1001:
 					begin
 						write_back_en			= 1;		// S3
 						write_back_result_mux	= 0;		// S1
 						ex_alu_cmd				= `ALU_ADD;	// S2
 						alu_src2_mux			= 1;		// S4
 					end
-				`OP_LD	:
+				4'b1010	:
 					begin
 						write_back_en			= 1;		// S3
 						write_back_result_mux	= 1;		// S1
 						ex_alu_cmd				= `ALU_ADD;	// S2
 						alu_src2_mux			= 1;		// S4
 					end
-				`OP_ST	:
+				4'b1011	:
 					begin
 						write_back_en			= 0;		// S3
 						write_back_result_mux	= 1'bx;		// S1
 						ex_alu_cmd				= `ALU_ADD;	// S2
 						alu_src2_mux			= 1;		// S4
 					end
-				`OP_BZ	:
+				4'b1100	:
 					begin
 						write_back_en			= 0;		// S3
 						write_back_result_mux	= 1'bx;		// S1
@@ -453,8 +453,8 @@ module ID_stage
 		end
 	end
 	
-	assign decoding_op_is_branch = ( ir_op_code == `OP_BZ )? 1 : 0;	// S5
-	assign decoding_op_is_store	= ( ir_op_code == `OP_ST )? 1 : 0;	// S6
+	assign decoding_op_is_branch = ( ir_op_code == 4'b1100 )? 1 : 0;	// S5
+	assign decoding_op_is_store	= ( ir_op_code == 4'b1011 )? 1 : 0;	// S6
 	
 	/********************** singals to EX_stage *********************/
 	assign mem_write_data = reg_read_data_2;
@@ -521,10 +521,10 @@ module ID_stage
 	/********************** to hazard detection unit *********************/
 	assign decoding_op_src1 = ir_src1;
 	assign decoding_op_src2 = (
-					ir_op_code == `OP_NOP 	||
-					ir_op_code == `OP_ADDI 	||
-					ir_op_code == `OP_LD 	||
-					ir_op_code == `OP_BZ 	
+					ir_op_code == 4'b0000 	||
+					ir_op_code == 4'b1001 	||
+					ir_op_code == 4'b1010 	||
+					ir_op_code == 4'b1100 	
 					)?
 					3'b000 : ir_src2;
 	
@@ -540,22 +540,22 @@ module IF_stage
 	input	[5:0]					branch_offset_imm,
 	input							branch_taken,
 	
-	output	reg	[`PC_WIDTH-1:0]		pc,
+	output	reg	[8-1:0]		pc,
 	output	[15:0]					instruction
 );
     
 	// pc control
 	always @ (posedge clk or posedge rst) begin
 	    if (rst) begin
-	        pc <= `PC_WIDTH'b0;
+	        pc <= 8'b0;
 	    end 
 		else begin
 			if(instruction_fetch_en) begin
 				if(branch_taken)
 					//don't forget sign bit expansion
-					pc <= pc + {{(`PC_WIDTH-6){branch_offset_imm[5]}}, branch_offset_imm[5:0]};	
+					pc <= pc + {{(8-6){branch_offset_imm[5]}}, branch_offset_imm[5:0]};	
 				else
-					pc <= pc + `PC_WIDTH'd1;
+					pc <= pc + 8'd1;
 			end
 		end
 	end
@@ -575,14 +575,14 @@ endmodule
 module instruction_mem		// a rtl simulation rom, rom initial code can be found in the testbench
 (
 	input					clk,		// asynchronized!!
-	input	[`PC_WIDTH-1:0]	pc,
+	input	[8-1:0]	pc,
 	
 	output	[15:0]			instruction
 );
 	
-	reg	[15:0] rom [2**`INSTR_MEM_ADDR_WIDTH-1 : 0];
+	reg	[15:0] rom [2**8-1 : 0];
 	
-	wire [`INSTR_MEM_ADDR_WIDTH-1 : 0] rom_addr = pc[`INSTR_MEM_ADDR_WIDTH-1 : 0];
+	wire [8-1 : 0] rom_addr = pc[8-1 : 0];
 	
 	// always @ (posedge clk) begin
 	// always @ (*) begin
@@ -598,12 +598,12 @@ endmodule
 module instruction_mem		// a synthesisable rom implementation
 (
 	input					clk,		// asynchronized!!
-	input	[`PC_WIDTH-1:0]	pc,
+	input	[8-1:0]	pc,
 	
 	output reg	[15:0]		instruction
 );
 	
-	wire [`INSTR_MEM_ADDR_WIDTH-1 : 0] rom_addr = pc[`INSTR_MEM_ADDR_WIDTH-1 : 0];
+	wire [8-1 : 0] rom_addr = pc[8-1 : 0];
 	
 	// ASM code in rom:
 	// L1:	ADDI		R1,R0,8

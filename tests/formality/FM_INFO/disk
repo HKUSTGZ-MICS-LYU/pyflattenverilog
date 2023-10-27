@@ -1,7 +1,7 @@
 Directory = /home/xiangchenmeng/rtl/pyflattenverilog/tests/formality
 Total     = 1282 GB
-Available = 401 GB
-Used      = 881 GB (69%)
+Available = 227 GB
+Used      = 1055 GB (83%)
 
 Directory = /tmp
 Total     = 500 GB

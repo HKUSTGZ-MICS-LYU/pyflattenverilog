@@ -1,52 +1,4 @@
-//////////////////////////////////////////////////////////////////////
-////                                                              ////
-////  OR1200's ALU                                                ////
-////                                                              ////
-////  This file is part of the OpenRISC 1200 project              ////
-////  http://www.opencores.org/project,or1k                       ////
-////                                                              ////
-////  Description                                                 ////
-////  ALU                                                         ////
-////                                                              ////
-////  To Do:                                                      ////
-////   - make it smaller and faster                               ////
-////                                                              ////
-////  Author(s):                                                  ////
-////      - Damjan Lampret, lampret@opencores.org                 ////
-////                                                              ////
-//////////////////////////////////////////////////////////////////////
-////                                                              ////
-//// Copyright (C) 2000 Authors and OPENCORES.ORG                 ////
-////                                                              ////
-//// This source file may be used and distributed without         ////
-//// restriction provided that this copyright statement is not    ////
-//// removed from the file and that any derivative work contains  ////
-//// the original copyright notice and the associated disclaimer. ////
-////                                                              ////
-//// This source file is free software; you can redistribute it   ////
-//// and/or modify it under the terms of the GNU Lesser General   ////
-//// Public License as published by the Free Software Foundation; ////
-//// either version 2.1 of the License, or (at your option) any   ////
-//// later version.                                               ////
-////                                                              ////
-//// This source is distributed in the hope that it will be       ////
-//// useful, but WITHOUT ANY WARRANTY; without even the implied   ////
-//// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR      ////
-//// PURPOSE.  See the GNU Lesser General Public License for more ////
-//// details.                                                     ////
-////                                                              ////
-//// You should have received a copy of the GNU Lesser General    ////
-//// Public License along with this source; if not, download it   ////
-//// from http://www.opencores.org/lgpl.shtml                     ////
-////                                                              ////
-//////////////////////////////////////////////////////////////////////
-//
-// $Log: or1200_alu.v,v $
-// Revision 2.0  2010/06/30 11:00:00  ORSoC
-// Minor update: 
-// Defines added, flags are corrected. 
 
-// synopsys translate_off
 `include "./src/timescale.v"
 // synopsys translate_on
 `include "./src/or1200_defines.v"
@@ -60,21 +12,21 @@ module or1200_alu(
 	cyforw, cy_we, carry, flag
 );
 
-parameter width = `OR1200_OPERAND_WIDTH;
+
 
 //
 // I/O
 //
-input	[width-1:0]		a;
-input	[width-1:0]		b;
-input	[width-1:0]		mult_mac_result;
+input	[32-1:0]		a;
+input	[32-1:0]		b;
+input	[32-1:0]		mult_mac_result;
 input				macrc_op;
 input	[`OR1200_ALUOP_WIDTH-1:0]	alu_op;
 input	[`OR1200_ALUOP2_WIDTH-1:0]	alu_op2;
 input	[`OR1200_COMPOP_WIDTH-1:0]	comp_op;
 input	[4:0]			cust5_op;
 input	[5:0]			cust5_limm;
-output	[width-1:0]		result;
+output	[32-1:0]		result;
 output				flagforw;
 output				flag_we;
 output				cyforw;
@@ -87,11 +39,11 @@ input         flag;
 //
 // Internal wires and regs
 //
-reg	[width-1:0]		result;
-reg	[width-1:0]		shifted_rotated;
-reg	[width-1:0]		extended;   
+reg	[32-1:0]		result;
+reg	[32-1:0]		shifted_rotated;
+reg	[32-1:0]		extended;   
 `ifdef OR1200_IMPL_ALU_CUST5
-reg	[width-1:0]		result_cust5;
+reg	[32-1:0]		result_cust5;
 `endif
 reg				flagforw;
 reg				flagcomp;
@@ -100,20 +52,20 @@ reg				cyforw;
 reg				cy_we;
 reg				ovforw;
 reg				ov_we;   
-wire	[width-1:0]		comp_a;
-wire	[width-1:0]		comp_b;
+wire	[32-1:0]		comp_a;
+wire	[32-1:0]		comp_b;
 wire				a_eq_b;
 wire				a_lt_b;
-wire	[width-1:0]		result_sum;
-wire	[width-1:0]		result_and;
+wire	[32-1:0]		result_sum;
+wire	[32-1:0]		result_and;
 wire				cy_sum;
 `ifdef OR1200_IMPL_SUB
 wire				cy_sub;
 `endif
 wire    			ov_sum;
-wire    [width-1:0] 		carry_in;
+wire    [32-1:0] 		carry_in;
 
-wire    [width-1:0]		b_mux;
+wire    [32-1:0]		b_mux;
    
    
 
@@ -121,8 +73,8 @@ wire    [width-1:0]		b_mux;
 // Combinatorial logic
 //
 
-assign comp_a = {a[width-1] ^ comp_op[3] , a[width-2:0]};
-assign comp_b = {b[width-1] ^ comp_op[3] , b[width-2:0]};
+assign comp_a = {a[32-1] ^ comp_op[3] , a[32-2:0]};
+assign comp_b = {b[32-1] ^ comp_op[3] , b[32-2:0]};
 `ifdef OR1200_IMPL_ALU_COMP1
 assign a_eq_b = (comp_a == comp_b);
 assign a_lt_b = (comp_a < comp_b);
@@ -130,9 +82,9 @@ assign a_lt_b = (comp_a < comp_b);
 `ifdef OR1200_IMPL_ALU_COMP3
 assign a_eq_b = !(|result_sum);
 // signed compare when comp_op[3] is set
-assign a_lt_b = comp_op[3] ? ((a[width-1] & !b[width-1]) |  
-			      (!a[width-1] & !b[width-1] & result_sum[width-1])|
-			      (a[width-1] & b[width-1] & result_sum[width-1])):
+assign a_lt_b = comp_op[3] ? ((a[32-1] & !b[32-1]) |  
+			      (!a[32-1] & !b[32-1] & result_sum[32-1])|
+			      (a[32-1] & b[32-1] & result_sum[32-1])):
 		(a < b);
 
 `endif
@@ -147,9 +99,9 @@ assign cy_sub = (comp_a < comp_b);
    
 `ifdef OR1200_IMPL_ADDC   
 assign carry_in = (alu_op==`OR1200_ALUOP_ADDC) ? 
-		  {{width-1{1'b0}},carry} : {width{1'b0}};
+		  {{32-1{1'b0}},carry} : {32{1'b0}};
 `else
-assign carry_in = {width-1{1'b0}};
+assign carry_in = {32-1{1'b0}};
 `endif
 
 `ifdef OR1200_IMPL_ALU_COMP3
@@ -168,14 +120,14 @@ assign b_mux = b;
 `endif			      
 assign {cy_sum, result_sum} = (a + b_mux) + carry_in;
 // Numbers either both +ve and bit 31 of result set
-assign ov_sum = ((!a[width-1] & !b_mux[width-1]) & result_sum[width-1]) |
+assign ov_sum = ((!a[32-1] & !b_mux[32-1]) & result_sum[32-1]) |
 `ifdef OR1200_IMPL_SUB
 		// Subtract larger negative from smaller positive
-		((!a[width-1] & b_mux[width-1]) & result_sum[width-1] &
+		((!a[32-1] & b_mux[32-1]) & result_sum[32-1] &
 		 alu_op==`OR1200_ALUOP_SUB) |
 `endif
 // or both -ve and bit 31 of result clear
-		((a[width-1] & b_mux[width-1]) & !result_sum[width-1]);  
+		((a[32-1] & b_mux[32-1]) & !result_sum[32-1]);  
 assign result_and = a & b;
 
 //
