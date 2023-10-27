@@ -4,10 +4,10 @@ import os
 
 # formatted part
 
-path = '/home/xiangchenmeng/rtl/pyflat_copy/tests/regression/i2c/src'
+path = 'tests/regression/or1200-master'
 inputfile = '/top.v'
 outputfile = '/pre_top.v'
-top_module = 'i2c_master_top' 
+top_module = 'or1200_top' 
 inputpath = path+inputfile
 formatpath = path+outputfile
 
