@@ -1,864 +1,988 @@
-
-
 module i2c_master_top(
-	wb_clk_i, rst_i, wb_adr_i, wb_dat_i, wb_dat_o,
-	wb_we_i, wb_stb_i, wb_cyc_i, wb_ack_o, wb_inta_o,
-	scl_pad_i, scl_pad_o, scl_padoen_o, sda_pad_i, sda_pad_o, sda_padoen_o );
-
-	// parameters
-	//parameter ARST_LVL = 1'b0; // asynchronous reset level
-
-	//
-	// inputs & outputs
-	//
-
-	// wishbone signals
-	input        wb_clk_i;     // master clock input
-	input        rst_i;       // asynchronous reset
-	input  [2:0] wb_adr_i;     // lower address bits
-	input  [7:0] wb_dat_i;     // databus input
-	output [7:0] wb_dat_o;     // databus output
-	input        wb_we_i;      // write enable input
-	input        wb_stb_i;     // stobe/core select signal
-	input        wb_cyc_i;     // valid bus cycle input
-	output       wb_ack_o;     // bus cycle acknowledge output
-	output       wb_inta_o;    // interrupt request signal output
-
-	reg [7:0] wb_dat_o;
-	reg wb_ack_o;
-	reg wb_inta_o;
-
-	// I2C signals
-	// i2c clock line
-	input  scl_pad_i;       // SCL-line input
-	output scl_pad_o;       // SCL-line output (always 1'b0)
-	output scl_padoen_o;    // SCL-line output enable (active low)
-
-	// i2c data line
-	input  sda_pad_i;       // SDA-line input
-	output sda_pad_o;       // SDA-line output (always 1'b0)
-	output sda_padoen_o;    // SDA-line output enable (active low)
-
-
-	//
-	// variable declarations
-	//
-
-	// registers
-	reg  [15:0] prer; // clock prescale register
-	reg  [ 7:0] ctr;  // control register
-	reg  [ 7:0] txr;  // transmit register
-	wire [ 7:0] rxr;  // receive register
-	reg  [ 7:0] cr;   // command register
-	wire [ 7:0] sr;   // status register
-
-	// done signal: command completed, clear command register
-	wire done;
-
-	// core enable signal
-	wire core_en;
-	wire ien;
-
-	// status register signals
-	wire irxack;
-	reg  rxack;       // received aknowledge from slave
-	reg  tip;         // transfer in progress
-	reg  irq_flag;    // interrupt pending flag
-	wire i2c_busy;    // bus busy (start signal detected)
-	wire i2c_al;      // i2c bus arbitration lost
-	reg  al;          // status register arbitration lost bit
-
-	//
-	// module body
-	//
-
-	// generate internal reset
-	//wire rst_i = arst_i ^ ARST_LVL;
-
-	// generate wishbone signals
-	wire wb_wacc = wb_cyc_i & wb_stb_i & wb_we_i;
-
-	// generate acknowledge output signal
-	always @(posedge wb_clk_i)
-	  wb_ack_o <=  wb_cyc_i & wb_stb_i & ~wb_ack_o; // because timing is always honored
-
-	// assign DAT_O
-	always @(posedge wb_clk_i)
-	begin
-	  case (wb_adr_i) // synopsis parallel_case
-	    3'b000: wb_dat_o <=  prer[ 7:0];
-	    3'b001: wb_dat_o <=  prer[15:8];
-	    3'b010: wb_dat_o <=  ctr;
-	    3'b011: wb_dat_o <=  rxr; // write is transmit register (txr)
-	    3'b100: wb_dat_o <=  sr;  // write is command register (cr)
-	    3'b101: wb_dat_o <=  txr;
-	    3'b110: wb_dat_o <=  cr;
-	    3'b111: wb_dat_o <=  0;   // reserved
-	  endcase
-	end
-
-	// generate registers
-	always @(posedge wb_clk_i or negedge rst_i)
-	  if (!rst_i)
-	    begin
-	        prer <=  16'hffff;
-	        ctr  <=   8'h0;
-	        txr  <=   8'h0;
-	    end
-	  else
-	    if (wb_wacc)
-	      case (wb_adr_i) // synopsis parallel_case
-	         3'b000 : prer <=  {prer[15:8], wb_dat_i};
-	         3'b001 : prer <=  {wb_dat_i, prer[7:0]};
-	         3'b010 : ctr         <=  wb_dat_i;
-	         3'b011 : txr         <=  wb_dat_i;
-	      endcase
-
-	// generate command register (special case)
-	always @(posedge wb_clk_i or negedge rst_i)
-	  if (~rst_i)
-	    cr <=  8'h0;
-	  else if (wb_wacc)
-	    begin
-	        if (core_en & (wb_adr_i == 3'b100) )
-	          cr <=  wb_dat_i;
-	    end
-	  else
-	    begin
-	        if (done | i2c_al) begin
-	          cr <=  {4'h0, cr[3:0]};           // clear command bits when done
-	                                        // or when aribitration lost
-	        end
-	        cr <=  {cr[7:3], 3'b0};             // reserved bits
-	    end
-
-
-	// decode command register
-	wire sta  = cr[7];
-	wire sto  = cr[6];
-	wire rd   = cr[5];
-	wire wr   = cr[4];
-	wire ack  = cr[3];
-	wire iack = cr[0];
-
-	// decode control register
-	assign core_en = ctr[7];
-	assign ien = ctr[6];
-
-	// hookup byte controller block
-	i2c_master_byte_ctrl byte_controller (
-		.clk      ( wb_clk_i     ),
-		.nReset   ( rst_i        ),
-		.ena      ( core_en      ),
-		.clk_cnt  ( prer         ),
-		.start    ( sta          ),
-		.stop     ( sto          ),
-		.read     ( rd           ),
-		.write    ( wr           ),
-		.ack_in   ( ack          ),
-		.din      ( txr          ),
-		.cmd_ack  ( done         ),
-		.ack_out  ( irxack       ),
-		.dout     ( rxr          ),
-		.i2c_busy ( i2c_busy     ),
-		.i2c_al   ( i2c_al       ),
-		.scl_i    ( scl_pad_i    ),
-		.scl_o    ( scl_pad_o    ),
-		.scl_oen  ( scl_padoen_o ),
-		.sda_i    ( sda_pad_i    ),
-		.sda_o    ( sda_pad_o    ),
-		.sda_oen  ( sda_padoen_o )
-	);
-
-	// status register block + interrupt request signal
-	always @(posedge wb_clk_i or negedge rst_i)
-	  if (!rst_i)
-	    begin
-	        al       <=  1'b0;
-	        rxack    <=  1'b0;
-	        tip      <=  1'b0;
-	        irq_flag <=  1'b0;
-	    end
-	  else
-	    begin
-	        al       <=  i2c_al | (al & ~sta);
-	        rxack    <=  irxack;
-	        tip      <=  (rd | wr);
-	        irq_flag <=  (done | i2c_al | irq_flag) & ~iack; // interrupt request flag is always generated
-	    end
-
-	// generate interrupt request signals
-	always @(posedge wb_clk_i or negedge rst_i)
-	  if (!rst_i)
-	    wb_inta_o <=  1'b0;
-	  else
-	    wb_inta_o <=  irq_flag && ien; // interrupt signal is only generated when IEN (interrupt enable bit is set)
-
-	// assign status register bits
-	assign sr = {rxack, i2c_busy, al, 3'h0, tip, irq_flag};
-	//assign sr[7]   = rxack;
-	//assign sr[6]   = i2c_busy;
-	//assign sr[5]   = al;
-	//assign sr[4:2] = 3'h0; // reserved
-	//assign sr[1]   = tip;
-	//assign sr[0]   = irq_flag;
-
-endmodule
-
-
-
-module i2c_master_byte_ctrl (
-	clk, nReset, ena, clk_cnt, start, stop, read, write, ack_in, din,
-	cmd_ack, ack_out, dout, i2c_busy, i2c_al, scl_i, scl_o, scl_oen, sda_i, sda_o, sda_oen );
-
-	//
-	// inputs & outputs
-	//
-	input clk;     // master clock
-	input nReset;  // asynchronous active low reset
-	input ena;     // core enable signal
-
-	input [15:0] clk_cnt; // 4x SCL
-
-	// control inputs
-	input       start;
-	input       stop;
-	input       read;
-	input       write;
-	input       ack_in;
-	input [7:0] din;
-
-	// status outputs
-	output       cmd_ack;
-	reg cmd_ack;
-	output       ack_out;
-	reg ack_out;
-	output       i2c_busy;
-	output       i2c_al;
-	output [7:0] dout;
-
-	// I2C signals
-	input  scl_i;
-	output scl_o;
-	output scl_oen;
-	input  sda_i;
-	output sda_o;
-	output sda_oen;
-
-
-	//
-	// Variable declarations
-	//
-
-	// statemachine
-	parameter [4:0] ST_IDLE  = 5'b0_0000;
-	parameter [4:0] ST_START = 5'b0_0001;
-	parameter [4:0] ST_READ  = 5'b0_0010;
-	parameter [4:0] ST_WRITE = 5'b0_0100;
-	parameter [4:0] ST_ACK   = 5'b0_1000;
-	parameter [4:0] ST_STOP  = 5'b1_0000;
-
-	// signals for bit_controller
-	reg  [3:0] core_cmd;
-	reg        core_txd;
-	wire       core_ack, core_rxd;
-
-	// signals for shift register
-	reg [7:0] sr; //8bit shift register
-	reg       shift, ld;
-
-	// signals for state machine
-	wire       go;
-	reg  [2:0] dcnt;
-	wire       cnt_done;
-
-	//
-	// Module body
-	//
-
-	// hookup bit_controller
-	i2c_master_bit_ctrl bit_controller (
-		.clk     ( clk      ),
-		.nReset  ( nReset   ),
-		.ena     ( ena      ),
-		.clk_cnt ( clk_cnt  ),
-		.cmd     ( core_cmd ),
-		.cmd_ack ( core_ack ),
-		.busy    ( i2c_busy ),
-		.al      ( i2c_al   ),
-		.din     ( core_txd ),
-		.dout    ( core_rxd ),
-		.scl_i   ( scl_i    ),
-		.scl_o   ( scl_o    ),
-		.scl_oen ( scl_oen  ),
-		.sda_i   ( sda_i    ),
-		.sda_o   ( sda_o    ),
-		.sda_oen ( sda_oen  )
-	);
-
-	// generate go-signal
-	assign go = (read | write | stop) & ~cmd_ack;
-
-	// assign dout output to shift-register
-	assign dout = sr;
-
-	// generate shift register
-	always @(posedge clk or negedge nReset)
-	  if (!nReset)
-	    sr <=  8'h0;
-	  else if (ld)
-	    sr <=  din;
-	  else if (shift)
-	    sr <=  {sr[6:0], core_rxd};
-
-	// generate counter
-	always @(posedge clk or negedge nReset)
-	  if (!nReset)
-	    dcnt <=  3'h0;
-	  else if (ld)
-	    dcnt <=  3'h7;
-	  else if (shift)
-	    dcnt <=  dcnt - 3'h1;
-
-	assign cnt_done = ~(|dcnt);
-
-	//
-	// state machine
-	//
-	reg [4:0] c_state; // synopsis enum_state
-
-	always @(posedge clk or negedge nReset)
-	  if (!nReset)
-	    begin
-	        core_cmd <=  `I2C_CMD_NOP;
-	        core_txd <=  1'b0;
-	        shift    <=  1'b0;
-	        ld       <=  1'b0;
-	        cmd_ack  <=  1'b0;
-	        c_state  <=  ST_IDLE;
-	        ack_out  <=  1'b0;
-	    end
-	  else if (i2c_al)
-	   begin
-	       core_cmd <=  `I2C_CMD_NOP;
-	       core_txd <=  1'b0;
-	       shift    <=  1'b0;
-	       ld       <=  1'b0;
-	       cmd_ack  <=  1'b0;
-	       c_state  <=  ST_IDLE;
-	       ack_out  <=  1'b0;
-	   end
-	else
-	  begin
-	      // initially reset all signals
-	      core_txd <=  sr[7];
-	      shift    <=  1'b0;
-	      ld       <=  1'b0;
-	      cmd_ack  <=  1'b0;
-
-	      case (c_state) // synopsys full_case parallel_case
-	        ST_IDLE:
-	          if (go)
-	            begin
-	                if (start)
-	                  begin
-	                      c_state  <=  ST_START;
-	                      core_cmd <=  `I2C_CMD_START;
-	                  end
-	                else if (read)
-	                  begin
-	                      c_state  <=  ST_READ;
-	                      core_cmd <=  `I2C_CMD_READ;
-	                  end
-	                else if (write)
-	                  begin
-	                      c_state  <=  ST_WRITE;
-	                      core_cmd <=  `I2C_CMD_WRITE;
-	                  end
-	                else // stop
-	                  begin
-	                      c_state  <=  ST_STOP;
-	                      core_cmd <=  `I2C_CMD_STOP;
-	                  end
-
-	                ld <=  1'b1;
-	            end
-
-	        ST_START:
-	          if (core_ack)
-	            begin
-	                if (read)
-	                  begin
-	                      c_state  <=  ST_READ;
-	                      core_cmd <=  `I2C_CMD_READ;
-	                  end
-	                else
-	                  begin
-	                      c_state  <=  ST_WRITE;
-	                      core_cmd <=  `I2C_CMD_WRITE;
-	                  end
-
-	                ld <=  1'b1;
-	            end
-
-	        ST_WRITE:
-	          if (core_ack)
-	            if (cnt_done)
-	              begin
-	                  c_state  <=  ST_ACK;
-	                  core_cmd <=  `I2C_CMD_READ;
-	              end
-	            else
-	              begin
-	                  c_state  <=  ST_WRITE;       // stay in same state
-	                  core_cmd <=  `I2C_CMD_WRITE; // write next bit
-	                  shift    <=  1'b1;
-	              end
-
-	        ST_READ:
-	          if (core_ack)
-	            begin
-	                if (cnt_done)
-	                  begin
-	                      c_state  <=  ST_ACK;
-	                      core_cmd <=  `I2C_CMD_WRITE;
-	                  end
-	                else
-	                  begin
-	                      c_state  <=  ST_READ;       // stay in same state
-	                      core_cmd <=  `I2C_CMD_READ; // read next bit
-	                  end
-
-	                shift    <=  1'b1;
-	                core_txd <=  ack_in;
-	            end
-
-	        ST_ACK:
-	          if (core_ack)
-	            begin
-	               if (stop)
-	                 begin
-	                     c_state  <=  ST_STOP;
-	                     core_cmd <=  `I2C_CMD_STOP;
-	                 end
-	               else
-	                 begin
-	                     c_state  <=  ST_IDLE;
-	                     core_cmd <=  `I2C_CMD_NOP;
-
-	                     // generate command acknowledge signal
-	                     cmd_ack  <=  1'b1;
-	                 end
-
-	                 // assign ack_out output to bit_controller_rxd (contains last received bit)
-	                 ack_out <=  core_rxd;
-
-	                 core_txd <=  1'b1;
-	             end
-	           else
-	             core_txd <=  ack_in;
-
-	        ST_STOP:
-	          if (core_ack)
-	            begin
-	                c_state  <=  ST_IDLE;
-	                core_cmd <=  `I2C_CMD_NOP;
-
-	                // generate command acknowledge signal
-	                cmd_ack  <=  1'b1;
-	            end
-
-	      endcase
-	  end
-endmodule
-
-
-`include "./src/i2c_master_defines.v"
-
-module i2c_master_bit_ctrl(
-	clk, nReset, 
-	clk_cnt, ena, cmd, cmd_ack, busy, al, din, dout,
-	scl_i, scl_o, scl_oen, sda_i, sda_o, sda_oen
-	);
-
-	//
-	// inputs & outputs
-	//
-	input clk;
-	input nReset;
-	input ena;            // core enable signal
-
-	input [15:0] clk_cnt; // clock prescale value
-
-	input  [3:0] cmd;
-	output       cmd_ack; // command complete acknowledge
-	reg cmd_ack;
-	output       busy;    // i2c bus busy
-	reg busy;
-	output       al;      // i2c bus arbitration lost
-	reg al;
-
-	input  din;
-	output dout;
-	reg dout;
-
-	// I2C lines
-	input  scl_i;         // i2c clock line input
-	output scl_o;         // i2c clock line output
-	output scl_oen;       // i2c clock line output enable (active low)
-	reg scl_oen;
-	input  sda_i;         // i2c data line input
-	output sda_o;         // i2c data line output
-	output sda_oen;       // i2c data line output enable (active low)
-	reg sda_oen;
-
-
-	//
-	// variable declarations
-	//
-
-	reg sSCL, sSDB;             // synchronized SCL and SDA inputs
-	reg dscl_oen;               // delayed scl_oen
-	reg sda_chk;                // check SDA output (Multi-master arbitration)
-	reg clk_en;                 // clock generation signals
-	wire slave_wait;
-//	reg [15:0] cnt = clk_cnt;   // clock divider counter (simulation)
-	reg [15:0] cnt;             // clock divider counter (synthesis)
-
-	// state machine variable
-	reg [16:0] c_state; // synopsys enum_state
-
-	//
-	// module body
-	//
-
-	// whenever the slave is not ready it can delay the cycle by pulling SCL low
-	// delay scl_oen
-	always @(posedge clk or negedge nReset)
-		if(~nReset) dscl_oen <=  1'b0;
-		else	  dscl_oen <=  scl_oen;
-
-	assign slave_wait = dscl_oen && !sSCL;
-
-
-	// generate clk enable signal
-	always @(posedge clk or negedge nReset)
-	  if(~nReset)
-	    begin
-	        cnt    <=  16'h0;
-	        clk_en <=  1'b1;
-	    end
-	  else if ( ~|cnt || ~ena)
-	    if (~slave_wait)
-	      begin
-	          cnt    <=  clk_cnt;
-	          clk_en <=  1'b1;
-	      end
-	    else
-	      begin
-	          cnt    <=  cnt;
-	          clk_en <=  1'b0;
-	      end
-	  else
-	    begin
-                cnt    <=  cnt - 16'h1;
-	        clk_en <=  1'b0;
-	    end
-
-
-	// generate bus status controller
-	reg dSCL, dSDA;
-	reg sta_condition;
-	reg sto_condition;
-
-	// synchronize SCL and SDA inputs
-	// reduce metastability risc
-	always @(posedge clk or negedge nReset)
-	  if (~nReset)
-	    begin
-	        sSCL <=  1'b1;
-	        sSDB <=  1'b1;
-
-	        dSCL <=  1'b1;
-	        dSDA <=  1'b1;
-	    end
-	  else
-	    begin
-	        sSCL <=  scl_i;
-	        sSDB <=  sda_i;
-
-	        dSCL <=  sSCL;
-	        dSDA <=  sSDB;
-	    end
-
-	// detect start condition => detect falling edge on SDA while SCL is high
-	// detect stop condition => detect rising edge on SDA while SCL is high
-	always @(posedge clk or negedge nReset)
-	  if (~nReset)
-	    begin
-	        sta_condition <=  1'b0;
-	        sto_condition <=  1'b0;
-	    end
-	  else
-	    begin
-	        sta_condition <=  ~sSDB &  dSDA & sSCL;
-	        sto_condition <=   sSDB & ~dSDA & sSCL;
-	    end
-
-	// generate i2c bus busy signal
-	always @(posedge clk or negedge nReset)
-	  if(!nReset)
-	    busy <=  1'b0;
-	  else
-	    busy <=  (sta_condition | busy) & ~sto_condition;
-
-	// generate arbitration lost signal
-	// aribitration lost when:
-	// 1) master drives SDA high, but the i2c bus is low
-	// 2) stop detected while not requested
-	reg cmd_stop;
-	always @(posedge clk or negedge nReset)
-	  if (~nReset)
-	    cmd_stop <=  1'b0;
-	  else if (clk_en)
-	    cmd_stop <=  cmd == `I2C_CMD_STOP;
-
-	always @(posedge clk or negedge nReset)
-	  if (~nReset)
-	    al <=  1'b0;
-	  else
-	    al <=  (sda_chk & ~sSDB & sda_oen) | (|c_state & sto_condition & ~cmd_stop);
-
-
-	// generate dout signal (store SDA on rising edge of SCL)
-	always @(posedge clk or negedge nReset)
-	  if (~nReset)
-	    dout <=  1'b0;
-	  else if(sSCL & ~dSCL)
-	    dout <=  sSDB;
-
-	// generate statemachine
-
-	// nxt_state decoder
-	parameter [16:0] idle    = 17'b0_0000_0000_0000_0000;
-	parameter [16:0] start_a = 17'b0_0000_0000_0000_0001;
-	parameter [16:0] start_b = 17'b0_0000_0000_0000_0010;
-	parameter [16:0] start_c = 17'b0_0000_0000_0000_0100;
-	parameter [16:0] start_d = 17'b0_0000_0000_0000_1000;
-	parameter [16:0] start_e = 17'b0_0000_0000_0001_0000;
-	parameter [16:0] stop_a  = 17'b0_0000_0000_0010_0000;
-	parameter [16:0] stop_b  = 17'b0_0000_0000_0100_0000;
-	parameter [16:0] stop_c  = 17'b0_0000_0000_1000_0000;
-	parameter [16:0] stop_d  = 17'b0_0000_0001_0000_0000;
-	parameter [16:0] rd_a    = 17'b0_0000_0010_0000_0000;
-	parameter [16:0] rd_b    = 17'b0_0000_0100_0000_0000;
-	parameter [16:0] rd_c    = 17'b0_0000_1000_0000_0000;
-	parameter [16:0] rd_d    = 17'b0_0001_0000_0000_0000;
-	parameter [16:0] wr_a    = 17'b0_0010_0000_0000_0000;
-	parameter [16:0] wr_b    = 17'b0_0100_0000_0000_0000;
-	parameter [16:0] wr_c    = 17'b0_1000_0000_0000_0000;
-	parameter [16:0] wr_d    = 17'b1_0000_0000_0000_0000;
-
-	always @(posedge clk or negedge nReset)
-	  if (!nReset)
-	    begin
-	        c_state <=  idle;
-	        cmd_ack <=  1'b0;
-	        scl_oen <=  1'b1;
-	        sda_oen <=  1'b1;
-	        sda_chk <=  1'b0;
-	    end
-	  else if (al)
-	    begin
-	        c_state <=  idle;
-	        cmd_ack <=  1'b0;
-	        scl_oen <=  1'b1;
-	        sda_oen <=  1'b1;
-	        sda_chk <=  1'b0;
-	    end
-	  else
-	    begin
-	        cmd_ack   <=  1'b0; // default no command acknowledge + assert cmd_ack only 1clk cycle
-
-	        if (clk_en)
-	          case (c_state) // synopsys full_case parallel_case
-	            // idle state
-	            idle:
-	            begin
-	                case (cmd) // synopsys full_case parallel_case
-	                  `I2C_CMD_START:
-	                     c_state <=  start_a;
-
-	                  `I2C_CMD_STOP:
-	                     c_state <=  stop_a;
-
-	                  `I2C_CMD_WRITE:
-	                     c_state <=  wr_a;
-
-	                  `I2C_CMD_READ:
-	                     c_state <=  rd_a;
-
-	                  default:
-	                    c_state <=  idle;
-	                endcase
-
-	                scl_oen <=  scl_oen; // keep SCL in same state
-	                sda_oen <=  sda_oen; // keep SDA in same state
-	                sda_chk <=  1'b0;    // don't check SDA output
-	            end
-
-	            // start
-	            start_a:
-	            begin
-	                c_state <=  start_b;
-	                scl_oen <=  scl_oen; // keep SCL in same state
-	                sda_oen <=  1'b1;    // set SDA high
-	                sda_chk <=  1'b0;    // don't check SDA output
-	            end
-
-	            start_b:
-	            begin
-	                c_state <=  start_c;
-	                scl_oen <=  1'b1; // set SCL high
-	                sda_oen <=  1'b1; // keep SDA high
-	                sda_chk <=  1'b0; // don't check SDA output
-	            end
-
-	            start_c:
-	            begin
-	                c_state <=  start_d;
-	                scl_oen <=  1'b1; // keep SCL high
-	                sda_oen <=  1'b0; // set SDA low
-	                sda_chk <=  1'b0; // don't check SDA output
-	            end
-
-	            start_d:
-	            begin
-	                c_state <=  start_e;
-	                scl_oen <=  1'b1; // keep SCL high
-	                sda_oen <=  1'b0; // keep SDA low
-	                sda_chk <=  1'b0; // don't check SDA output
-	            end
-
-	            start_e:
-	            begin
-	                c_state <=  idle;
-	                cmd_ack <=  1'b1;
-	                scl_oen <=  1'b0; // set SCL low
-	                sda_oen <=  1'b0; // keep SDA low
-	                sda_chk <=  1'b0; // don't check SDA output
-	            end
-
-	            // stop
-	            stop_a:
-	            begin
-	                c_state <=  stop_b;
-	                scl_oen <=  1'b0; // keep SCL low
-	                sda_oen <=  1'b0; // set SDA low
-	                sda_chk <=  1'b0; // don't check SDA output
-	            end
-
-	            stop_b:
-	            begin
-	                c_state <=  stop_c;
-	                scl_oen <=  1'b1; // set SCL high
-	                sda_oen <=  1'b0; // keep SDA low
-	                sda_chk <=  1'b0; // don't check SDA output
-	            end
-
-	            stop_c:
-	            begin
-	                c_state <=  stop_d;
-	                scl_oen <=  1'b1; // keep SCL high
-	                sda_oen <=  1'b0; // keep SDA low
-	                sda_chk <=  1'b0; // don't check SDA output
-	            end
-
-	            stop_d:
-	            begin
-	                c_state <=  idle;
-	                cmd_ack <=  1'b1;
-	                scl_oen <=  1'b1; // keep SCL high
-	                sda_oen <=  1'b1; // set SDA high
-	                sda_chk <=  1'b0; // don't check SDA output
-	            end
-
-	            // read
-	            rd_a:
-	            begin
-	                c_state <=  rd_b;
-	                scl_oen <=  1'b0; // keep SCL low
-	                sda_oen <=  1'b1; // tri-state SDA
-	                sda_chk <=  1'b0; // don't check SDA output
-	            end
-
-	            rd_b:
-	            begin
-	                c_state <=  rd_c;
-	                scl_oen <=  1'b1; // set SCL high
-	                sda_oen <=  1'b1; // keep SDA tri-stated
-	                sda_chk <=  1'b0; // don't check SDA output
-	            end
-
-	            rd_c:
-	            begin
-	                c_state <=  rd_d;
-	                scl_oen <=  1'b1; // keep SCL high
-	                sda_oen <=  1'b1; // keep SDA tri-stated
-	                sda_chk <=  1'b0; // don't check SDA output
-	            end
-
-	            rd_d:
-	            begin
-	                c_state <=  idle;
-	                cmd_ack <=  1'b1;
-	                scl_oen <=  1'b0; // set SCL low
-	                sda_oen <=  1'b1; // keep SDA tri-stated
-	                sda_chk <=  1'b0; // don't check SDA output
-	            end
-
-	            // write
-	            wr_a:
-	            begin
-	                c_state <=  wr_b;
-	                scl_oen <=  1'b0; // keep SCL low
-	                sda_oen <=  din;  // set SDA
-	                sda_chk <=  1'b0; // don't check SDA output (SCL low)
-	            end
-
-	            wr_b:
-	            begin
-	                c_state <=  wr_c;
-	                scl_oen <=  1'b1; // set SCL high
-	                sda_oen <=  din;  // keep SDA
-	                sda_chk <=  1'b1; // check SDA output
-	            end
-
-	            wr_c:
-	            begin
-	                c_state <=  wr_d;
-	                scl_oen <=  1'b1; // keep SCL high
-	                sda_oen <=  din;
-	                sda_chk <=  1'b1; // check SDA output
-	            end
-
-	            wr_d:
-	            begin
-	                c_state <=  idle;
-	                cmd_ack <=  1'b1;
-	                scl_oen <=  1'b0; // set SCL low
-	                sda_oen <=  din;
-	                sda_chk <=  1'b0; // don't check SDA output (SCL low)
-	            end
-
-	          endcase
-	    end
-
-
-	// assign scl and sda output (always gnd)
-	assign scl_o = 1'b0;
-	assign sda_o = 1'b0;
-
-endmodule
-
+        wb_clk_i,
+        wb_rst_i,
+        arst_i,
+        wb_adr_i,
+        wb_dat_i,
+        wb_dat_o,
+        wb_we_i,
+        wb_stb_i,
+        wb_cyc_i,
+        wb_ack_o,
+        wb_inta_o,
+        scl_pad_i,
+        scl_pad_o,
+        scl_padoen_o,
+        sda_pad_i,
+        sda_pad_o,
+        sda_padoen_o
+    );
+    parameter ARST_LVL  = 1'b0;
+    parameter [4:0]byte_controller_ST_IDLE  = 5'b0_0000;
+    parameter [4:0]byte_controller_ST_START  = 5'b0_0001;
+    parameter [4:0]byte_controller_ST_READ  = 5'b0_0010;
+    parameter [4:0]byte_controller_ST_WRITE  = 5'b0_0100;
+    parameter [4:0]byte_controller_ST_ACK  = 5'b0_1000;
+    parameter [4:0]byte_controller_ST_STOP  = 5'b1_0000;
+    parameter [17:0]byte_controller_bit_controller_idle  = 18'b0_0000_0000_0000_0000;
+    parameter [17:0]byte_controller_bit_controller_start_a  = 18'b0_0000_0000_0000_0001;
+    parameter [17:0]byte_controller_bit_controller_start_b  = 18'b0_0000_0000_0000_0010;
+    parameter [17:0]byte_controller_bit_controller_start_c  = 18'b0_0000_0000_0000_0100;
+    parameter [17:0]byte_controller_bit_controller_start_d  = 18'b0_0000_0000_0000_1000;
+    parameter [17:0]byte_controller_bit_controller_start_e  = 18'b0_0000_0000_0001_0000;
+    parameter [17:0]byte_controller_bit_controller_stop_a  = 18'b0_0000_0000_0010_0000;
+    parameter [17:0]byte_controller_bit_controller_stop_b  = 18'b0_0000_0000_0100_0000;
+    parameter [17:0]byte_controller_bit_controller_stop_c  = 18'b0_0000_0000_1000_0000;
+    parameter [17:0]byte_controller_bit_controller_stop_d  = 18'b0_0000_0001_0000_0000;
+    parameter [17:0]byte_controller_bit_controller_rd_a  = 18'b0_0000_0010_0000_0000;
+    parameter [17:0]byte_controller_bit_controller_rd_b  = 18'b0_0000_0100_0000_0000;
+    parameter [17:0]byte_controller_bit_controller_rd_c  = 18'b0_0000_1000_0000_0000;
+    parameter [17:0]byte_controller_bit_controller_rd_d  = 18'b0_0001_0000_0000_0000;
+    parameter [17:0]byte_controller_bit_controller_wr_a  = 18'b0_0010_0000_0000_0000;
+    parameter [17:0]byte_controller_bit_controller_wr_b  = 18'b0_0100_0000_0000_0000;
+    parameter [17:0]byte_controller_bit_controller_wr_c  = 18'b0_1000_0000_0000_0000;
+    parameter [17:0]byte_controller_bit_controller_wr_d  = 18'b1_0000_0000_0000_0000;
+    input wb_clk_i;
+    input wb_rst_i;
+    input arst_i;
+    input [2:0] wb_adr_i;
+    input [7:0] wb_dat_i;
+    output reg [7:0] wb_dat_o;
+    input wb_we_i;
+    input wb_stb_i;
+    input wb_cyc_i;
+    output reg  wb_ack_o;
+    output reg  wb_inta_o;
+    input scl_pad_i;
+    output scl_pad_o;
+    output scl_padoen_o;
+    input sda_pad_i;
+    output sda_pad_o;
+    output sda_padoen_o;
+    reg [15:0] prer;
+    reg [7:0] ctr;
+    reg [7:0] txr;
+    wire [7:0] rxr;
+    reg [7:0] cr;
+    wire [7:0] sr;
+    wire done;
+    wire core_en;
+    wire ien;
+    wire irxack;
+    reg  rxack;
+    reg  tip;
+    reg  irq_flag;
+    wire i2c_busy;
+    wire i2c_al;
+    reg  al;
+    wire rst_i = ( arst_i ^ ARST_LVL );
+    wire wb_wacc = ( wb_we_i & wb_ack_o );
+    wire sta = cr[7];
+    wire sto = cr[6];
+    wire rd = cr[5];
+    wire wr = cr[4];
+    wire ack = cr[3];
+    wire iack = cr[0];
+    wire byte_controller_clk;
+    wire byte_controller_rst;
+    wire byte_controller_nReset;
+    wire byte_controller_ena;
+    wire [15:0] byte_controller_clk_cnt;
+    wire byte_controller_start;
+    wire byte_controller_stop;
+    wire byte_controller_read;
+    wire byte_controller_write;
+    wire byte_controller_ack_in;
+    wire [7:0] byte_controller_din;
+    reg  byte_controller_cmd_ack;
+    reg  byte_controller_ack_out;
+    wire [7:0] byte_controller_dout;
+    wire byte_controller_i2c_busy;
+    wire byte_controller_i2c_al;
+    wire byte_controller_scl_i;
+    wire byte_controller_scl_o;
+    wire byte_controller_scl_oen;
+    wire byte_controller_sda_i;
+    wire byte_controller_sda_o;
+    wire byte_controller_sda_oen;
+    reg [3:0] byte_controller_core_cmd;
+    reg  byte_controller_core_txd;
+    wire byte_controller_core_ack;
+    wire byte_controller_core_rxd;
+    reg [7:0] byte_controller_sr;
+    reg  byte_controller_shift;
+    reg  byte_controller_ld;
+    wire byte_controller_go;
+    reg [2:0] byte_controller_dcnt;
+    wire byte_controller_cnt_done;
+    reg [4:0] byte_controller_c_state;
+    wire byte_controller_bit_controller_clk;
+    wire byte_controller_bit_controller_rst;
+    wire byte_controller_bit_controller_nReset;
+    wire byte_controller_bit_controller_ena;
+    wire [15:0] byte_controller_bit_controller_clk_cnt;
+    wire [3:0] byte_controller_bit_controller_cmd;
+    reg  byte_controller_bit_controller_cmd_ack;
+    reg  byte_controller_bit_controller_busy;
+    reg  byte_controller_bit_controller_al;
+    wire byte_controller_bit_controller_din;
+    reg  byte_controller_bit_controller_dout;
+    wire byte_controller_bit_controller_scl_i;
+    wire byte_controller_bit_controller_scl_o;
+    reg  byte_controller_bit_controller_scl_oen;
+    wire byte_controller_bit_controller_sda_i;
+    wire byte_controller_bit_controller_sda_o;
+    reg  byte_controller_bit_controller_sda_oen;
+    reg [1:0] byte_controller_bit_controller_cSCL;
+    reg [1:0] byte_controller_bit_controller_cSDA;
+    reg [2:0] byte_controller_bit_controller_fSCL;
+    reg [2:0] byte_controller_bit_controller_fSDA;
+    reg  byte_controller_bit_controller_sSCL;
+    reg  byte_controller_bit_controller_sSDA;
+    reg  byte_controller_bit_controller_dSCL;
+    reg  byte_controller_bit_controller_dSDA;
+    reg  byte_controller_bit_controller_dscl_oen;
+    reg  byte_controller_bit_controller_sda_chk;
+    reg  byte_controller_bit_controller_clk_en;
+    reg  byte_controller_bit_controller_slave_wait;
+    reg [15:0] byte_controller_bit_controller_cnt;
+    reg [13:0] byte_controller_bit_controller_filter_cnt;
+    reg [17:0] byte_controller_bit_controller_c_state;
+    wire byte_controller_bit_controller_scl_sync = ( ( byte_controller_bit_controller_dSCL &  ~( byte_controller_bit_controller_sSCL) ) & byte_controller_bit_controller_scl_oen );
+    reg  byte_controller_bit_controller_sta_condition;
+    reg  byte_controller_bit_controller_sto_condition;
+    reg  byte_controller_bit_controller_cmd_stop;
+    always @ (  posedge wb_clk_i)
+    begin
+        wb_ack_o <=  ( ( wb_cyc_i & wb_stb_i ) &  ~( wb_ack_o) );
+    end
+    always @ (  posedge wb_clk_i)
+    begin
+        case ( wb_adr_i ) 
+        3'b000:
+        begin
+            wb_dat_o <=  prer[7:0];
+        end
+        3'b001:
+        begin
+            wb_dat_o <=  prer[15:8];
+        end
+        3'b010:
+        begin
+            wb_dat_o <=  ctr;
+        end
+        3'b011:
+        begin
+            wb_dat_o <=  rxr;
+        end
+        3'b100:
+        begin
+            wb_dat_o <=  sr;
+        end
+        3'b101:
+        begin
+            wb_dat_o <=  txr;
+        end
+        3'b110:
+        begin
+            wb_dat_o <=  cr;
+        end
+        3'b111:
+        begin
+            wb_dat_o <=  0;
+        end
+        endcase
+    end
+    always @ (  posedge wb_clk_i or  negedge rst_i)
+    begin
+        if (  !( rst_i) ) 
+        begin
+            prer <=  16'hffff;
+            ctr <=  8'h0;
+            txr <=  8'h0;
+        end
+        else
+        begin 
+            if ( wb_rst_i ) 
+            begin
+                prer <=  16'hffff;
+                ctr <=  8'h0;
+                txr <=  8'h0;
+            end
+            else
+            begin 
+                if ( wb_wacc ) 
+                begin
+                    case ( wb_adr_i ) 
+                    3'b000:
+                    begin
+                        prer[7:0] <=  wb_dat_i;
+                    end
+                    3'b001:
+                    begin
+                        prer[15:8] <=  wb_dat_i;
+                    end
+                    3'b010:
+                    begin
+                        ctr <=  wb_dat_i;
+                    end
+                    3'b011:
+                    begin
+                        txr <=  wb_dat_i;
+                    end
+                    default :
+                    begin
+                    end
+                    endcase
+                end
+            end
+        end
+    end
+    always @ (  posedge wb_clk_i or  negedge rst_i)
+    begin
+        if (  !( rst_i) ) 
+        begin
+            cr <=  8'h0;
+        end
+        else
+        begin 
+            if ( wb_rst_i ) 
+            begin
+                cr <=  8'h0;
+            end
+            else
+            begin 
+                if ( wb_wacc ) 
+                begin
+                    if ( core_en & ( wb_adr_i == 3'b100 ) ) 
+                    begin
+                        cr <=  wb_dat_i;
+                    end
+                end
+                else
+                begin
+                    if ( done | i2c_al ) 
+                    begin
+                        cr[7:4] <=  4'h0;
+                    end
+                    cr[2:1] <=  2'b0;
+                    cr[0] <=  1'b0;
+                end
+            end
+        end
+    end
+    assign core_en = ctr[7];
+    assign ien = ctr[6];
+    always @ (  posedge wb_clk_i or  negedge rst_i)
+    begin
+        if (  !( rst_i) ) 
+        begin
+            al <=  1'b0;
+            rxack <=  1'b0;
+            tip <=  1'b0;
+            irq_flag <=  1'b0;
+        end
+        else
+        begin 
+            if ( wb_rst_i ) 
+            begin
+                al <=  1'b0;
+                rxack <=  1'b0;
+                tip <=  1'b0;
+                irq_flag <=  1'b0;
+            end
+            else
+            begin
+                al <=  ( i2c_al | ( al &  ~( sta) ) );
+                rxack <=  irxack;
+                tip <=  ( rd | wr );
+                irq_flag <=  ( ( ( done | i2c_al ) | irq_flag ) &  ~( iack) );
+            end
+        end
+    end
+    always @ (  posedge wb_clk_i or  negedge rst_i)
+    begin
+        if (  !( rst_i) ) 
+        begin
+            wb_inta_o <=  1'b0;
+        end
+        else
+        begin 
+            if ( wb_rst_i ) 
+            begin
+                wb_inta_o <=  1'b0;
+            end
+            else
+            begin 
+                wb_inta_o <=  ( irq_flag && ien );
+            end
+        end
+    end
+    assign sr[7] = rxack;
+    assign sr[6] = i2c_busy;
+    assign sr[5] = al;
+    assign sr[4:2] = 3'h0;
+    assign sr[1] = tip;
+    assign sr[0] = irq_flag;
+    assign byte_controller_clk = wb_clk_i;
+    assign byte_controller_rst = wb_rst_i;
+    assign byte_controller_nReset = rst_i;
+    assign byte_controller_ena = core_en;
+    assign byte_controller_clk_cnt = prer;
+    assign byte_controller_start = sta;
+    assign byte_controller_stop = sto;
+    assign byte_controller_read = rd;
+    assign byte_controller_write = wr;
+    assign byte_controller_ack_in = ack;
+    assign byte_controller_din = txr;
+    assign done = byte_controller_cmd_ack;
+    assign irxack = byte_controller_ack_out;
+    assign rxr = byte_controller_dout;
+    assign i2c_busy = byte_controller_i2c_busy;
+    assign i2c_al = byte_controller_i2c_al;
+    assign byte_controller_scl_i = scl_pad_i;
+    assign scl_pad_o = byte_controller_scl_o;
+    assign scl_padoen_o = byte_controller_scl_oen;
+    assign byte_controller_sda_i = sda_pad_i;
+    assign sda_pad_o = byte_controller_sda_o;
+    assign sda_padoen_o = byte_controller_sda_oen;
+    assign byte_controller_bit_controller_clk = byte_controller_clk;
+    assign byte_controller_bit_controller_rst = byte_controller_rst;
+    assign byte_controller_bit_controller_nReset = byte_controller_nReset;
+    assign byte_controller_bit_controller_ena = byte_controller_ena;
+    assign byte_controller_bit_controller_clk_cnt = byte_controller_clk_cnt;
+    assign byte_controller_bit_controller_cmd = byte_controller_core_cmd;
+    assign byte_controller_core_ack = byte_controller_bit_controller_cmd_ack;
+    assign byte_controller_i2c_busy = byte_controller_bit_controller_busy;
+    assign byte_controller_i2c_al = byte_controller_bit_controller_al;
+    assign byte_controller_bit_controller_din = byte_controller_core_txd;
+    assign byte_controller_core_rxd = byte_controller_bit_controller_dout;
+    assign byte_controller_bit_controller_scl_i = byte_controller_scl_i;
+    assign byte_controller_scl_o = byte_controller_bit_controller_scl_o;
+    assign byte_controller_scl_oen = byte_controller_bit_controller_scl_oen;
+    assign byte_controller_bit_controller_sda_i = byte_controller_sda_i;
+    assign byte_controller_sda_o = byte_controller_bit_controller_sda_o;
+    assign byte_controller_sda_oen = byte_controller_bit_controller_sda_oen;
+    always @ (  posedge byte_controller_bit_controller_clk)
+    begin
+        byte_controller_bit_controller_dscl_oen <= byte_controller_bit_controller_scl_oen;
+    end
+    always @ (  posedge byte_controller_bit_controller_clk or  negedge byte_controller_bit_controller_nReset)
+    begin
+        if (  !( byte_controller_bit_controller_nReset) ) 
+        begin
+            byte_controller_bit_controller_slave_wait <= 1'b0;
+        end
+        else
+        begin 
+            byte_controller_bit_controller_slave_wait <= ( ( ( byte_controller_bit_controller_scl_oen &  ~( byte_controller_bit_controller_dscl_oen) ) &  ~( byte_controller_bit_controller_sSCL) ) | ( byte_controller_bit_controller_slave_wait &  ~( byte_controller_bit_controller_sSCL) ) );
+        end
+    end
+    always @ (  posedge byte_controller_bit_controller_clk or  negedge byte_controller_bit_controller_nReset)
+    begin
+        if (  ~( byte_controller_bit_controller_nReset) ) 
+        begin
+            byte_controller_bit_controller_cnt <= 16'h0;
+            byte_controller_bit_controller_clk_en <= 1'b1;
+        end
+        else
+        begin 
+            if ( ( ( byte_controller_bit_controller_rst ||  ~|( byte_controller_bit_controller_cnt) ) ||  !( byte_controller_bit_controller_ena) ) || byte_controller_bit_controller_scl_sync ) 
+            begin
+                byte_controller_bit_controller_cnt <= byte_controller_bit_controller_clk_cnt;
+                byte_controller_bit_controller_clk_en <= 1'b1;
+            end
+            else
+            begin 
+                if ( byte_controller_bit_controller_slave_wait ) 
+                begin
+                    byte_controller_bit_controller_cnt <= byte_controller_bit_controller_cnt;
+                    byte_controller_bit_controller_clk_en <= 1'b0;
+                end
+                else
+                begin
+                    byte_controller_bit_controller_cnt <= ( byte_controller_bit_controller_cnt - 16'h1 );
+                    byte_controller_bit_controller_clk_en <= 1'b0;
+                end
+            end
+        end
+    end
+    always @ (  posedge byte_controller_bit_controller_clk or  negedge byte_controller_bit_controller_nReset)
+    begin
+        if (  !( byte_controller_bit_controller_nReset) ) 
+        begin
+            byte_controller_bit_controller_cSCL <= 2'b00;
+            byte_controller_bit_controller_cSDA <= 2'b00;
+        end
+        else
+        begin 
+            if ( byte_controller_bit_controller_rst ) 
+            begin
+                byte_controller_bit_controller_cSCL <= 2'b00;
+                byte_controller_bit_controller_cSDA <= 2'b00;
+            end
+            else
+            begin
+                byte_controller_bit_controller_cSCL <= { byte_controller_bit_controller_cSCL[0], byte_controller_bit_controller_scl_i };
+                byte_controller_bit_controller_cSDA <= { byte_controller_bit_controller_cSDA[0], byte_controller_bit_controller_sda_i };
+            end
+        end
+    end
+    always @ (  posedge byte_controller_bit_controller_clk or  negedge byte_controller_bit_controller_nReset)
+    begin
+        if (  !( byte_controller_bit_controller_nReset) ) 
+        begin
+            byte_controller_bit_controller_filter_cnt <= 14'h0;
+        end
+        else
+        begin 
+            if ( byte_controller_bit_controller_rst ||  !( byte_controller_bit_controller_ena) ) 
+            begin
+                byte_controller_bit_controller_filter_cnt <= 14'h0;
+            end
+            else
+            begin 
+                if (  ~|( byte_controller_bit_controller_filter_cnt) ) 
+                begin
+                    byte_controller_bit_controller_filter_cnt <= ( byte_controller_bit_controller_clk_cnt >> 2 );
+                end
+                else
+                begin 
+                    byte_controller_bit_controller_filter_cnt <= ( byte_controller_bit_controller_filter_cnt - 1 );
+                end
+            end
+        end
+    end
+    always @ (  posedge byte_controller_bit_controller_clk or  negedge byte_controller_bit_controller_nReset)
+    begin
+        if (  !( byte_controller_bit_controller_nReset) ) 
+        begin
+            byte_controller_bit_controller_fSCL <= 3'b111;
+            byte_controller_bit_controller_fSDA <= 3'b111;
+        end
+        else
+        begin 
+            if ( byte_controller_bit_controller_rst ) 
+            begin
+                byte_controller_bit_controller_fSCL <= 3'b111;
+                byte_controller_bit_controller_fSDA <= 3'b111;
+            end
+            else
+            begin 
+                if (  ~|( byte_controller_bit_controller_filter_cnt) ) 
+                begin
+                    byte_controller_bit_controller_fSCL <= { byte_controller_bit_controller_fSCL[1:0], byte_controller_bit_controller_cSCL[1] };
+                    byte_controller_bit_controller_fSDA <= { byte_controller_bit_controller_fSDA[1:0], byte_controller_bit_controller_cSDA[1] };
+                end
+            end
+        end
+    end
+    always @ (  posedge byte_controller_bit_controller_clk or  negedge byte_controller_bit_controller_nReset)
+    begin
+        if (  ~( byte_controller_bit_controller_nReset) ) 
+        begin
+            byte_controller_bit_controller_sSCL <= 1'b1;
+            byte_controller_bit_controller_sSDA <= 1'b1;
+            byte_controller_bit_controller_dSCL <= 1'b1;
+            byte_controller_bit_controller_dSDA <= 1'b1;
+        end
+        else
+        begin 
+            if ( byte_controller_bit_controller_rst ) 
+            begin
+                byte_controller_bit_controller_sSCL <= 1'b1;
+                byte_controller_bit_controller_sSDA <= 1'b1;
+                byte_controller_bit_controller_dSCL <= 1'b1;
+                byte_controller_bit_controller_dSDA <= 1'b1;
+            end
+            else
+            begin
+                byte_controller_bit_controller_sSCL <= ( (  &( byte_controller_bit_controller_fSCL[2:1]) |  &( byte_controller_bit_controller_fSCL[1:0]) ) | ( byte_controller_bit_controller_fSCL[2] & byte_controller_bit_controller_fSCL[0] ) );
+                byte_controller_bit_controller_sSDA <= ( (  &( byte_controller_bit_controller_fSDA[2:1]) |  &( byte_controller_bit_controller_fSDA[1:0]) ) | ( byte_controller_bit_controller_fSDA[2] & byte_controller_bit_controller_fSDA[0] ) );
+                byte_controller_bit_controller_dSCL <= byte_controller_bit_controller_sSCL;
+                byte_controller_bit_controller_dSDA <= byte_controller_bit_controller_sSDA;
+            end
+        end
+    end
+    always @ (  posedge byte_controller_bit_controller_clk or  negedge byte_controller_bit_controller_nReset)
+    begin
+        if (  ~( byte_controller_bit_controller_nReset) ) 
+        begin
+            byte_controller_bit_controller_sta_condition <= 1'b0;
+            byte_controller_bit_controller_sto_condition <= 1'b0;
+        end
+        else
+        begin 
+            if ( byte_controller_bit_controller_rst ) 
+            begin
+                byte_controller_bit_controller_sta_condition <= 1'b0;
+                byte_controller_bit_controller_sto_condition <= 1'b0;
+            end
+            else
+            begin
+                byte_controller_bit_controller_sta_condition <= ( (  ~( byte_controller_bit_controller_sSDA) & byte_controller_bit_controller_dSDA ) & byte_controller_bit_controller_sSCL );
+                byte_controller_bit_controller_sto_condition <= ( ( byte_controller_bit_controller_sSDA &  ~( byte_controller_bit_controller_dSDA) ) & byte_controller_bit_controller_sSCL );
+            end
+        end
+    end
+    always @ (  posedge byte_controller_bit_controller_clk or  negedge byte_controller_bit_controller_nReset)
+    begin
+        if (  !( byte_controller_bit_controller_nReset) ) 
+        begin
+            byte_controller_bit_controller_busy <= 1'b0;
+        end
+        else
+        begin 
+            if ( byte_controller_bit_controller_rst ) 
+            begin
+                byte_controller_bit_controller_busy <= 1'b0;
+            end
+            else
+            begin 
+                byte_controller_bit_controller_busy <= ( ( byte_controller_bit_controller_sta_condition | byte_controller_bit_controller_busy ) &  ~( byte_controller_bit_controller_sto_condition) );
+            end
+        end
+    end
+    always @ (  posedge byte_controller_bit_controller_clk or  negedge byte_controller_bit_controller_nReset)
+    begin
+        if (  ~( byte_controller_bit_controller_nReset) ) 
+        begin
+            byte_controller_bit_controller_cmd_stop <= 1'b0;
+        end
+        else
+        begin 
+            if ( byte_controller_bit_controller_rst ) 
+            begin
+                byte_controller_bit_controller_cmd_stop <= 1'b0;
+            end
+            else
+            begin 
+                if ( byte_controller_bit_controller_clk_en ) 
+                begin
+                    byte_controller_bit_controller_cmd_stop <= ( byte_controller_bit_controller_cmd == 4'b0010 );
+                end
+            end
+        end
+    end
+    always @ (  posedge byte_controller_bit_controller_clk or  negedge byte_controller_bit_controller_nReset)
+    begin
+        if (  ~( byte_controller_bit_controller_nReset) ) 
+        begin
+            byte_controller_bit_controller_al <= 1'b0;
+        end
+        else
+        begin 
+            if ( byte_controller_bit_controller_rst ) 
+            begin
+                byte_controller_bit_controller_al <= 1'b0;
+            end
+            else
+            begin 
+                byte_controller_bit_controller_al <= ( ( ( byte_controller_bit_controller_sda_chk &  ~( byte_controller_bit_controller_sSDA) ) & byte_controller_bit_controller_sda_oen ) | ( (  |( byte_controller_bit_controller_c_state) & byte_controller_bit_controller_sto_condition ) &  ~( byte_controller_bit_controller_cmd_stop) ) );
+            end
+        end
+    end
+    always @ (  posedge byte_controller_bit_controller_clk)
+    begin
+        if ( byte_controller_bit_controller_sSCL &  ~( byte_controller_bit_controller_dSCL) ) 
+        begin
+            byte_controller_bit_controller_dout <= byte_controller_bit_controller_sSDA;
+        end
+    end
+    always @ (  posedge byte_controller_bit_controller_clk or  negedge byte_controller_bit_controller_nReset)
+    begin
+        if (  !( byte_controller_bit_controller_nReset) ) 
+        begin
+            byte_controller_bit_controller_c_state <= byte_controller_bit_controller_idle;
+            byte_controller_bit_controller_cmd_ack <= 1'b0;
+            byte_controller_bit_controller_scl_oen <= 1'b1;
+            byte_controller_bit_controller_sda_oen <= 1'b1;
+            byte_controller_bit_controller_sda_chk <= 1'b0;
+        end
+        else
+        begin 
+            if ( byte_controller_bit_controller_rst | byte_controller_bit_controller_al ) 
+            begin
+                byte_controller_bit_controller_c_state <= byte_controller_bit_controller_idle;
+                byte_controller_bit_controller_cmd_ack <= 1'b0;
+                byte_controller_bit_controller_scl_oen <= 1'b1;
+                byte_controller_bit_controller_sda_oen <= 1'b1;
+                byte_controller_bit_controller_sda_chk <= 1'b0;
+            end
+            else
+            begin
+                byte_controller_bit_controller_cmd_ack <= 1'b0;
+                if ( byte_controller_bit_controller_clk_en ) 
+                begin
+                    case ( byte_controller_bit_controller_c_state ) 
+                    byte_controller_bit_controller_idle:
+                    begin
+                        case ( byte_controller_bit_controller_cmd ) 
+                        4'b0001:
+                        begin
+                            byte_controller_bit_controller_c_state <= byte_controller_bit_controller_start_a;
+                        end
+                        4'b0010:
+                        begin
+                            byte_controller_bit_controller_c_state <= byte_controller_bit_controller_stop_a;
+                        end
+                        4'b0100:
+                        begin
+                            byte_controller_bit_controller_c_state <= byte_controller_bit_controller_wr_a;
+                        end
+                        4'b1000:
+                        begin
+                            byte_controller_bit_controller_c_state <= byte_controller_bit_controller_rd_a;
+                        end
+                        default :
+                        begin
+                            byte_controller_bit_controller_c_state <= byte_controller_bit_controller_idle;
+                        end
+                        endcase
+                        byte_controller_bit_controller_scl_oen <= byte_controller_bit_controller_scl_oen;
+                        byte_controller_bit_controller_sda_oen <= byte_controller_bit_controller_sda_oen;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_start_a:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_start_b;
+                        byte_controller_bit_controller_scl_oen <= byte_controller_bit_controller_scl_oen;
+                        byte_controller_bit_controller_sda_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_start_b:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_start_c;
+                        byte_controller_bit_controller_scl_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_start_c:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_start_d;
+                        byte_controller_bit_controller_scl_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_oen <= 1'b0;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_start_d:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_start_e;
+                        byte_controller_bit_controller_scl_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_oen <= 1'b0;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_start_e:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_idle;
+                        byte_controller_bit_controller_cmd_ack <= 1'b1;
+                        byte_controller_bit_controller_scl_oen <= 1'b0;
+                        byte_controller_bit_controller_sda_oen <= 1'b0;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_stop_a:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_stop_b;
+                        byte_controller_bit_controller_scl_oen <= 1'b0;
+                        byte_controller_bit_controller_sda_oen <= 1'b0;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_stop_b:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_stop_c;
+                        byte_controller_bit_controller_scl_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_oen <= 1'b0;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_stop_c:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_stop_d;
+                        byte_controller_bit_controller_scl_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_oen <= 1'b0;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_stop_d:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_idle;
+                        byte_controller_bit_controller_cmd_ack <= 1'b1;
+                        byte_controller_bit_controller_scl_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_rd_a:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_rd_b;
+                        byte_controller_bit_controller_scl_oen <= 1'b0;
+                        byte_controller_bit_controller_sda_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_rd_b:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_rd_c;
+                        byte_controller_bit_controller_scl_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_rd_c:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_rd_d;
+                        byte_controller_bit_controller_scl_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_rd_d:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_idle;
+                        byte_controller_bit_controller_cmd_ack <= 1'b1;
+                        byte_controller_bit_controller_scl_oen <= 1'b0;
+                        byte_controller_bit_controller_sda_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_wr_a:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_wr_b;
+                        byte_controller_bit_controller_scl_oen <= 1'b0;
+                        byte_controller_bit_controller_sda_oen <= byte_controller_bit_controller_din;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_wr_b:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_wr_c;
+                        byte_controller_bit_controller_scl_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_oen <= byte_controller_bit_controller_din;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    byte_controller_bit_controller_wr_c:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_wr_d;
+                        byte_controller_bit_controller_scl_oen <= 1'b1;
+                        byte_controller_bit_controller_sda_oen <= byte_controller_bit_controller_din;
+                        byte_controller_bit_controller_sda_chk <= 1'b1;
+                    end
+                    byte_controller_bit_controller_wr_d:
+                    begin
+                        byte_controller_bit_controller_c_state <= byte_controller_bit_controller_idle;
+                        byte_controller_bit_controller_cmd_ack <= 1'b1;
+                        byte_controller_bit_controller_scl_oen <= 1'b0;
+                        byte_controller_bit_controller_sda_oen <= byte_controller_bit_controller_din;
+                        byte_controller_bit_controller_sda_chk <= 1'b0;
+                    end
+                    endcase
+                end
+            end
+        end
+    end
+    assign byte_controller_bit_controller_scl_o = 1'b0;
+    assign byte_controller_bit_controller_sda_o = 1'b0;
+    assign byte_controller_go = ( ( ( byte_controller_read | byte_controller_write ) | byte_controller_stop ) &  ~( byte_controller_cmd_ack) );
+    assign byte_controller_dout = byte_controller_sr;
+    always @ (  posedge byte_controller_clk or  negedge byte_controller_nReset)
+    begin
+        if (  !( byte_controller_nReset) ) 
+        begin
+            byte_controller_sr <= 8'h0;
+        end
+        else
+        begin 
+            if ( byte_controller_rst ) 
+            begin
+                byte_controller_sr <= 8'h0;
+            end
+            else
+            begin 
+                if ( byte_controller_ld ) 
+                begin
+                    byte_controller_sr <= byte_controller_din;
+                end
+                else
+                begin 
+                    if ( byte_controller_shift ) 
+                    begin
+                        byte_controller_sr <= { byte_controller_sr[6:0], byte_controller_core_rxd };
+                    end
+                end
+            end
+        end
+    end
+    always @ (  posedge byte_controller_clk or  negedge byte_controller_nReset)
+    begin
+        if (  !( byte_controller_nReset) ) 
+        begin
+            byte_controller_dcnt <= 3'h0;
+        end
+        else
+        begin 
+            if ( byte_controller_rst ) 
+            begin
+                byte_controller_dcnt <= 3'h0;
+            end
+            else
+            begin 
+                if ( byte_controller_ld ) 
+                begin
+                    byte_controller_dcnt <= 3'h7;
+                end
+                else
+                begin 
+                    if ( byte_controller_shift ) 
+                    begin
+                        byte_controller_dcnt <= ( byte_controller_dcnt - 3'h1 );
+                    end
+                end
+            end
+        end
+    end
+    assign byte_controller_cnt_done =  ~(  |( byte_controller_dcnt));
+    always @ (  posedge byte_controller_clk or  negedge byte_controller_nReset)
+    begin
+        if (  !( byte_controller_nReset) ) 
+        begin
+            byte_controller_core_cmd <= 4'b0000;
+            byte_controller_core_txd <= 1'b0;
+            byte_controller_shift <= 1'b0;
+            byte_controller_ld <= 1'b0;
+            byte_controller_cmd_ack <= 1'b0;
+            byte_controller_c_state <= byte_controller_ST_IDLE;
+            byte_controller_ack_out <= 1'b0;
+        end
+        else
+        begin 
+            if ( byte_controller_rst | byte_controller_i2c_al ) 
+            begin
+                byte_controller_core_cmd <= 4'b0000;
+                byte_controller_core_txd <= 1'b0;
+                byte_controller_shift <= 1'b0;
+                byte_controller_ld <= 1'b0;
+                byte_controller_cmd_ack <= 1'b0;
+                byte_controller_c_state <= byte_controller_ST_IDLE;
+                byte_controller_ack_out <= 1'b0;
+            end
+            else
+            begin
+                byte_controller_core_txd <= byte_controller_sr[7];
+                byte_controller_shift <= 1'b0;
+                byte_controller_ld <= 1'b0;
+                byte_controller_cmd_ack <= 1'b0;
+                case ( byte_controller_c_state ) 
+                byte_controller_ST_IDLE:
+                begin
+                    if ( byte_controller_go ) 
+                    begin
+                        if ( byte_controller_start ) 
+                        begin
+                            byte_controller_c_state <= byte_controller_ST_START;
+                            byte_controller_core_cmd <= 4'b0001;
+                        end
+                        else
+                        begin 
+                            if ( byte_controller_read ) 
+                            begin
+                                byte_controller_c_state <= byte_controller_ST_READ;
+                                byte_controller_core_cmd <= 4'b1000;
+                            end
+                            else
+                            begin 
+                                if ( byte_controller_write ) 
+                                begin
+                                    byte_controller_c_state <= byte_controller_ST_WRITE;
+                                    byte_controller_core_cmd <= 4'b0100;
+                                end
+                                else
+                                begin
+                                    byte_controller_c_state <= byte_controller_ST_STOP;
+                                    byte_controller_core_cmd <= 4'b0010;
+                                end
+                            end
+                        end
+                        byte_controller_ld <= 1'b1;
+                    end
+                end
+                byte_controller_ST_START:
+                begin
+                    if ( byte_controller_core_ack ) 
+                    begin
+                        if ( byte_controller_read ) 
+                        begin
+                            byte_controller_c_state <= byte_controller_ST_READ;
+                            byte_controller_core_cmd <= 4'b1000;
+                        end
+                        else
+                        begin
+                            byte_controller_c_state <= byte_controller_ST_WRITE;
+                            byte_controller_core_cmd <= 4'b0100;
+                        end
+                        byte_controller_ld <= 1'b1;
+                    end
+                end
+                byte_controller_ST_WRITE:
+                begin
+                    if ( byte_controller_core_ack ) 
+                    begin
+                        if ( byte_controller_cnt_done ) 
+                        begin
+                            byte_controller_c_state <= byte_controller_ST_ACK;
+                            byte_controller_core_cmd <= 4'b1000;
+                        end
+                        else
+                        begin
+                            byte_controller_c_state <= byte_controller_ST_WRITE;
+                            byte_controller_core_cmd <= 4'b0100;
+                            byte_controller_shift <= 1'b1;
+                        end
+                    end
+                end
+                byte_controller_ST_READ:
+                begin
+                    if ( byte_controller_core_ack ) 
+                    begin
+                        if ( byte_controller_cnt_done ) 
+                        begin
+                            byte_controller_c_state <= byte_controller_ST_ACK;
+                            byte_controller_core_cmd <= 4'b0100;
+                        end
+                        else
+                        begin
+                            byte_controller_c_state <= byte_controller_ST_READ;
+                            byte_controller_core_cmd <= 4'b1000;
+                        end
+                        byte_controller_shift <= 1'b1;
+                        byte_controller_core_txd <= byte_controller_ack_in;
+                    end
+                end
+                byte_controller_ST_ACK:
+                begin
+                    if ( byte_controller_core_ack ) 
+                    begin
+                        if ( byte_controller_stop ) 
+                        begin
+                            byte_controller_c_state <= byte_controller_ST_STOP;
+                            byte_controller_core_cmd <= 4'b0010;
+                        end
+                        else
+                        begin
+                            byte_controller_c_state <= byte_controller_ST_IDLE;
+                            byte_controller_core_cmd <= 4'b0000;
+                            byte_controller_cmd_ack <= 1'b1;
+                        end
+                        byte_controller_ack_out <= byte_controller_core_rxd;
+                        byte_controller_core_txd <= 1'b1;
+                    end
+                    else
+                    begin 
+                        byte_controller_core_txd <= byte_controller_ack_in;
+                    end
+                end
+                byte_controller_ST_STOP:
+                begin
+                    if ( byte_controller_core_ack ) 
+                    begin
+                        byte_controller_c_state <= byte_controller_ST_IDLE;
+                        byte_controller_core_cmd <= 4'b0000;
+                        byte_controller_cmd_ack <= 1'b1;
+                    end
+                end
+                endcase
+            end
+        end
+    end
+endmodule 
 

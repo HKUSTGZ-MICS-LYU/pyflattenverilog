@@ -4,18 +4,18 @@ import os
 
 # formatted part
 
-path = 'tests/regression/b30'
-inputfile = '/b30.v'
-outputfile = '/pre_b30.v'
-top_module = 'b30' 
+path = '/home/xiangchenmeng/rtl/pyflat_copy/tests/regression/i2c/src'
+inputfile = '/top.v'
+outputfile = '/pre_top.v'
+top_module = 'i2c_master_top' 
 inputpath = path+inputfile
 formatpath = path+outputfile
 
 if os.path.exists(formatpath):
    os.remove(path=formatpath)
 with open(path+inputfile, 'r') as f:
-   design = f.read()
-preprocess.formatter_file(design, formatpath)
+    design = f.read()
+    preprocess.formatter_file(design, formatpath)
 
 # flatten part
 

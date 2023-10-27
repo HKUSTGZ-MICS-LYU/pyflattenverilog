@@ -1,6 +1,6 @@
 #@ # 
 #@ # Running fm_shell Version T-2022.03-SP5 for linux64 -- Oct 18, 2022
-#@ # Date:   Wed Oct 18 22:45:05 2023
+#@ # Date:   Fri Oct 27 22:46:25 2023
 #@ # Run by: xiangchenmeng@mics-eda
 #@ 
 
@@ -51,11 +51,12 @@ source /usr/synopysys/install/formality/T-2022.03-SP5/admin/setup/.synopsys_fm.s
 source -echo -verbose verify.fms
 #@ # -- Starting source verify.fms
 
+#@ set_mismatch_message_filter -warn FMR_ELAB-147
 #@ set synopsys_auto_setup true
-#@ read_verilog -r /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/b19/unflatten/b19.v
-#@ set_top b19
-#@ read_verilog -i /home/xiangchenmeng/rtl/pyflattenverilog/tests/regression/b19/flatten/f_b19_3.v
-#@ set_top b19
+#@ read_verilog -r /home/xiangchenmeng/rtl/pyflat_copy/tests/regression/i2c/src/top.v
+#@ set_top i2c_master_top
+#@ read_verilog -i /home/xiangchenmeng/rtl/pyflat_copy/tests/regression/i2c/src/pre_top.v
+#@ set_top i2c_master_top
 #@ verify
-#@ report_failing_points
+#@ report_unverified_points 
 #@ exit

@@ -5,7 +5,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3599.853
+cpu MHz		: 3571.655
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -31,7 +31,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3599.853
+cpu MHz		: 2410.583
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -57,7 +57,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3235.473
+cpu MHz		: 3297.546
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -83,7 +83,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3074.157
+cpu MHz		: 1326.049
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -109,7 +109,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3450.805
+cpu MHz		: 3272.277
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -135,7 +135,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3558.471
+cpu MHz		: 1638.427
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -161,7 +161,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3599.853
+cpu MHz		: 3565.429
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -187,7 +187,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3130.004
+cpu MHz		: 1655.273
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -213,7 +213,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3588.134
+cpu MHz		: 3384.887
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -239,7 +239,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3439.086
+cpu MHz		: 1163.085
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -265,7 +265,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3591.979
+cpu MHz		: 3598.754
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -291,7 +291,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3532.287
+cpu MHz		: 1484.985
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -317,7 +317,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3316.406
+cpu MHz		: 3382.690
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -343,7 +343,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 2873.291
+cpu MHz		: 2897.460
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -369,7 +369,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 2961.364
+cpu MHz		: 3489.624
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -395,7 +395,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3597.656
+cpu MHz		: 2793.090
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -421,7 +421,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3363.281
+cpu MHz		: 3585.388
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -447,7 +447,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 2948.547
+cpu MHz		: 2427.429
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -473,7 +473,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3588.867
+cpu MHz		: 2343.933
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -499,7 +499,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3576.232
+cpu MHz		: 1186.340
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -525,7 +525,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3171.569
+cpu MHz		: 3071.044
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -551,7 +551,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3599.853
+cpu MHz		: 1449.645
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -577,7 +577,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3387.268
+cpu MHz		: 3313.110
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -603,7 +603,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3515.808
+cpu MHz		: 1761.657
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -629,7 +629,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 2770.385
+cpu MHz		: 3286.376
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -655,7 +655,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3523.498
+cpu MHz		: 1099.548
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -681,7 +681,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3245.178
+cpu MHz		: 3242.431
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -707,7 +707,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3302.856
+cpu MHz		: 1060.363
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -733,7 +733,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3587.768
+cpu MHz		: 3430.480
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -759,7 +759,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3079.467
+cpu MHz		: 1305.541
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -785,7 +785,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3584.289
+cpu MHz		: 3032.226
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -811,7 +811,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3463.806
+cpu MHz		: 2485.656
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -837,7 +837,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 2471.008
+cpu MHz		: 3599.853
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -863,7 +863,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3373.168
+cpu MHz		: 1239.807
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -889,7 +889,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3414.550
+cpu MHz		: 3597.290
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -915,7 +915,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3561.584
+cpu MHz		: 998.657
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -941,7 +941,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3599.853
+cpu MHz		: 3453.918
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -967,7 +967,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3599.853
+cpu MHz		: 1458.251
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -993,7 +993,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3546.936
+cpu MHz		: 3592.712
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1019,7 +1019,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3593.078
+cpu MHz		: 3547.485
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1045,7 +1045,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3599.853
+cpu MHz		: 3600.036
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1071,7 +1071,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3539.428
+cpu MHz		: 800.354
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1097,7 +1097,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3599.853
+cpu MHz		: 2833.190
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1123,7 +1123,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 2901.672
+cpu MHz		: 2211.914
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1149,7 +1149,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3598.388
+cpu MHz		: 3597.473
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1175,7 +1175,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3599.121
+cpu MHz		: 2433.654
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1201,7 +1201,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3500.061
+cpu MHz		: 3598.022
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1227,7 +1227,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 2518.432
+cpu MHz		: 2558.166
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1253,7 +1253,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3454.467
+cpu MHz		: 3538.879
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1279,7 +1279,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3543.457
+cpu MHz		: 3458.496
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1305,7 +1305,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3589.416
+cpu MHz		: 3536.132
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1331,7 +1331,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3599.853
+cpu MHz		: 1064.941
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1357,7 +1357,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3599.853
+cpu MHz		: 3593.444
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1383,7 +1383,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3449.157
+cpu MHz		: 820.495
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1409,7 +1409,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3502.258
+cpu MHz		: 2994.689
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1435,7 +1435,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 2813.598
+cpu MHz		: 3173.950
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1461,7 +1461,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3598.205
+cpu MHz		: 3600.952
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1487,7 +1487,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3602.416
+cpu MHz		: 2568.603
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1513,7 +1513,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 2718.933
+cpu MHz		: 3585.571
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1539,7 +1539,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 2147.277
+cpu MHz		: 3226.501
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1565,7 +1565,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3576.232
+cpu MHz		: 3600.036
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1591,7 +1591,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 2916.870
+cpu MHz		: 1246.032
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1617,7 +1617,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3601.501
+cpu MHz		: 3173.767
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1643,7 +1643,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3599.853
+cpu MHz		: 2579.223
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1669,7 +1669,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3552.612
+cpu MHz		: 3334.350
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1695,7 +1695,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3516.357
+cpu MHz		: 3553.894
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1721,7 +1721,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3548.767
+cpu MHz		: 3579.162
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1747,7 +1747,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 2781.555
+cpu MHz		: 2205.322
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1773,7 +1773,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 2291.015
+cpu MHz		: 3573.852
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1799,7 +1799,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3531.921
+cpu MHz		: 2937.011
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36
@@ -1825,7 +1825,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3535.217
+cpu MHz		: 3599.853
 cache size	: 39936 KB
 physical id	: 0
 siblings	: 36
@@ -1851,7 +1851,7 @@ model		: 106
 model name	: Intel(R) Xeon(R) Gold 6354 CPU @ 3.00GHz
 stepping	: 6
 microcode	: 0xd000311
-cpu MHz		: 3492.187
+cpu MHz		: 2898.559
 cache size	: 39936 KB
 physical id	: 1
 siblings	: 36

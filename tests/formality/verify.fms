@@ -1,7 +1,9 @@
 set_mismatch_message_filter -warn FMR_ELAB-147
-read_verilog -r /home/meng/Code/pyflattenverilog/tests/regression/b19/b19_temp.v
-set_top b19
-read_verilog -i /home/meng/Code/pyflattenverilog/tests/regression/b19/b19.v
-set_top b19
+set synopsys_auto_setup true
+read_verilog -r /home/xiangchenmeng/rtl/pyflat_copy/tests/regression/i2c/src/top.v
+set_top i2c_master_top
+read_verilog -i /home/xiangchenmeng/rtl/pyflat_copy/tests/regression/i2c/src/pre_top.v
+set_top i2c_master_top
 verify
+report_unverified_points 
 exit
