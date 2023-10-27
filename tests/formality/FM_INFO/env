@@ -1,4 +1,8 @@
 SYNOPSYS_LC_ROOT=/usr/synopysys/software/lc/T-2022.03-SP3
+<<<<<<< HEAD
+=======
+XDG_SESSION_ID=24045
+>>>>>>> 2bebaaf6de55c4bd64027a51032432ddf1ee2c8f
 QRC_HOME=/usr/cadence/installs/QUANTUS221
 XDG_SESSION_ID=23912
 __MODULES_LMINIT=module use --append /home/yijianhe/System/modules-5.2/modulefiles/groups:module use --append /home/yijianhe/System/modules-5.2/modulefiles/tools/Cadence:module use --append /home/yijianhe/System/modules-5.2/modulefiles/tools/Synopsys:module use --append /home/yijianhe/System/modules-5.2/modulefiles/tools/Mentor:module use --append /home/yijianhe/System/modules-5.2/modulefiles/tools/Misc:module use --append /home/yijianhe/System/modules-5.2/modulefiles/projects
@@ -8,7 +12,11 @@ TERM_PROGRAM=vscode
 MODULES_CMD=/home/yijianhe/System/modules-5.2/libexec/modulecmd.tcl
 SHELL=/bin/bash
 TERM=xterm-256color
+<<<<<<< HEAD
 HISTSIZE=1000
+=======
+SSH_CLIENT=10.5.150.212 51164 22
+>>>>>>> 2bebaaf6de55c4bd64027a51032432ddf1ee2c8f
 ANSYSLMD_LICENSE_FILE=1055@10.100.0.27
 SSH_CLIENT=10.4.157.135 65147 22
 TERM_PROGRAM_VERSION=1.83.1
@@ -26,8 +34,12 @@ GUESTFISH_PS1=\[\e[1;32m\]><fs>\[\e[0;31m\]
 MAIL=/var/spool/mail/xiangchenmeng
 PATH=/usr/cadence/installs/jasper_2022.12p001/bin:/usr/local/bin:/usr/pycharm/pycharm-community-2022.2.4/bin:/usr/synopysys/software/embedit/T-2022.09/bin:/home/data/AnsysEM/v222/Linux64:/usr/cadence/installs/PVS222/bin:/usr/cadence/installs/QUANTUS221/bin:/usr/local/bin:/opt/cmake-3.22.4-linux-x86_64/bin:/usr/local/bin:/usr/local/git/bin:/usr/cadence/XCELIUM2109/tools/bin:/usr/synopysys/software/verdi/S-2021.09-SP2-1/bin:/usr/synopysys/software/prime/T-2022.03-SP1/bin:/usr/synopysys/software/icc2/T-2022.03-SP4/bin:/usr/synopysys/software/starrc/U-2022.12/bin:/usr/synopysys/install/formality/T-2022.03-SP5/bin:/usr/synopysys/software/icc/S-2021.06-SP5-1/bin:/usr/synopysys/software/lc/T-2022.03-SP3/bin:/usr/synopysys/software/vcs/T-2022.06-SP1-1/linux64/bin:/usr/synopysys/software/vcs/T-2022.06-SP1-1/bin:/usr/synopysys/software/syn/S-2021.06-SP5-1/bin:/usr/mentor/modelsim/modeltech/bin:/usr/cadence/installs/INTEGRAND62/ParaView-5.7.0-MPI-Linux-Python3.7-64bit/bin:/usr/cadence/installs/INTEGRAND62/bin:/usr/cadence/installs/GENUS211/bin:/usr/cadence/installs/INNOVUS211/bin:/usr/cadence/installs/SPECTRE21.10.582/bin:/usr/mentor/aoi_cal_2023.1_25.13/aoi_cal_2023.1_25.13/bin:/usr/cadence/installs/IC618.500.28/bin:/home/xiangchenmeng/.vscode-server/bin/f1b07bd25dfad64b0167beb15359ae573aecd2cc/bin/remote-cli:/usr/cadence/installs/jasper_2022.12p001/bin:/usr/local/bin:/usr/pycharm/pycharm-community-2022.2.4/bin:/usr/synopysys/software/embedit/T-2022.09/bin:/home/data/AnsysEM/v222/Linux64:/usr/cadence/installs/PVS222/bin:/usr/cadence/installs/QUANTUS221/bin:/usr/local/bin:/opt/cmake-3.22.4-linux-x86_64/bin:/usr/local/bin:/usr/local/git/bin:/usr/cadence/XCELIUM2109/tools/bin:/usr/synopysys/software/verdi/S-2021.09-SP2-1/bin:/usr/synopysys/software/prime/T-2022.03-SP1/bin:/usr/synopysys/software/icc2/T-2022.03-SP4/bin:/usr/synopysys/software/starrc/U-2022.12/bin:/usr/synopysys/install/formality/T-2022.03-SP5/bin:/usr/synopysys/software/icc/S-2021.06-SP5-1/bin:/usr/synopysys/software/lc/T-2022.03-SP3/bin:/usr/synopysys/software/vcs/T-2022.06-SP1-1/linux64/bin:/usr/synopysys/software/vcs/T-2022.06-SP1-1/bin:/usr/synopysys/software/syn/S-2021.06-SP5-1/bin:/usr/mentor/modelsim/modeltech/bin:/usr/cadence/installs/INTEGRAND62/ParaView-5.7.0-MPI-Linux-Python3.7-64bit/bin:/usr/cadence/installs/INTEGRAND62/bin:/usr/cadence/installs/GENUS211/bin:/usr/cadence/installs/INNOVUS211/bin:/usr/cadence/installs/SPECTRE21.10.582/bin:/usr/mentor/aoi_cal_2023.1_25.13/aoi_cal_2023.1_25.13/bin:/usr/cadence/installs/IC618.500.28/bin:/usr/lib64/qt-3.3/bin:/home/yijianhe/System/modules-5.2/bin:/usr/cadence/installs/jasper_2022.12p001/bin:/usr/local/bin:/usr/pycharm/pycharm-community-2022.2.4/bin:/usr/synopysys/software/embedit/T-2022.09/bin:/home/data/AnsysEM/v222/Linux64:/usr/cadence/installs/PVS222/bin:/usr/cadence/installs/QUANTUS221/bin:/usr/local/bin:/opt/cmake-3.22.4-linux-x86_64/bin:/usr/local/bin:/usr/local/git/bin:/usr/cadence/XCELIUM2109/tools/bin:/usr/synopysys/software/verdi/S-2021.09-SP2-1/bin:/usr/synopysys/software/prime/T-2022.03-SP1/bin:/usr/synopysys/software/icc2/T-2022.03-SP4/bin:/usr/synopysys/software/starrc/U-2022.12/bin:/usr/synopysys/install/formality/T-2022.03-SP5/bin:/usr/synopysys/software/icc/S-2021.06-SP5-1/bin:/usr/synopysys/software/lc/T-2022.03-SP3/bin:/usr/synopysys/software/vcs/T-2022.06-SP1-1/linux64/bin:/usr/synopysys/software/vcs/T-2022.06-SP1-1/bin:/usr/synopysys/software/syn/S-2021.06-SP5-1/bin:/usr/mentor/modelsim/modeltech/bin:/usr/cadence/installs/INTEGRAND62/ParaView-5.7.0-MPI-Linux-Python3.7-64bit/bin:/usr/cadence/installs/INTEGRAND62/bin:/usr/cadence/installs/GENUS211/bin:/usr/cadence/installs/INNOVUS211/bin:/usr/cadence/installs/SPECTRE21.10.582/bin:/usr/mentor/aoi_cal_2023.1_25.13/aoi_cal_2023.1_25.13/bin:/usr/cadence/installs/IC618.500.28/bin:/usr/local/bin:/usr/bin:/usr/cadence/installs/IC618.500.28/tools/dfII/bin:/usr/local/sbin:/usr/sbin:/usr/cadence/installs/IC618.500.28/tools/dfII/bin:/home/xiangchenmeng/.local/bin:/home/xiangchenmeng/bin:/usr/cadence/installs/IC618.500.28/tools/dfII/bin
 VERDI_HOME=/usr/synopysys/software/verdi/S-2021.09-SP2-1
+<<<<<<< HEAD
 CALIBRE_HOME=/usr/mentor/aoi_cal_2023.1_25.13/aoi_cal_2023.1_25.13
 PWD=/home/xiangchenmeng/rtl/pyflattenverilog/tests/formality
+=======
+PWD=/home/xiangchenmeng/rtl/pyflat_copy/tests/formality
+>>>>>>> 2bebaaf6de55c4bd64027a51032432ddf1ee2c8f
 VCS_HOME=/usr/synopysys/software/vcs/T-2022.06-SP1-1
 FM_HOME=/usr/synopysys/install/formality/T-2022.03-SP5
 LANG=en_US.UTF-8
@@ -48,6 +60,7 @@ STARCC_HOME=/usr/synopysys/software/starrc/U-2022.12
 FMSHELL=/usr/synopysys/install/formality/T-2022.03-SP5/bin/fm_shell
 LOGNAME=xiangchenmeng
 QTLIB=/usr/lib64/qt-3.3/lib
+<<<<<<< HEAD
 MGLS_LICENSE_FILE=27022@10.100.0.54
 CVS_RSH=ssh
 XDG_DATA_DIRS=/home/xiangchenmeng/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share
@@ -55,6 +68,13 @@ SSH_CONNECTION=10.4.157.135 65147 10.108.1.8 22
 VSCODE_GIT_IPC_HANDLE=/run/user/1028/vscode-git-c723e9f618.sock
 MODULESHOME=/home/yijianhe/System/modules-5.2
 VSCODE_IPC_HOOK_CLI=/run/user/1028/vscode-ipc-3511328d-6ea1-4320-9831-6d1215288d7b.sock
+=======
+SSH_CONNECTION=10.5.150.212 51164 10.108.1.8 22
+XDG_DATA_DIRS=/home/xiangchenmeng/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share
+VSCODE_GIT_IPC_HANDLE=/run/user/1028/vscode-git-52d86637dc.sock
+MODULESHOME=/home/yijianhe/System/modules-5.2
+VSCODE_IPC_HOOK_CLI=/run/user/1028/vscode-ipc-6eeed448-9ada-4a2b-bb97-bc6518fe9e86.sock
+>>>>>>> 2bebaaf6de55c4bd64027a51032432ddf1ee2c8f
 LESSOPEN=||/usr/bin/lesspipe.sh %s
 BROWSER=/home/xiangchenmeng/.vscode-server/bin/f1b07bd25dfad64b0167beb15359ae573aecd2cc/bin/helpers/browser.sh
 GIT_ASKPASS=/home/xiangchenmeng/.vscode-server/bin/f1b07bd25dfad64b0167beb15359ae573aecd2cc/extensions/git/dist/askpass.sh
@@ -96,4 +116,4 @@ _=/usr/synopysys/install/formality/T-2022.03-SP5/linux64/fm/bin/fm_shell_exec
 GLIBCXX_FORCE_NEW=1
 GLIBCPP_FORCE_NEW=1
 FLEXLM_BORROWFILE=/home/xiangchenmeng/.mics-eda-borrow.txt
-FM_WORK_PATH=/home/xiangchenmeng/rtl/pyflattenverilog/tests/formality
+FM_WORK_PATH=/home/xiangchenmeng/rtl/pyflat_copy/tests/formality

@@ -104,6 +104,8 @@ def formatter_file(design, outputpath):
                for name in ctx.list_of_variable_port_identifiers().getText().split(','):
                   if name in self.module_port:
                      self.module_port[name]['port_direction'] = 'output'
+                  if ctx.REG() != None:
+                     self.module_port[name]['port_type'] = ctx.REG().getText()
                   if ctx.range_() != None:
                      self.module_port[name]['port_width'] = ctx.range_().getText()
                   if ctx.SIGNED() != None:
