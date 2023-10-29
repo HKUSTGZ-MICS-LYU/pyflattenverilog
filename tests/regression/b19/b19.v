@@ -25,12 +25,7 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
    reg           rd;
    output        wr;
    reg           wr;
-   
-   
-   
-   always @(posedge clock or posedge reset)
-   begin: xhdl0
-      
+    
       integer       reg0;
       integer       reg1;
       integer       reg2;
@@ -60,6 +55,11 @@ module b14(clock, reset, addr, datai, datao, rd, wr);
       
       parameter     FETCH = 0;
       parameter     EXEC = 1;
+   
+   
+   always @(posedge clock or posedge reset)
+   begin
+     
       
       if (reset == 1'b1)
       begin
@@ -876,10 +876,33 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
    parameter     HLT = 8'hF4;
    parameter     WAITx = 8'h9B;
    parameter     NOP = 8'h90;
-   
+    reg [7:0]     InstQueue[15:0];
+      reg [4:0]     InstQueueRd_Addr;
+      reg [4:0]     InstQueueWr_Addr;
+      parameter     InstQueueLimit = 15;
+      integer       InstAddrPointer;
+      integer       PhyAddrPointer;
+      reg           Extended;
+      reg           More;
+      reg           Flush;
+      reg [15:0]    lWord;
+      reg [14:0]    uWord;
+      integer       fWord;
+      reg [3:0]     State2;
+      parameter     Si = 0;
+      parameter     S1 = 1;
+      parameter     S2 = 2;
+      parameter     S3 = 3;
+      parameter     S4 = 4;
+      parameter     S5 = 5;
+      parameter     S6 = 6;
+      parameter     S7 = 7;
+      parameter     S8 = 8;
+      parameter     S9 = 9;
+      
    
    always @(posedge CLOCK or posedge RESET)
-   begin: P0
+   begin
       if (RESET == 1'b1)
       begin
          BE_n <= 4'b0000;
@@ -1022,31 +1045,8 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
    
    
    always @(posedge CLOCK or posedge RESET)
-   begin: P1
-      reg [7:0]     InstQueue[15:0];
-      reg [4:0]     InstQueueRd_Addr;
-      reg [4:0]     InstQueueWr_Addr;
-      parameter     InstQueueLimit = 15;
-      integer       InstAddrPointer;
-      integer       PhyAddrPointer;
-      reg           Extended;
-      reg           More;
-      reg           Flush;
-      reg [15:0]    lWord;
-      reg [14:0]    uWord;
-      integer       fWord;
-      reg [3:0]     State2;
-      parameter     Si = 0;
-      parameter     S1 = 1;
-      parameter     S2 = 2;
-      parameter     S3 = 3;
-      parameter     S4 = 4;
-      parameter     S5 = 5;
-      parameter     S6 = 6;
-      parameter     S7 = 7;
-      parameter     S8 = 8;
-      parameter     S9 = 9;
-      
+   begin
+     
       if (RESET == 1'b1)
       begin
          State2 = Si;
@@ -1493,7 +1493,7 @@ module b15(BE_n, Address, W_R_n, D_C_n, M_IO_n, ADS_n, Datai, Datao, CLOCK, NA_n
    
    
    always @(posedge CLOCK or posedge RESET)
-   begin: P2
+   begin
       if (RESET == 1'b1)
       begin
          ByteEnable <= 4'b0000;

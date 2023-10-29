@@ -150,14 +150,14 @@ module b19 (
         end
         else
         begin
-            if ( P1_P1_addr1 >2**29& P1_P1_ads1 ==1'b0& P1_P1_mio1 ==1'b1& P1_P1_dc1 ==1'b0& P1_P1_wr1 ==1'b1& P1_P1_be1 ==4'b0000)
+            if ( P1_P1_addr1 >30'b10_0000_0000_0000_0000_0000_0000_0000& P1_P1_ads1 ==1'b0& P1_P1_mio1 ==1'b1& P1_P1_dc1 ==1'b0& P1_P1_wr1 ==1'b1& P1_P1_be1 ==4'b0000)
             begin
                 P1_P1_buf1  <= P1_P1_do1 ;
                 P1_P1_ready11  <=1'b0;
                 P1_P1_ready12  <=1'b1;
             end
             else
-                if ( P1_P1_addr2 >2**29& P1_P1_ads2 ==1'b0& P1_P1_mio2 ==1'b1& P1_P1_dc2 ==1'b0& P1_P1_wr2 ==1'b1& P1_P1_be2 ==4'b0000)
+                if ( P1_P1_addr2 >30'b10_0000_0000_0000_0000_0000_0000_0000& P1_P1_ads2 ==1'b0& P1_P1_mio2 ==1'b1& P1_P1_dc2 ==1'b0& P1_P1_wr2 ==1'b1& P1_P1_be2 ==4'b0000)
                 begin
                     P1_P1_buf1  <= P1_P1_do2 ;
                     P1_P1_ready11  <=1'b1;
@@ -179,7 +179,7 @@ module b19 (
         end
         else
         begin
-            if ( P1_P1_addr2 <2**29& P1_P1_ads2 ==1'b0& P1_P1_mio2 ==1'b1& P1_P1_dc2 ==1'b0& P1_P1_wr2 ==1'b1& P1_P1_be2 ==4'b0000)
+            if ( P1_P1_addr2 <30'b10_0000_0000_0000_0000_0000_0000_0000& P1_P1_ads2 ==1'b0& P1_P1_mio2 ==1'b1& P1_P1_dc2 ==1'b0& P1_P1_wr2 ==1'b1& P1_P1_be2 ==4'b0000)
             begin
                 P1_P1_buf2  <= P1_P1_do2 ;
                 P1_P1_ready21  <=1'b0;
@@ -199,19 +199,19 @@ module b19 (
         end
 
     always @(    P1_P1_addr1    or  P1_P1_buf1  or  P1_P1_datai  )
-        if ( P1_P1_addr1 >2**29)
+        if ( P1_P1_addr1 >30'b10_0000_0000_0000_0000_0000_0000_0000)
             P1_P1_di1  <= P1_P1_buf1 ;
         else
             P1_P1_di1  <= P1_P1_datai ;
 
     always @(    P1_P1_addr2    or  P1_P1_buf1  or  P1_P1_buf2  )
-        if ( P1_P1_addr2 >2**29)
+        if ( P1_P1_addr2 >30'b10_0000_0000_0000_0000_0000_0000_0000)
             P1_P1_di2  <= P1_P1_buf1 ;
         else
             P1_P1_di2  <= P1_P1_buf2 ;
 
     always @(      P1_P1_addr2      or  P1_P1_addr3  or  P1_P1_do1  or  P1_P1_do2  or  P1_P1_do3  )
-        if (( P1_P1_do1 <2**30)&( P1_P1_do2 <2**30)&( P1_P1_do3 <2**30))
+        if (( P1_P1_do1 < 4'b10000)&( P1_P1_do2 < 4'b10000)&( P1_P1_do3 < 4'b10000))
             P1_P1_address2  <= P1_P1_addr3 ;
         else
             P1_P1_address2  <= P1_P1_addr2 ;
@@ -318,8 +318,31 @@ module b19 (
     parameter P1_P1_P1_HLT =8'hF4;
     parameter P1_P1_P1_WAITx =8'h9B;
     parameter P1_P1_P1_NOP =8'h90;
+    reg[7:0] P1_P1_P1_InstQueue [15:0];
+    reg[4:0] P1_P1_P1_InstQueueRd_Addr ;
+    reg[4:0] P1_P1_P1_InstQueueWr_Addr ;
+    parameter P1_P1_P1_InstQueueLimit =15;
+    integer P1_P1_P1_InstAddrPointer ;
+    integer P1_P1_P1_PhyAddrPointer ;
+    reg P1_P1_P1_Extended ;
+    reg P1_P1_P1_More ;
+    reg P1_P1_P1_Flush ;
+    reg[15:0] P1_P1_P1_lWord ;
+    reg[14:0] P1_P1_P1_uWord ;
+    integer P1_P1_P1_fWord ;
+    reg[3:0] P1_P1_P1_State2 ;
+    parameter P1_P1_P1_Si =0;
+    parameter P1_P1_P1_S1 =1;
+    parameter P1_P1_P1_S2 =2;
+    parameter P1_P1_P1_S3 =3;
+    parameter P1_P1_P1_S4 =4;
+    parameter P1_P1_P1_S5 =5;
+    parameter P1_P1_P1_S6 =6;
+    parameter P1_P1_P1_S7 =7;
+    parameter P1_P1_P1_S8 =8;
+    parameter P1_P1_P1_S9 =9;
     always @(  posedge   P1_P1_P1_CLOCK or posedge  P1_P1_P1_RESET )
-    begin : P1_P1_P1_P0
+    begin
         if ( P1_P1_P1_RESET ==1'b1)
         begin
             P1_P1_P1_BE_n  <=4'b0000;
@@ -355,7 +378,7 @@ module b19 (
                         P1_P1_P1_State  <= P1_P1_P1_StateTi ;
             P1_P1_P1_StateT1  :
             begin
-                P1_P1_P1_Address  <= P1_P1_P1_rEIP /4%2**30;
+                P1_P1_P1_Address  <= P1_P1_P1_rEIP /4% 4'b10000;
                 P1_P1_P1_BE_n  <= P1_P1_P1_ByteEnable ;
                 P1_P1_P1_M_IO_n  <= P1_P1_P1_MemoryFetch ;
                 if ( P1_P1_P1_ReadRequest == P1_P1_P1_Pending )
@@ -428,7 +451,7 @@ module b19 (
                         P1_P1_P1_State  <= P1_P1_P1_StateTh ;
             P1_P1_P1_StateT2P  :
             begin
-                P1_P1_P1_Address  <= P1_P1_P1_rEIP /2%2**30;
+                P1_P1_P1_Address  <= P1_P1_P1_rEIP /2% 4'b10000;
                 P1_P1_P1_BE_n  <= P1_P1_P1_ByteEnable ;
                 P1_P1_P1_M_IO_n  <= P1_P1_P1_MemoryFetch ;
                 if ( P1_P1_P1_ReadRequest == P1_P1_P1_Pending )
@@ -463,27 +486,7 @@ module b19 (
     end
 
     always @(  posedge   P1_P1_P1_CLOCK or posedge  P1_P1_P1_RESET )
-    begin : P1_P1_P1_P1 reg[7:0] P1_P1_P1_InstQueue [15:0];reg[4:0] P1_P1_P1_InstQueueRd_Addr ;reg[4:0] P1_P1_P1_InstQueueWr_Addr ;
-        parameter P1_P1_P1_InstQueueLimit =15;
-        integer P1_P1_P1_InstAddrPointer ;
-        integer P1_P1_P1_PhyAddrPointer ;
-        reg P1_P1_P1_Extended ;
-        reg P1_P1_P1_More ;
-        reg P1_P1_P1_Flush ;
-        reg[15:0] P1_P1_P1_lWord ;
-        reg[14:0] P1_P1_P1_uWord ;
-        integer P1_P1_P1_fWord ;
-        reg[3:0] P1_P1_P1_State2 ;
-        parameter P1_P1_P1_Si =0;
-        parameter P1_P1_P1_S1 =1;
-        parameter P1_P1_P1_S2 =2;
-        parameter P1_P1_P1_S3 =3;
-        parameter P1_P1_P1_S4 =4;
-        parameter P1_P1_P1_S5 =5;
-        parameter P1_P1_P1_S6 =6;
-        parameter P1_P1_P1_S7 =7;
-        parameter P1_P1_P1_S8 =8;
-        parameter P1_P1_P1_S9 =9;
+    begin
         if ( P1_P1_P1_RESET ==1'b1)
         begin
             P1_P1_P1_State2  = P1_P1_P1_Si ;
@@ -548,15 +551,15 @@ module b19 (
             P1_P1_P1_S2  :
             begin
                 P1_P1_P1_RequestPending  <= P1_P1_P1_NotPending ;
-                P1_P1_P1_InstQueue  [ P1_P1_P1_InstQueueWr_Addr ]= P1_P1_P1_Datai %(2**8);
+                P1_P1_P1_InstQueue  [ P1_P1_P1_InstQueueWr_Addr ]= P1_P1_P1_Datai %( 9'b1_0000_0000);
                 P1_P1_P1_InstQueueWr_Addr  =( P1_P1_P1_InstQueueWr_Addr +1)%16;
-                P1_P1_P1_InstQueue  [ P1_P1_P1_InstQueueWr_Addr ]= P1_P1_P1_Datai %2**8;
+                P1_P1_P1_InstQueue  [ P1_P1_P1_InstQueueWr_Addr ]= P1_P1_P1_Datai % 9'b1_0000_0000;
                 P1_P1_P1_InstQueueWr_Addr  =( P1_P1_P1_InstQueueWr_Addr +1)%16;
                 if ( P1_P1_P1_StateBS16 ==1'b1)
                 begin
-                    P1_P1_P1_InstQueue  [ P1_P1_P1_InstQueueWr_Addr ]=( P1_P1_P1_Datai /(2**16))%(2**8);
+                    P1_P1_P1_InstQueue  [ P1_P1_P1_InstQueueWr_Addr ]=( P1_P1_P1_Datai /( 17'b1_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P1_P1_P1_InstQueueWr_Addr  =( P1_P1_P1_InstQueueWr_Addr +1)%16;
-                    P1_P1_P1_InstQueue  [ P1_P1_P1_InstQueueWr_Addr ]=( P1_P1_P1_Datai /(2**24))%(2**8);
+                    P1_P1_P1_InstQueue  [ P1_P1_P1_InstQueueWr_Addr ]=( P1_P1_P1_Datai /(25'b1_0000_0000_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P1_P1_P1_InstQueueWr_Addr  =( P1_P1_P1_InstQueueWr_Addr +1)%16;
                     P1_P1_P1_PhyAddrPointer  = P1_P1_P1_PhyAddrPointer +4;
                     P1_P1_P1_State2  = P1_P1_P1_S5 ;
@@ -582,9 +585,9 @@ module b19 (
             P1_P1_P1_S4  :
             begin
                 P1_P1_P1_RequestPending  <= P1_P1_P1_NotPending ;
-                P1_P1_P1_InstQueue  [ P1_P1_P1_InstQueueWr_Addr ]= P1_P1_P1_Datai %(2**8);
+                P1_P1_P1_InstQueue  [ P1_P1_P1_InstQueueWr_Addr ]= P1_P1_P1_Datai %( 9'b1_0000_0000);
                 P1_P1_P1_InstQueueWr_Addr  =( P1_P1_P1_InstQueueWr_Addr +1)%16;
-                P1_P1_P1_InstQueue  [ P1_P1_P1_InstQueueWr_Addr ]= P1_P1_P1_Datai %(2**8);
+                P1_P1_P1_InstQueue  [ P1_P1_P1_InstQueueWr_Addr ]= P1_P1_P1_Datai %( 9'b1_0000_0000);
                 P1_P1_P1_InstQueueWr_Addr  =( P1_P1_P1_InstQueueWr_Addr +1)%16;
                 P1_P1_P1_PhyAddrPointer  = P1_P1_P1_PhyAddrPointer +2;
                 P1_P1_P1_State2  = P1_P1_P1_S5 ;
@@ -658,7 +661,7 @@ module b19 (
                     P1_P1_P1_MOV_eax_dw  :
                         if (( P1_P1_P1_InstQueueWr_Addr - P1_P1_P1_InstQueueRd_Addr )>=5)
                         begin
-                            P1_P1_P1_EAX  <= P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +4)%16]*(2**23)+ P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +3)%16]*(2**16)+ P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +2)%16]*(2**8)+ P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +1)%16];
+                            P1_P1_P1_EAX  <= P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +1)%16];
                             P1_P1_P1_More  =1'b0;
                             P1_P1_P1_Flush  =1'b0;
                             P1_P1_P1_InstAddrPointer  = P1_P1_P1_InstAddrPointer +5;
@@ -672,7 +675,7 @@ module b19 (
                     P1_P1_P1_MOV_ebx_dw  :
                         if (( P1_P1_P1_InstQueueWr_Addr - P1_P1_P1_InstQueueRd_Addr )>=5)
                         begin
-                            P1_P1_P1_EBX  <= P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +4)%16]*(2**23)+ P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +3)%16]*(2**16)+ P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +2)%16]*(2**8)+ P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +1)%1];
+                            P1_P1_P1_EBX  <= P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P1_P1_P1_InstQueue [( P1_P1_P1_InstQueueRd_Addr +1)%1];
                             P1_P1_P1_More  =1'b0;
                             P1_P1_P1_Flush  =1'b0;
                             P1_P1_P1_InstAddrPointer  = P1_P1_P1_InstAddrPointer +5;
@@ -697,9 +700,9 @@ module b19 (
                             if ( P1_P1_P1_READY_n ==1'b0)
                             begin
                                 P1_P1_P1_RequestPending  <= P1_P1_P1_NotPending ;
-                                P1_P1_P1_uWord  = P1_P1_P1_Datai %(2**15);
+                                P1_P1_P1_uWord  = P1_P1_P1_Datai %( 16'b1000_0000_0000_0000);
                                 if ( P1_P1_P1_StateBS16 ==1'b1)
-                                    P1_P1_P1_lWord  = P1_P1_P1_Datai %(2**16);
+                                    P1_P1_P1_lWord  = P1_P1_P1_Datai %( 17'b1_0000_0000_0000_0000);
                                 else
                                 begin
                                     P1_P1_P1_rEIP  <= P1_P1_P1_rEIP +2;
@@ -707,12 +710,12 @@ module b19 (
                                     if ( P1_P1_P1_READY_n ==1'b0)
                                     begin
                                         P1_P1_P1_RequestPending  <= P1_P1_P1_NotPending ;
-                                        P1_P1_P1_lWord  = P1_P1_P1_Datai %(2**16);
+                                        P1_P1_P1_lWord  = P1_P1_P1_Datai %( 17'b1_0000_0000_0000_0000);
                                     end
                                 end
                                 if ( P1_P1_P1_READY_n ==1'b0)
                                 begin
-                                    P1_P1_P1_EAX  <= P1_P1_P1_uWord *(2**16)+ P1_P1_P1_lWord ;
+                                    P1_P1_P1_EAX  <= P1_P1_P1_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P1_P1_lWord ;
                                     P1_P1_P1_More  =1'b0;
                                     P1_P1_P1_Flush  =1'b0;
                                     P1_P1_P1_InstAddrPointer  = P1_P1_P1_InstAddrPointer +2;
@@ -732,15 +735,15 @@ module b19 (
                                 P1_P1_P1_rEIP  <= P1_P1_P1_EBX ;
                             else
                                 P1_P1_P1_rEIP  <= P1_P1_P1_EBX ;
-                            P1_P1_P1_lWord  = P1_P1_P1_EAX %(2**16);
-                            P1_P1_P1_uWord  =( P1_P1_P1_EAX /(2**16))%(2**15);
+                            P1_P1_P1_lWord  = P1_P1_P1_EAX %( 17'b1_0000_0000_0000_0000);
+                            P1_P1_P1_uWord  =( P1_P1_P1_EAX /( 17'b1_0000_0000_0000_0000))%( 16'b1000_0000_0000_0000);
                             P1_P1_P1_RequestPending  <= P1_P1_P1_Pending ;
                             P1_P1_P1_ReadRequest  <= P1_P1_P1_NotPending ;
                             P1_P1_P1_MemoryFetch  <= P1_P1_P1_Pending ;
                             P1_P1_P1_CodeFetch  <= P1_P1_P1_NotPending ;
                             if ( P1_P1_P1_State == P1_P1_P1_StateT1 | P1_P1_P1_State == P1_P1_P1_StateT1P )
                             begin
-                                P1_P1_P1_Datao  <=( P1_P1_P1_uWord *(2**16)+ P1_P1_P1_lWord );
+                                P1_P1_P1_Datao  <=( P1_P1_P1_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P1_P1_lWord );
                                 if ( P1_P1_P1_READY_n ==1'b0)
                                 begin
                                     P1_P1_P1_RequestPending  <= P1_P1_P1_NotPending ;
@@ -798,7 +801,7 @@ module b19 (
                             P1_P1_P1_CodeFetch  <= P1_P1_P1_NotPending ;
                             if ( P1_P1_P1_State == P1_P1_P1_StateT1 | P1_P1_P1_State == P1_P1_P1_StateT1P )
                             begin
-                                P1_P1_P1_fWord  = P1_P1_P1_EAX %(2**16);
+                                P1_P1_P1_fWord  = P1_P1_P1_EAX %( 17'b1_0000_0000_0000_0000);
                                 P1_P1_P1_Datao  <= P1_P1_P1_fWord ;
                                 if ( P1_P1_P1_READY_n ==1'b0)
                                 begin
@@ -872,7 +875,7 @@ module b19 (
             end
             P1_P1_P1_S6  :
             begin
-                P1_P1_P1_Datao  <=( P1_P1_P1_uWord *(2**16)+ P1_P1_P1_lWord );
+                P1_P1_P1_Datao  <=( P1_P1_P1_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P1_P1_lWord );
                 if ( P1_P1_P1_READY_n ==1'b0)
                 begin
                     P1_P1_P1_RequestPending  <= P1_P1_P1_NotPending ;
@@ -922,7 +925,7 @@ module b19 (
     end
 
     always @(  posedge   P1_P1_P1_CLOCK or posedge  P1_P1_P1_RESET )
-    begin : P1_P1_P1_P2
+    begin
         if ( P1_P1_P1_RESET ==1'b1)
         begin
             P1_P1_P1_ByteEnable  <=4'b0000;
@@ -1086,8 +1089,31 @@ module b19 (
     parameter P1_P1_P2_HLT =8'hF4;
     parameter P1_P1_P2_WAITx =8'h9B;
     parameter P1_P1_P2_NOP =8'h90;
+    reg[7:0] P1_P1_P2_InstQueue [15:0];
+    reg[4:0] P1_P1_P2_InstQueueRd_Addr ;
+    reg[4:0] P1_P1_P2_InstQueueWr_Addr ;
+    parameter P1_P1_P2_InstQueueLimit =15;
+    integer P1_P1_P2_InstAddrPointer ;
+    integer P1_P1_P2_PhyAddrPointer ;
+    reg P1_P1_P2_Extended ;
+    reg P1_P1_P2_More ;
+    reg P1_P1_P2_Flush ;
+    reg[15:0] P1_P1_P2_lWord ;
+    reg[14:0] P1_P1_P2_uWord ;
+    integer P1_P1_P2_fWord ;
+    reg[3:0] P1_P1_P2_State2 ;
+    parameter P1_P1_P2_Si =0;
+    parameter P1_P1_P2_S1 =1;
+    parameter P1_P1_P2_S2 =2;
+    parameter P1_P1_P2_S3 =3;
+    parameter P1_P1_P2_S4 =4;
+    parameter P1_P1_P2_S5 =5;
+    parameter P1_P1_P2_S6 =6;
+    parameter P1_P1_P2_S7 =7;
+    parameter P1_P1_P2_S8 =8;
+    parameter P1_P1_P2_S9 =9;
     always @(  posedge   P1_P1_P2_CLOCK or posedge  P1_P1_P2_RESET )
-    begin : P1_P1_P2_P0
+    begin
         if ( P1_P1_P2_RESET ==1'b1)
         begin
             P1_P1_P2_BE_n  <=4'b0000;
@@ -1123,7 +1149,7 @@ module b19 (
                         P1_P1_P2_State  <= P1_P1_P2_StateTi ;
             P1_P1_P2_StateT1  :
             begin
-                P1_P1_P2_Address  <= P1_P1_P2_rEIP /4%2**30;
+                P1_P1_P2_Address  <= P1_P1_P2_rEIP /4% 4'b10000;
                 P1_P1_P2_BE_n  <= P1_P1_P2_ByteEnable ;
                 P1_P1_P2_M_IO_n  <= P1_P1_P2_MemoryFetch ;
                 if ( P1_P1_P2_ReadRequest == P1_P1_P2_Pending )
@@ -1196,7 +1222,7 @@ module b19 (
                         P1_P1_P2_State  <= P1_P1_P2_StateTh ;
             P1_P1_P2_StateT2P  :
             begin
-                P1_P1_P2_Address  <= P1_P1_P2_rEIP /2%2**30;
+                P1_P1_P2_Address  <= P1_P1_P2_rEIP /2% 4'b10000;
                 P1_P1_P2_BE_n  <= P1_P1_P2_ByteEnable ;
                 P1_P1_P2_M_IO_n  <= P1_P1_P2_MemoryFetch ;
                 if ( P1_P1_P2_ReadRequest == P1_P1_P2_Pending )
@@ -1231,27 +1257,7 @@ module b19 (
     end
 
     always @(  posedge   P1_P1_P2_CLOCK or posedge  P1_P1_P2_RESET )
-    begin : P1_P1_P2_P1 reg[7:0] P1_P1_P2_InstQueue [15:0];reg[4:0] P1_P1_P2_InstQueueRd_Addr ;reg[4:0] P1_P1_P2_InstQueueWr_Addr ;
-        parameter P1_P1_P2_InstQueueLimit =15;
-        integer P1_P1_P2_InstAddrPointer ;
-        integer P1_P1_P2_PhyAddrPointer ;
-        reg P1_P1_P2_Extended ;
-        reg P1_P1_P2_More ;
-        reg P1_P1_P2_Flush ;
-        reg[15:0] P1_P1_P2_lWord ;
-        reg[14:0] P1_P1_P2_uWord ;
-        integer P1_P1_P2_fWord ;
-        reg[3:0] P1_P1_P2_State2 ;
-        parameter P1_P1_P2_Si =0;
-        parameter P1_P1_P2_S1 =1;
-        parameter P1_P1_P2_S2 =2;
-        parameter P1_P1_P2_S3 =3;
-        parameter P1_P1_P2_S4 =4;
-        parameter P1_P1_P2_S5 =5;
-        parameter P1_P1_P2_S6 =6;
-        parameter P1_P1_P2_S7 =7;
-        parameter P1_P1_P2_S8 =8;
-        parameter P1_P1_P2_S9 =9;
+    begin
         if ( P1_P1_P2_RESET ==1'b1)
         begin
             P1_P1_P2_State2  = P1_P1_P2_Si ;
@@ -1316,15 +1322,15 @@ module b19 (
             P1_P1_P2_S2  :
             begin
                 P1_P1_P2_RequestPending  <= P1_P1_P2_NotPending ;
-                P1_P1_P2_InstQueue  [ P1_P1_P2_InstQueueWr_Addr ]= P1_P1_P2_Datai %(2**8);
+                P1_P1_P2_InstQueue  [ P1_P1_P2_InstQueueWr_Addr ]= P1_P1_P2_Datai %( 9'b1_0000_0000);
                 P1_P1_P2_InstQueueWr_Addr  =( P1_P1_P2_InstQueueWr_Addr +1)%16;
-                P1_P1_P2_InstQueue  [ P1_P1_P2_InstQueueWr_Addr ]= P1_P1_P2_Datai %2**8;
+                P1_P1_P2_InstQueue  [ P1_P1_P2_InstQueueWr_Addr ]= P1_P1_P2_Datai % 9'b1_0000_0000;
                 P1_P1_P2_InstQueueWr_Addr  =( P1_P1_P2_InstQueueWr_Addr +1)%16;
                 if ( P1_P1_P2_StateBS16 ==1'b1)
                 begin
-                    P1_P1_P2_InstQueue  [ P1_P1_P2_InstQueueWr_Addr ]=( P1_P1_P2_Datai /(2**16))%(2**8);
+                    P1_P1_P2_InstQueue  [ P1_P1_P2_InstQueueWr_Addr ]=( P1_P1_P2_Datai /( 17'b1_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P1_P1_P2_InstQueueWr_Addr  =( P1_P1_P2_InstQueueWr_Addr +1)%16;
-                    P1_P1_P2_InstQueue  [ P1_P1_P2_InstQueueWr_Addr ]=( P1_P1_P2_Datai /(2**24))%(2**8);
+                    P1_P1_P2_InstQueue  [ P1_P1_P2_InstQueueWr_Addr ]=( P1_P1_P2_Datai /(25'b1_0000_0000_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P1_P1_P2_InstQueueWr_Addr  =( P1_P1_P2_InstQueueWr_Addr +1)%16;
                     P1_P1_P2_PhyAddrPointer  = P1_P1_P2_PhyAddrPointer +4;
                     P1_P1_P2_State2  = P1_P1_P2_S5 ;
@@ -1350,9 +1356,9 @@ module b19 (
             P1_P1_P2_S4  :
             begin
                 P1_P1_P2_RequestPending  <= P1_P1_P2_NotPending ;
-                P1_P1_P2_InstQueue  [ P1_P1_P2_InstQueueWr_Addr ]= P1_P1_P2_Datai %(2**8);
+                P1_P1_P2_InstQueue  [ P1_P1_P2_InstQueueWr_Addr ]= P1_P1_P2_Datai %( 9'b1_0000_0000);
                 P1_P1_P2_InstQueueWr_Addr  =( P1_P1_P2_InstQueueWr_Addr +1)%16;
-                P1_P1_P2_InstQueue  [ P1_P1_P2_InstQueueWr_Addr ]= P1_P1_P2_Datai %(2**8);
+                P1_P1_P2_InstQueue  [ P1_P1_P2_InstQueueWr_Addr ]= P1_P1_P2_Datai %( 9'b1_0000_0000);
                 P1_P1_P2_InstQueueWr_Addr  =( P1_P1_P2_InstQueueWr_Addr +1)%16;
                 P1_P1_P2_PhyAddrPointer  = P1_P1_P2_PhyAddrPointer +2;
                 P1_P1_P2_State2  = P1_P1_P2_S5 ;
@@ -1426,7 +1432,7 @@ module b19 (
                     P1_P1_P2_MOV_eax_dw  :
                         if (( P1_P1_P2_InstQueueWr_Addr - P1_P1_P2_InstQueueRd_Addr )>=5)
                         begin
-                            P1_P1_P2_EAX  <= P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +4)%16]*(2**23)+ P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +3)%16]*(2**16)+ P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +2)%16]*(2**8)+ P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +1)%16];
+                            P1_P1_P2_EAX  <= P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +1)%16];
                             P1_P1_P2_More  =1'b0;
                             P1_P1_P2_Flush  =1'b0;
                             P1_P1_P2_InstAddrPointer  = P1_P1_P2_InstAddrPointer +5;
@@ -1440,7 +1446,7 @@ module b19 (
                     P1_P1_P2_MOV_ebx_dw  :
                         if (( P1_P1_P2_InstQueueWr_Addr - P1_P1_P2_InstQueueRd_Addr )>=5)
                         begin
-                            P1_P1_P2_EBX  <= P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +4)%16]*(2**23)+ P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +3)%16]*(2**16)+ P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +2)%16]*(2**8)+ P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +1)%1];
+                            P1_P1_P2_EBX  <= P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P1_P1_P2_InstQueue [( P1_P1_P2_InstQueueRd_Addr +1)%1];
                             P1_P1_P2_More  =1'b0;
                             P1_P1_P2_Flush  =1'b0;
                             P1_P1_P2_InstAddrPointer  = P1_P1_P2_InstAddrPointer +5;
@@ -1465,9 +1471,9 @@ module b19 (
                             if ( P1_P1_P2_READY_n ==1'b0)
                             begin
                                 P1_P1_P2_RequestPending  <= P1_P1_P2_NotPending ;
-                                P1_P1_P2_uWord  = P1_P1_P2_Datai %(2**15);
+                                P1_P1_P2_uWord  = P1_P1_P2_Datai %( 16'b1000_0000_0000_0000);
                                 if ( P1_P1_P2_StateBS16 ==1'b1)
-                                    P1_P1_P2_lWord  = P1_P1_P2_Datai %(2**16);
+                                    P1_P1_P2_lWord  = P1_P1_P2_Datai %( 17'b1_0000_0000_0000_0000);
                                 else
                                 begin
                                     P1_P1_P2_rEIP  <= P1_P1_P2_rEIP +2;
@@ -1475,12 +1481,12 @@ module b19 (
                                     if ( P1_P1_P2_READY_n ==1'b0)
                                     begin
                                         P1_P1_P2_RequestPending  <= P1_P1_P2_NotPending ;
-                                        P1_P1_P2_lWord  = P1_P1_P2_Datai %(2**16);
+                                        P1_P1_P2_lWord  = P1_P1_P2_Datai %( 17'b1_0000_0000_0000_0000);
                                     end
                                 end
                                 if ( P1_P1_P2_READY_n ==1'b0)
                                 begin
-                                    P1_P1_P2_EAX  <= P1_P1_P2_uWord *(2**16)+ P1_P1_P2_lWord ;
+                                    P1_P1_P2_EAX  <= P1_P1_P2_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P1_P2_lWord ;
                                     P1_P1_P2_More  =1'b0;
                                     P1_P1_P2_Flush  =1'b0;
                                     P1_P1_P2_InstAddrPointer  = P1_P1_P2_InstAddrPointer +2;
@@ -1500,15 +1506,15 @@ module b19 (
                                 P1_P1_P2_rEIP  <= P1_P1_P2_EBX ;
                             else
                                 P1_P1_P2_rEIP  <= P1_P1_P2_EBX ;
-                            P1_P1_P2_lWord  = P1_P1_P2_EAX %(2**16);
-                            P1_P1_P2_uWord  =( P1_P1_P2_EAX /(2**16))%(2**15);
+                            P1_P1_P2_lWord  = P1_P1_P2_EAX %( 17'b1_0000_0000_0000_0000);
+                            P1_P1_P2_uWord  =( P1_P1_P2_EAX /( 17'b1_0000_0000_0000_0000))%( 16'b1000_0000_0000_0000);
                             P1_P1_P2_RequestPending  <= P1_P1_P2_Pending ;
                             P1_P1_P2_ReadRequest  <= P1_P1_P2_NotPending ;
                             P1_P1_P2_MemoryFetch  <= P1_P1_P2_Pending ;
                             P1_P1_P2_CodeFetch  <= P1_P1_P2_NotPending ;
                             if ( P1_P1_P2_State == P1_P1_P2_StateT1 | P1_P1_P2_State == P1_P1_P2_StateT1P )
                             begin
-                                P1_P1_P2_Datao  <=( P1_P1_P2_uWord *(2**16)+ P1_P1_P2_lWord );
+                                P1_P1_P2_Datao  <=( P1_P1_P2_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P1_P2_lWord );
                                 if ( P1_P1_P2_READY_n ==1'b0)
                                 begin
                                     P1_P1_P2_RequestPending  <= P1_P1_P2_NotPending ;
@@ -1566,7 +1572,7 @@ module b19 (
                             P1_P1_P2_CodeFetch  <= P1_P1_P2_NotPending ;
                             if ( P1_P1_P2_State == P1_P1_P2_StateT1 | P1_P1_P2_State == P1_P1_P2_StateT1P )
                             begin
-                                P1_P1_P2_fWord  = P1_P1_P2_EAX %(2**16);
+                                P1_P1_P2_fWord  = P1_P1_P2_EAX %( 17'b1_0000_0000_0000_0000);
                                 P1_P1_P2_Datao  <= P1_P1_P2_fWord ;
                                 if ( P1_P1_P2_READY_n ==1'b0)
                                 begin
@@ -1640,7 +1646,7 @@ module b19 (
             end
             P1_P1_P2_S6  :
             begin
-                P1_P1_P2_Datao  <=( P1_P1_P2_uWord *(2**16)+ P1_P1_P2_lWord );
+                P1_P1_P2_Datao  <=( P1_P1_P2_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P1_P2_lWord );
                 if ( P1_P1_P2_READY_n ==1'b0)
                 begin
                     P1_P1_P2_RequestPending  <= P1_P1_P2_NotPending ;
@@ -1690,7 +1696,7 @@ module b19 (
     end
 
     always @(  posedge   P1_P1_P2_CLOCK or posedge  P1_P1_P2_RESET )
-    begin : P1_P1_P2_P2
+    begin
         if ( P1_P1_P2_RESET ==1'b1)
         begin
             P1_P1_P2_ByteEnable  <=4'b0000;
@@ -1854,8 +1860,31 @@ module b19 (
     parameter P1_P1_P3_HLT =8'hF4;
     parameter P1_P1_P3_WAITx =8'h9B;
     parameter P1_P1_P3_NOP =8'h90;
+    reg[7:0] P1_P1_P3_InstQueue [15:0];
+    reg[4:0] P1_P1_P3_InstQueueRd_Addr ;
+    reg[4:0] P1_P1_P3_InstQueueWr_Addr ;
+    parameter P1_P1_P3_InstQueueLimit =15;
+    integer P1_P1_P3_InstAddrPointer ;
+    integer P1_P1_P3_PhyAddrPointer ;
+    reg P1_P1_P3_Extended ;
+    reg P1_P1_P3_More ;
+    reg P1_P1_P3_Flush ;
+    reg[15:0] P1_P1_P3_lWord ;
+    reg[14:0] P1_P1_P3_uWord ;
+    integer P1_P1_P3_fWord ;
+    reg[3:0] P1_P1_P3_State2 ;
+    parameter P1_P1_P3_Si =0;
+    parameter P1_P1_P3_S1 =1;
+    parameter P1_P1_P3_S2 =2;
+    parameter P1_P1_P3_S3 =3;
+    parameter P1_P1_P3_S4 =4;
+    parameter P1_P1_P3_S5 =5;
+    parameter P1_P1_P3_S6 =6;
+    parameter P1_P1_P3_S7 =7;
+    parameter P1_P1_P3_S8 =8;
+    parameter P1_P1_P3_S9 =9;
     always @(  posedge   P1_P1_P3_CLOCK or posedge  P1_P1_P3_RESET )
-    begin : P1_P1_P3_P0
+    begin
         if ( P1_P1_P3_RESET ==1'b1)
         begin
             P1_P1_P3_BE_n  <=4'b0000;
@@ -1891,7 +1920,7 @@ module b19 (
                         P1_P1_P3_State  <= P1_P1_P3_StateTi ;
             P1_P1_P3_StateT1  :
             begin
-                P1_P1_P3_Address  <= P1_P1_P3_rEIP /4%2**30;
+                P1_P1_P3_Address  <= P1_P1_P3_rEIP /4% 4'b10000;
                 P1_P1_P3_BE_n  <= P1_P1_P3_ByteEnable ;
                 P1_P1_P3_M_IO_n  <= P1_P1_P3_MemoryFetch ;
                 if ( P1_P1_P3_ReadRequest == P1_P1_P3_Pending )
@@ -1964,7 +1993,7 @@ module b19 (
                         P1_P1_P3_State  <= P1_P1_P3_StateTh ;
             P1_P1_P3_StateT2P  :
             begin
-                P1_P1_P3_Address  <= P1_P1_P3_rEIP /2%2**30;
+                P1_P1_P3_Address  <= P1_P1_P3_rEIP /2% 4'b10000;
                 P1_P1_P3_BE_n  <= P1_P1_P3_ByteEnable ;
                 P1_P1_P3_M_IO_n  <= P1_P1_P3_MemoryFetch ;
                 if ( P1_P1_P3_ReadRequest == P1_P1_P3_Pending )
@@ -1999,27 +2028,7 @@ module b19 (
     end
 
     always @(  posedge   P1_P1_P3_CLOCK or posedge  P1_P1_P3_RESET )
-    begin : P1_P1_P3_P1 reg[7:0] P1_P1_P3_InstQueue [15:0];reg[4:0] P1_P1_P3_InstQueueRd_Addr ;reg[4:0] P1_P1_P3_InstQueueWr_Addr ;
-        parameter P1_P1_P3_InstQueueLimit =15;
-        integer P1_P1_P3_InstAddrPointer ;
-        integer P1_P1_P3_PhyAddrPointer ;
-        reg P1_P1_P3_Extended ;
-        reg P1_P1_P3_More ;
-        reg P1_P1_P3_Flush ;
-        reg[15:0] P1_P1_P3_lWord ;
-        reg[14:0] P1_P1_P3_uWord ;
-        integer P1_P1_P3_fWord ;
-        reg[3:0] P1_P1_P3_State2 ;
-        parameter P1_P1_P3_Si =0;
-        parameter P1_P1_P3_S1 =1;
-        parameter P1_P1_P3_S2 =2;
-        parameter P1_P1_P3_S3 =3;
-        parameter P1_P1_P3_S4 =4;
-        parameter P1_P1_P3_S5 =5;
-        parameter P1_P1_P3_S6 =6;
-        parameter P1_P1_P3_S7 =7;
-        parameter P1_P1_P3_S8 =8;
-        parameter P1_P1_P3_S9 =9;
+    begin
         if ( P1_P1_P3_RESET ==1'b1)
         begin
             P1_P1_P3_State2  = P1_P1_P3_Si ;
@@ -2084,15 +2093,15 @@ module b19 (
             P1_P1_P3_S2  :
             begin
                 P1_P1_P3_RequestPending  <= P1_P1_P3_NotPending ;
-                P1_P1_P3_InstQueue  [ P1_P1_P3_InstQueueWr_Addr ]= P1_P1_P3_Datai %(2**8);
+                P1_P1_P3_InstQueue  [ P1_P1_P3_InstQueueWr_Addr ]= P1_P1_P3_Datai %( 9'b1_0000_0000);
                 P1_P1_P3_InstQueueWr_Addr  =( P1_P1_P3_InstQueueWr_Addr +1)%16;
-                P1_P1_P3_InstQueue  [ P1_P1_P3_InstQueueWr_Addr ]= P1_P1_P3_Datai %2**8;
+                P1_P1_P3_InstQueue  [ P1_P1_P3_InstQueueWr_Addr ]= P1_P1_P3_Datai % 9'b1_0000_0000;
                 P1_P1_P3_InstQueueWr_Addr  =( P1_P1_P3_InstQueueWr_Addr +1)%16;
                 if ( P1_P1_P3_StateBS16 ==1'b1)
                 begin
-                    P1_P1_P3_InstQueue  [ P1_P1_P3_InstQueueWr_Addr ]=( P1_P1_P3_Datai /(2**16))%(2**8);
+                    P1_P1_P3_InstQueue  [ P1_P1_P3_InstQueueWr_Addr ]=( P1_P1_P3_Datai /( 17'b1_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P1_P1_P3_InstQueueWr_Addr  =( P1_P1_P3_InstQueueWr_Addr +1)%16;
-                    P1_P1_P3_InstQueue  [ P1_P1_P3_InstQueueWr_Addr ]=( P1_P1_P3_Datai /(2**24))%(2**8);
+                    P1_P1_P3_InstQueue  [ P1_P1_P3_InstQueueWr_Addr ]=( P1_P1_P3_Datai /(25'b1_0000_0000_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P1_P1_P3_InstQueueWr_Addr  =( P1_P1_P3_InstQueueWr_Addr +1)%16;
                     P1_P1_P3_PhyAddrPointer  = P1_P1_P3_PhyAddrPointer +4;
                     P1_P1_P3_State2  = P1_P1_P3_S5 ;
@@ -2118,9 +2127,9 @@ module b19 (
             P1_P1_P3_S4  :
             begin
                 P1_P1_P3_RequestPending  <= P1_P1_P3_NotPending ;
-                P1_P1_P3_InstQueue  [ P1_P1_P3_InstQueueWr_Addr ]= P1_P1_P3_Datai %(2**8);
+                P1_P1_P3_InstQueue  [ P1_P1_P3_InstQueueWr_Addr ]= P1_P1_P3_Datai %( 9'b1_0000_0000);
                 P1_P1_P3_InstQueueWr_Addr  =( P1_P1_P3_InstQueueWr_Addr +1)%16;
-                P1_P1_P3_InstQueue  [ P1_P1_P3_InstQueueWr_Addr ]= P1_P1_P3_Datai %(2**8);
+                P1_P1_P3_InstQueue  [ P1_P1_P3_InstQueueWr_Addr ]= P1_P1_P3_Datai %( 9'b1_0000_0000);
                 P1_P1_P3_InstQueueWr_Addr  =( P1_P1_P3_InstQueueWr_Addr +1)%16;
                 P1_P1_P3_PhyAddrPointer  = P1_P1_P3_PhyAddrPointer +2;
                 P1_P1_P3_State2  = P1_P1_P3_S5 ;
@@ -2194,7 +2203,7 @@ module b19 (
                     P1_P1_P3_MOV_eax_dw  :
                         if (( P1_P1_P3_InstQueueWr_Addr - P1_P1_P3_InstQueueRd_Addr )>=5)
                         begin
-                            P1_P1_P3_EAX  <= P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +4)%16]*(2**23)+ P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +3)%16]*(2**16)+ P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +2)%16]*(2**8)+ P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +1)%16];
+                            P1_P1_P3_EAX  <= P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +1)%16];
                             P1_P1_P3_More  =1'b0;
                             P1_P1_P3_Flush  =1'b0;
                             P1_P1_P3_InstAddrPointer  = P1_P1_P3_InstAddrPointer +5;
@@ -2208,7 +2217,7 @@ module b19 (
                     P1_P1_P3_MOV_ebx_dw  :
                         if (( P1_P1_P3_InstQueueWr_Addr - P1_P1_P3_InstQueueRd_Addr )>=5)
                         begin
-                            P1_P1_P3_EBX  <= P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +4)%16]*(2**23)+ P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +3)%16]*(2**16)+ P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +2)%16]*(2**8)+ P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +1)%1];
+                            P1_P1_P3_EBX  <= P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P1_P1_P3_InstQueue [( P1_P1_P3_InstQueueRd_Addr +1)%1];
                             P1_P1_P3_More  =1'b0;
                             P1_P1_P3_Flush  =1'b0;
                             P1_P1_P3_InstAddrPointer  = P1_P1_P3_InstAddrPointer +5;
@@ -2233,9 +2242,9 @@ module b19 (
                             if ( P1_P1_P3_READY_n ==1'b0)
                             begin
                                 P1_P1_P3_RequestPending  <= P1_P1_P3_NotPending ;
-                                P1_P1_P3_uWord  = P1_P1_P3_Datai %(2**15);
+                                P1_P1_P3_uWord  = P1_P1_P3_Datai %( 16'b1000_0000_0000_0000);
                                 if ( P1_P1_P3_StateBS16 ==1'b1)
-                                    P1_P1_P3_lWord  = P1_P1_P3_Datai %(2**16);
+                                    P1_P1_P3_lWord  = P1_P1_P3_Datai %( 17'b1_0000_0000_0000_0000);
                                 else
                                 begin
                                     P1_P1_P3_rEIP  <= P1_P1_P3_rEIP +2;
@@ -2243,12 +2252,12 @@ module b19 (
                                     if ( P1_P1_P3_READY_n ==1'b0)
                                     begin
                                         P1_P1_P3_RequestPending  <= P1_P1_P3_NotPending ;
-                                        P1_P1_P3_lWord  = P1_P1_P3_Datai %(2**16);
+                                        P1_P1_P3_lWord  = P1_P1_P3_Datai %( 17'b1_0000_0000_0000_0000);
                                     end
                                 end
                                 if ( P1_P1_P3_READY_n ==1'b0)
                                 begin
-                                    P1_P1_P3_EAX  <= P1_P1_P3_uWord *(2**16)+ P1_P1_P3_lWord ;
+                                    P1_P1_P3_EAX  <= P1_P1_P3_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P1_P3_lWord ;
                                     P1_P1_P3_More  =1'b0;
                                     P1_P1_P3_Flush  =1'b0;
                                     P1_P1_P3_InstAddrPointer  = P1_P1_P3_InstAddrPointer +2;
@@ -2268,15 +2277,15 @@ module b19 (
                                 P1_P1_P3_rEIP  <= P1_P1_P3_EBX ;
                             else
                                 P1_P1_P3_rEIP  <= P1_P1_P3_EBX ;
-                            P1_P1_P3_lWord  = P1_P1_P3_EAX %(2**16);
-                            P1_P1_P3_uWord  =( P1_P1_P3_EAX /(2**16))%(2**15);
+                            P1_P1_P3_lWord  = P1_P1_P3_EAX %( 17'b1_0000_0000_0000_0000);
+                            P1_P1_P3_uWord  =( P1_P1_P3_EAX /( 17'b1_0000_0000_0000_0000))%( 16'b1000_0000_0000_0000);
                             P1_P1_P3_RequestPending  <= P1_P1_P3_Pending ;
                             P1_P1_P3_ReadRequest  <= P1_P1_P3_NotPending ;
                             P1_P1_P3_MemoryFetch  <= P1_P1_P3_Pending ;
                             P1_P1_P3_CodeFetch  <= P1_P1_P3_NotPending ;
                             if ( P1_P1_P3_State == P1_P1_P3_StateT1 | P1_P1_P3_State == P1_P1_P3_StateT1P )
                             begin
-                                P1_P1_P3_Datao  <=( P1_P1_P3_uWord *(2**16)+ P1_P1_P3_lWord );
+                                P1_P1_P3_Datao  <=( P1_P1_P3_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P1_P3_lWord );
                                 if ( P1_P1_P3_READY_n ==1'b0)
                                 begin
                                     P1_P1_P3_RequestPending  <= P1_P1_P3_NotPending ;
@@ -2334,7 +2343,7 @@ module b19 (
                             P1_P1_P3_CodeFetch  <= P1_P1_P3_NotPending ;
                             if ( P1_P1_P3_State == P1_P1_P3_StateT1 | P1_P1_P3_State == P1_P1_P3_StateT1P )
                             begin
-                                P1_P1_P3_fWord  = P1_P1_P3_EAX %(2**16);
+                                P1_P1_P3_fWord  = P1_P1_P3_EAX %( 17'b1_0000_0000_0000_0000);
                                 P1_P1_P3_Datao  <= P1_P1_P3_fWord ;
                                 if ( P1_P1_P3_READY_n ==1'b0)
                                 begin
@@ -2408,7 +2417,7 @@ module b19 (
             end
             P1_P1_P3_S6  :
             begin
-                P1_P1_P3_Datao  <=( P1_P1_P3_uWord *(2**16)+ P1_P1_P3_lWord );
+                P1_P1_P3_Datao  <=( P1_P1_P3_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P1_P3_lWord );
                 if ( P1_P1_P3_READY_n ==1'b0)
                 begin
                     P1_P1_P3_RequestPending  <= P1_P1_P3_NotPending ;
@@ -2458,7 +2467,7 @@ module b19 (
     end
 
     always @(  posedge   P1_P1_P3_CLOCK or posedge  P1_P1_P3_RESET )
-    begin : P1_P1_P3_P2
+    begin
         if ( P1_P1_P3_RESET ==1'b1)
         begin
             P1_P1_P3_ByteEnable  <=4'b0000;
@@ -2612,14 +2621,14 @@ module b19 (
         end
         else
         begin
-            if ( P1_P2_addr1 >2**29& P1_P2_ads1 ==1'b0& P1_P2_mio1 ==1'b1& P1_P2_dc1 ==1'b0& P1_P2_wr1 ==1'b1& P1_P2_be1 ==4'b0000)
+            if ( P1_P2_addr1 >30'b10_0000_0000_0000_0000_0000_0000_0000& P1_P2_ads1 ==1'b0& P1_P2_mio1 ==1'b1& P1_P2_dc1 ==1'b0& P1_P2_wr1 ==1'b1& P1_P2_be1 ==4'b0000)
             begin
                 P1_P2_buf1  <= P1_P2_do1 ;
                 P1_P2_ready11  <=1'b0;
                 P1_P2_ready12  <=1'b1;
             end
             else
-                if ( P1_P2_addr2 >2**29& P1_P2_ads2 ==1'b0& P1_P2_mio2 ==1'b1& P1_P2_dc2 ==1'b0& P1_P2_wr2 ==1'b1& P1_P2_be2 ==4'b0000)
+                if ( P1_P2_addr2 >30'b10_0000_0000_0000_0000_0000_0000_0000& P1_P2_ads2 ==1'b0& P1_P2_mio2 ==1'b1& P1_P2_dc2 ==1'b0& P1_P2_wr2 ==1'b1& P1_P2_be2 ==4'b0000)
                 begin
                     P1_P2_buf1  <= P1_P2_do2 ;
                     P1_P2_ready11  <=1'b1;
@@ -2641,7 +2650,7 @@ module b19 (
         end
         else
         begin
-            if ( P1_P2_addr2 <2**29& P1_P2_ads2 ==1'b0& P1_P2_mio2 ==1'b1& P1_P2_dc2 ==1'b0& P1_P2_wr2 ==1'b1& P1_P2_be2 ==4'b0000)
+            if ( P1_P2_addr2 <30'b10_0000_0000_0000_0000_0000_0000_0000& P1_P2_ads2 ==1'b0& P1_P2_mio2 ==1'b1& P1_P2_dc2 ==1'b0& P1_P2_wr2 ==1'b1& P1_P2_be2 ==4'b0000)
             begin
                 P1_P2_buf2  <= P1_P2_do2 ;
                 P1_P2_ready21  <=1'b0;
@@ -2661,19 +2670,19 @@ module b19 (
         end
 
     always @(    P1_P2_addr1    or  P1_P2_buf1  or  P1_P2_datai  )
-        if ( P1_P2_addr1 >2**29)
+        if ( P1_P2_addr1 >30'b10_0000_0000_0000_0000_0000_0000_0000)
             P1_P2_di1  <= P1_P2_buf1 ;
         else
             P1_P2_di1  <= P1_P2_datai ;
 
     always @(    P1_P2_addr2    or  P1_P2_buf1  or  P1_P2_buf2  )
-        if ( P1_P2_addr2 >2**29)
+        if ( P1_P2_addr2 >30'b10_0000_0000_0000_0000_0000_0000_0000)
             P1_P2_di2  <= P1_P2_buf1 ;
         else
             P1_P2_di2  <= P1_P2_buf2 ;
 
     always @(      P1_P2_addr2      or  P1_P2_addr3  or  P1_P2_do1  or  P1_P2_do2  or  P1_P2_do3  )
-        if (( P1_P2_do1 <2**30)&( P1_P2_do2 <2**30)&( P1_P2_do3 <2**30))
+        if (( P1_P2_do1 < 4'b10000)&( P1_P2_do2 < 4'b10000)&( P1_P2_do3 < 4'b10000))
             P1_P2_address2  <= P1_P2_addr3 ;
         else
             P1_P2_address2  <= P1_P2_addr2 ;
@@ -2780,8 +2789,31 @@ module b19 (
     parameter P1_P2_P1_HLT =8'hF4;
     parameter P1_P2_P1_WAITx =8'h9B;
     parameter P1_P2_P1_NOP =8'h90;
+    reg[7:0] P1_P2_P1_InstQueue [15:0];
+    reg[4:0] P1_P2_P1_InstQueueRd_Addr ;
+    reg[4:0] P1_P2_P1_InstQueueWr_Addr ;
+    parameter P1_P2_P1_InstQueueLimit =15;
+    integer P1_P2_P1_InstAddrPointer ;
+    integer P1_P2_P1_PhyAddrPointer ;
+    reg P1_P2_P1_Extended ;
+    reg P1_P2_P1_More ;
+    reg P1_P2_P1_Flush ;
+    reg[15:0] P1_P2_P1_lWord ;
+    reg[14:0] P1_P2_P1_uWord ;
+    integer P1_P2_P1_fWord ;
+    reg[3:0] P1_P2_P1_State2 ;
+    parameter P1_P2_P1_Si =0;
+    parameter P1_P2_P1_S1 =1;
+    parameter P1_P2_P1_S2 =2;
+    parameter P1_P2_P1_S3 =3;
+    parameter P1_P2_P1_S4 =4;
+    parameter P1_P2_P1_S5 =5;
+    parameter P1_P2_P1_S6 =6;
+    parameter P1_P2_P1_S7 =7;
+    parameter P1_P2_P1_S8 =8;
+    parameter P1_P2_P1_S9 =9;
     always @(  posedge   P1_P2_P1_CLOCK or posedge  P1_P2_P1_RESET )
-    begin : P1_P2_P1_P0
+    begin
         if ( P1_P2_P1_RESET ==1'b1)
         begin
             P1_P2_P1_BE_n  <=4'b0000;
@@ -2817,7 +2849,7 @@ module b19 (
                         P1_P2_P1_State  <= P1_P2_P1_StateTi ;
             P1_P2_P1_StateT1  :
             begin
-                P1_P2_P1_Address  <= P1_P2_P1_rEIP /4%2**30;
+                P1_P2_P1_Address  <= P1_P2_P1_rEIP /4% 4'b10000;
                 P1_P2_P1_BE_n  <= P1_P2_P1_ByteEnable ;
                 P1_P2_P1_M_IO_n  <= P1_P2_P1_MemoryFetch ;
                 if ( P1_P2_P1_ReadRequest == P1_P2_P1_Pending )
@@ -2890,7 +2922,7 @@ module b19 (
                         P1_P2_P1_State  <= P1_P2_P1_StateTh ;
             P1_P2_P1_StateT2P  :
             begin
-                P1_P2_P1_Address  <= P1_P2_P1_rEIP /2%2**30;
+                P1_P2_P1_Address  <= P1_P2_P1_rEIP /2% 4'b10000;
                 P1_P2_P1_BE_n  <= P1_P2_P1_ByteEnable ;
                 P1_P2_P1_M_IO_n  <= P1_P2_P1_MemoryFetch ;
                 if ( P1_P2_P1_ReadRequest == P1_P2_P1_Pending )
@@ -2925,27 +2957,7 @@ module b19 (
     end
 
     always @(  posedge   P1_P2_P1_CLOCK or posedge  P1_P2_P1_RESET )
-    begin : P1_P2_P1_P1 reg[7:0] P1_P2_P1_InstQueue [15:0];reg[4:0] P1_P2_P1_InstQueueRd_Addr ;reg[4:0] P1_P2_P1_InstQueueWr_Addr ;
-        parameter P1_P2_P1_InstQueueLimit =15;
-        integer P1_P2_P1_InstAddrPointer ;
-        integer P1_P2_P1_PhyAddrPointer ;
-        reg P1_P2_P1_Extended ;
-        reg P1_P2_P1_More ;
-        reg P1_P2_P1_Flush ;
-        reg[15:0] P1_P2_P1_lWord ;
-        reg[14:0] P1_P2_P1_uWord ;
-        integer P1_P2_P1_fWord ;
-        reg[3:0] P1_P2_P1_State2 ;
-        parameter P1_P2_P1_Si =0;
-        parameter P1_P2_P1_S1 =1;
-        parameter P1_P2_P1_S2 =2;
-        parameter P1_P2_P1_S3 =3;
-        parameter P1_P2_P1_S4 =4;
-        parameter P1_P2_P1_S5 =5;
-        parameter P1_P2_P1_S6 =6;
-        parameter P1_P2_P1_S7 =7;
-        parameter P1_P2_P1_S8 =8;
-        parameter P1_P2_P1_S9 =9;
+    begin
         if ( P1_P2_P1_RESET ==1'b1)
         begin
             P1_P2_P1_State2  = P1_P2_P1_Si ;
@@ -3010,15 +3022,15 @@ module b19 (
             P1_P2_P1_S2  :
             begin
                 P1_P2_P1_RequestPending  <= P1_P2_P1_NotPending ;
-                P1_P2_P1_InstQueue  [ P1_P2_P1_InstQueueWr_Addr ]= P1_P2_P1_Datai %(2**8);
+                P1_P2_P1_InstQueue  [ P1_P2_P1_InstQueueWr_Addr ]= P1_P2_P1_Datai %( 9'b1_0000_0000);
                 P1_P2_P1_InstQueueWr_Addr  =( P1_P2_P1_InstQueueWr_Addr +1)%16;
-                P1_P2_P1_InstQueue  [ P1_P2_P1_InstQueueWr_Addr ]= P1_P2_P1_Datai %2**8;
+                P1_P2_P1_InstQueue  [ P1_P2_P1_InstQueueWr_Addr ]= P1_P2_P1_Datai % 9'b1_0000_0000;
                 P1_P2_P1_InstQueueWr_Addr  =( P1_P2_P1_InstQueueWr_Addr +1)%16;
                 if ( P1_P2_P1_StateBS16 ==1'b1)
                 begin
-                    P1_P2_P1_InstQueue  [ P1_P2_P1_InstQueueWr_Addr ]=( P1_P2_P1_Datai /(2**16))%(2**8);
+                    P1_P2_P1_InstQueue  [ P1_P2_P1_InstQueueWr_Addr ]=( P1_P2_P1_Datai /( 17'b1_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P1_P2_P1_InstQueueWr_Addr  =( P1_P2_P1_InstQueueWr_Addr +1)%16;
-                    P1_P2_P1_InstQueue  [ P1_P2_P1_InstQueueWr_Addr ]=( P1_P2_P1_Datai /(2**24))%(2**8);
+                    P1_P2_P1_InstQueue  [ P1_P2_P1_InstQueueWr_Addr ]=( P1_P2_P1_Datai /(25'b1_0000_0000_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P1_P2_P1_InstQueueWr_Addr  =( P1_P2_P1_InstQueueWr_Addr +1)%16;
                     P1_P2_P1_PhyAddrPointer  = P1_P2_P1_PhyAddrPointer +4;
                     P1_P2_P1_State2  = P1_P2_P1_S5 ;
@@ -3044,9 +3056,9 @@ module b19 (
             P1_P2_P1_S4  :
             begin
                 P1_P2_P1_RequestPending  <= P1_P2_P1_NotPending ;
-                P1_P2_P1_InstQueue  [ P1_P2_P1_InstQueueWr_Addr ]= P1_P2_P1_Datai %(2**8);
+                P1_P2_P1_InstQueue  [ P1_P2_P1_InstQueueWr_Addr ]= P1_P2_P1_Datai %( 9'b1_0000_0000);
                 P1_P2_P1_InstQueueWr_Addr  =( P1_P2_P1_InstQueueWr_Addr +1)%16;
-                P1_P2_P1_InstQueue  [ P1_P2_P1_InstQueueWr_Addr ]= P1_P2_P1_Datai %(2**8);
+                P1_P2_P1_InstQueue  [ P1_P2_P1_InstQueueWr_Addr ]= P1_P2_P1_Datai %( 9'b1_0000_0000);
                 P1_P2_P1_InstQueueWr_Addr  =( P1_P2_P1_InstQueueWr_Addr +1)%16;
                 P1_P2_P1_PhyAddrPointer  = P1_P2_P1_PhyAddrPointer +2;
                 P1_P2_P1_State2  = P1_P2_P1_S5 ;
@@ -3120,7 +3132,7 @@ module b19 (
                     P1_P2_P1_MOV_eax_dw  :
                         if (( P1_P2_P1_InstQueueWr_Addr - P1_P2_P1_InstQueueRd_Addr )>=5)
                         begin
-                            P1_P2_P1_EAX  <= P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +4)%16]*(2**23)+ P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +3)%16]*(2**16)+ P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +2)%16]*(2**8)+ P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +1)%16];
+                            P1_P2_P1_EAX  <= P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +1)%16];
                             P1_P2_P1_More  =1'b0;
                             P1_P2_P1_Flush  =1'b0;
                             P1_P2_P1_InstAddrPointer  = P1_P2_P1_InstAddrPointer +5;
@@ -3134,7 +3146,7 @@ module b19 (
                     P1_P2_P1_MOV_ebx_dw  :
                         if (( P1_P2_P1_InstQueueWr_Addr - P1_P2_P1_InstQueueRd_Addr )>=5)
                         begin
-                            P1_P2_P1_EBX  <= P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +4)%16]*(2**23)+ P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +3)%16]*(2**16)+ P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +2)%16]*(2**8)+ P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +1)%1];
+                            P1_P2_P1_EBX  <= P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P1_P2_P1_InstQueue [( P1_P2_P1_InstQueueRd_Addr +1)%1];
                             P1_P2_P1_More  =1'b0;
                             P1_P2_P1_Flush  =1'b0;
                             P1_P2_P1_InstAddrPointer  = P1_P2_P1_InstAddrPointer +5;
@@ -3159,9 +3171,9 @@ module b19 (
                             if ( P1_P2_P1_READY_n ==1'b0)
                             begin
                                 P1_P2_P1_RequestPending  <= P1_P2_P1_NotPending ;
-                                P1_P2_P1_uWord  = P1_P2_P1_Datai %(2**15);
+                                P1_P2_P1_uWord  = P1_P2_P1_Datai %( 16'b1000_0000_0000_0000);
                                 if ( P1_P2_P1_StateBS16 ==1'b1)
-                                    P1_P2_P1_lWord  = P1_P2_P1_Datai %(2**16);
+                                    P1_P2_P1_lWord  = P1_P2_P1_Datai %( 17'b1_0000_0000_0000_0000);
                                 else
                                 begin
                                     P1_P2_P1_rEIP  <= P1_P2_P1_rEIP +2;
@@ -3169,12 +3181,12 @@ module b19 (
                                     if ( P1_P2_P1_READY_n ==1'b0)
                                     begin
                                         P1_P2_P1_RequestPending  <= P1_P2_P1_NotPending ;
-                                        P1_P2_P1_lWord  = P1_P2_P1_Datai %(2**16);
+                                        P1_P2_P1_lWord  = P1_P2_P1_Datai %( 17'b1_0000_0000_0000_0000);
                                     end
                                 end
                                 if ( P1_P2_P1_READY_n ==1'b0)
                                 begin
-                                    P1_P2_P1_EAX  <= P1_P2_P1_uWord *(2**16)+ P1_P2_P1_lWord ;
+                                    P1_P2_P1_EAX  <= P1_P2_P1_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P2_P1_lWord ;
                                     P1_P2_P1_More  =1'b0;
                                     P1_P2_P1_Flush  =1'b0;
                                     P1_P2_P1_InstAddrPointer  = P1_P2_P1_InstAddrPointer +2;
@@ -3194,15 +3206,15 @@ module b19 (
                                 P1_P2_P1_rEIP  <= P1_P2_P1_EBX ;
                             else
                                 P1_P2_P1_rEIP  <= P1_P2_P1_EBX ;
-                            P1_P2_P1_lWord  = P1_P2_P1_EAX %(2**16);
-                            P1_P2_P1_uWord  =( P1_P2_P1_EAX /(2**16))%(2**15);
+                            P1_P2_P1_lWord  = P1_P2_P1_EAX %( 17'b1_0000_0000_0000_0000);
+                            P1_P2_P1_uWord  =( P1_P2_P1_EAX /( 17'b1_0000_0000_0000_0000))%( 16'b1000_0000_0000_0000);
                             P1_P2_P1_RequestPending  <= P1_P2_P1_Pending ;
                             P1_P2_P1_ReadRequest  <= P1_P2_P1_NotPending ;
                             P1_P2_P1_MemoryFetch  <= P1_P2_P1_Pending ;
                             P1_P2_P1_CodeFetch  <= P1_P2_P1_NotPending ;
                             if ( P1_P2_P1_State == P1_P2_P1_StateT1 | P1_P2_P1_State == P1_P2_P1_StateT1P )
                             begin
-                                P1_P2_P1_Datao  <=( P1_P2_P1_uWord *(2**16)+ P1_P2_P1_lWord );
+                                P1_P2_P1_Datao  <=( P1_P2_P1_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P2_P1_lWord );
                                 if ( P1_P2_P1_READY_n ==1'b0)
                                 begin
                                     P1_P2_P1_RequestPending  <= P1_P2_P1_NotPending ;
@@ -3260,7 +3272,7 @@ module b19 (
                             P1_P2_P1_CodeFetch  <= P1_P2_P1_NotPending ;
                             if ( P1_P2_P1_State == P1_P2_P1_StateT1 | P1_P2_P1_State == P1_P2_P1_StateT1P )
                             begin
-                                P1_P2_P1_fWord  = P1_P2_P1_EAX %(2**16);
+                                P1_P2_P1_fWord  = P1_P2_P1_EAX %( 17'b1_0000_0000_0000_0000);
                                 P1_P2_P1_Datao  <= P1_P2_P1_fWord ;
                                 if ( P1_P2_P1_READY_n ==1'b0)
                                 begin
@@ -3334,7 +3346,7 @@ module b19 (
             end
             P1_P2_P1_S6  :
             begin
-                P1_P2_P1_Datao  <=( P1_P2_P1_uWord *(2**16)+ P1_P2_P1_lWord );
+                P1_P2_P1_Datao  <=( P1_P2_P1_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P2_P1_lWord );
                 if ( P1_P2_P1_READY_n ==1'b0)
                 begin
                     P1_P2_P1_RequestPending  <= P1_P2_P1_NotPending ;
@@ -3384,7 +3396,7 @@ module b19 (
     end
 
     always @(  posedge   P1_P2_P1_CLOCK or posedge  P1_P2_P1_RESET )
-    begin : P1_P2_P1_P2
+    begin
         if ( P1_P2_P1_RESET ==1'b1)
         begin
             P1_P2_P1_ByteEnable  <=4'b0000;
@@ -3548,8 +3560,31 @@ module b19 (
     parameter P1_P2_P2_HLT =8'hF4;
     parameter P1_P2_P2_WAITx =8'h9B;
     parameter P1_P2_P2_NOP =8'h90;
+    reg[7:0] P1_P2_P2_InstQueue [15:0];
+    reg[4:0] P1_P2_P2_InstQueueRd_Addr ;
+    reg[4:0] P1_P2_P2_InstQueueWr_Addr ;
+    parameter P1_P2_P2_InstQueueLimit =15;
+    integer P1_P2_P2_InstAddrPointer ;
+    integer P1_P2_P2_PhyAddrPointer ;
+    reg P1_P2_P2_Extended ;
+    reg P1_P2_P2_More ;
+    reg P1_P2_P2_Flush ;
+    reg[15:0] P1_P2_P2_lWord ;
+    reg[14:0] P1_P2_P2_uWord ;
+    integer P1_P2_P2_fWord ;
+    reg[3:0] P1_P2_P2_State2 ;
+    parameter P1_P2_P2_Si =0;
+    parameter P1_P2_P2_S1 =1;
+    parameter P1_P2_P2_S2 =2;
+    parameter P1_P2_P2_S3 =3;
+    parameter P1_P2_P2_S4 =4;
+    parameter P1_P2_P2_S5 =5;
+    parameter P1_P2_P2_S6 =6;
+    parameter P1_P2_P2_S7 =7;
+    parameter P1_P2_P2_S8 =8;
+    parameter P1_P2_P2_S9 =9;
     always @(  posedge   P1_P2_P2_CLOCK or posedge  P1_P2_P2_RESET )
-    begin : P1_P2_P2_P0
+    begin
         if ( P1_P2_P2_RESET ==1'b1)
         begin
             P1_P2_P2_BE_n  <=4'b0000;
@@ -3585,7 +3620,7 @@ module b19 (
                         P1_P2_P2_State  <= P1_P2_P2_StateTi ;
             P1_P2_P2_StateT1  :
             begin
-                P1_P2_P2_Address  <= P1_P2_P2_rEIP /4%2**30;
+                P1_P2_P2_Address  <= P1_P2_P2_rEIP /4% 4'b10000;
                 P1_P2_P2_BE_n  <= P1_P2_P2_ByteEnable ;
                 P1_P2_P2_M_IO_n  <= P1_P2_P2_MemoryFetch ;
                 if ( P1_P2_P2_ReadRequest == P1_P2_P2_Pending )
@@ -3658,7 +3693,7 @@ module b19 (
                         P1_P2_P2_State  <= P1_P2_P2_StateTh ;
             P1_P2_P2_StateT2P  :
             begin
-                P1_P2_P2_Address  <= P1_P2_P2_rEIP /2%2**30;
+                P1_P2_P2_Address  <= P1_P2_P2_rEIP /2% 4'b10000;
                 P1_P2_P2_BE_n  <= P1_P2_P2_ByteEnable ;
                 P1_P2_P2_M_IO_n  <= P1_P2_P2_MemoryFetch ;
                 if ( P1_P2_P2_ReadRequest == P1_P2_P2_Pending )
@@ -3693,27 +3728,7 @@ module b19 (
     end
 
     always @(  posedge   P1_P2_P2_CLOCK or posedge  P1_P2_P2_RESET )
-    begin : P1_P2_P2_P1 reg[7:0] P1_P2_P2_InstQueue [15:0];reg[4:0] P1_P2_P2_InstQueueRd_Addr ;reg[4:0] P1_P2_P2_InstQueueWr_Addr ;
-        parameter P1_P2_P2_InstQueueLimit =15;
-        integer P1_P2_P2_InstAddrPointer ;
-        integer P1_P2_P2_PhyAddrPointer ;
-        reg P1_P2_P2_Extended ;
-        reg P1_P2_P2_More ;
-        reg P1_P2_P2_Flush ;
-        reg[15:0] P1_P2_P2_lWord ;
-        reg[14:0] P1_P2_P2_uWord ;
-        integer P1_P2_P2_fWord ;
-        reg[3:0] P1_P2_P2_State2 ;
-        parameter P1_P2_P2_Si =0;
-        parameter P1_P2_P2_S1 =1;
-        parameter P1_P2_P2_S2 =2;
-        parameter P1_P2_P2_S3 =3;
-        parameter P1_P2_P2_S4 =4;
-        parameter P1_P2_P2_S5 =5;
-        parameter P1_P2_P2_S6 =6;
-        parameter P1_P2_P2_S7 =7;
-        parameter P1_P2_P2_S8 =8;
-        parameter P1_P2_P2_S9 =9;
+    begin
         if ( P1_P2_P2_RESET ==1'b1)
         begin
             P1_P2_P2_State2  = P1_P2_P2_Si ;
@@ -3778,15 +3793,15 @@ module b19 (
             P1_P2_P2_S2  :
             begin
                 P1_P2_P2_RequestPending  <= P1_P2_P2_NotPending ;
-                P1_P2_P2_InstQueue  [ P1_P2_P2_InstQueueWr_Addr ]= P1_P2_P2_Datai %(2**8);
+                P1_P2_P2_InstQueue  [ P1_P2_P2_InstQueueWr_Addr ]= P1_P2_P2_Datai %( 9'b1_0000_0000);
                 P1_P2_P2_InstQueueWr_Addr  =( P1_P2_P2_InstQueueWr_Addr +1)%16;
-                P1_P2_P2_InstQueue  [ P1_P2_P2_InstQueueWr_Addr ]= P1_P2_P2_Datai %2**8;
+                P1_P2_P2_InstQueue  [ P1_P2_P2_InstQueueWr_Addr ]= P1_P2_P2_Datai % 9'b1_0000_0000;
                 P1_P2_P2_InstQueueWr_Addr  =( P1_P2_P2_InstQueueWr_Addr +1)%16;
                 if ( P1_P2_P2_StateBS16 ==1'b1)
                 begin
-                    P1_P2_P2_InstQueue  [ P1_P2_P2_InstQueueWr_Addr ]=( P1_P2_P2_Datai /(2**16))%(2**8);
+                    P1_P2_P2_InstQueue  [ P1_P2_P2_InstQueueWr_Addr ]=( P1_P2_P2_Datai /( 17'b1_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P1_P2_P2_InstQueueWr_Addr  =( P1_P2_P2_InstQueueWr_Addr +1)%16;
-                    P1_P2_P2_InstQueue  [ P1_P2_P2_InstQueueWr_Addr ]=( P1_P2_P2_Datai /(2**24))%(2**8);
+                    P1_P2_P2_InstQueue  [ P1_P2_P2_InstQueueWr_Addr ]=( P1_P2_P2_Datai /(25'b1_0000_0000_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P1_P2_P2_InstQueueWr_Addr  =( P1_P2_P2_InstQueueWr_Addr +1)%16;
                     P1_P2_P2_PhyAddrPointer  = P1_P2_P2_PhyAddrPointer +4;
                     P1_P2_P2_State2  = P1_P2_P2_S5 ;
@@ -3812,9 +3827,9 @@ module b19 (
             P1_P2_P2_S4  :
             begin
                 P1_P2_P2_RequestPending  <= P1_P2_P2_NotPending ;
-                P1_P2_P2_InstQueue  [ P1_P2_P2_InstQueueWr_Addr ]= P1_P2_P2_Datai %(2**8);
+                P1_P2_P2_InstQueue  [ P1_P2_P2_InstQueueWr_Addr ]= P1_P2_P2_Datai %( 9'b1_0000_0000);
                 P1_P2_P2_InstQueueWr_Addr  =( P1_P2_P2_InstQueueWr_Addr +1)%16;
-                P1_P2_P2_InstQueue  [ P1_P2_P2_InstQueueWr_Addr ]= P1_P2_P2_Datai %(2**8);
+                P1_P2_P2_InstQueue  [ P1_P2_P2_InstQueueWr_Addr ]= P1_P2_P2_Datai %( 9'b1_0000_0000);
                 P1_P2_P2_InstQueueWr_Addr  =( P1_P2_P2_InstQueueWr_Addr +1)%16;
                 P1_P2_P2_PhyAddrPointer  = P1_P2_P2_PhyAddrPointer +2;
                 P1_P2_P2_State2  = P1_P2_P2_S5 ;
@@ -3888,7 +3903,7 @@ module b19 (
                     P1_P2_P2_MOV_eax_dw  :
                         if (( P1_P2_P2_InstQueueWr_Addr - P1_P2_P2_InstQueueRd_Addr )>=5)
                         begin
-                            P1_P2_P2_EAX  <= P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +4)%16]*(2**23)+ P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +3)%16]*(2**16)+ P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +2)%16]*(2**8)+ P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +1)%16];
+                            P1_P2_P2_EAX  <= P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +1)%16];
                             P1_P2_P2_More  =1'b0;
                             P1_P2_P2_Flush  =1'b0;
                             P1_P2_P2_InstAddrPointer  = P1_P2_P2_InstAddrPointer +5;
@@ -3902,7 +3917,7 @@ module b19 (
                     P1_P2_P2_MOV_ebx_dw  :
                         if (( P1_P2_P2_InstQueueWr_Addr - P1_P2_P2_InstQueueRd_Addr )>=5)
                         begin
-                            P1_P2_P2_EBX  <= P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +4)%16]*(2**23)+ P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +3)%16]*(2**16)+ P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +2)%16]*(2**8)+ P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +1)%1];
+                            P1_P2_P2_EBX  <= P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P1_P2_P2_InstQueue [( P1_P2_P2_InstQueueRd_Addr +1)%1];
                             P1_P2_P2_More  =1'b0;
                             P1_P2_P2_Flush  =1'b0;
                             P1_P2_P2_InstAddrPointer  = P1_P2_P2_InstAddrPointer +5;
@@ -3927,9 +3942,9 @@ module b19 (
                             if ( P1_P2_P2_READY_n ==1'b0)
                             begin
                                 P1_P2_P2_RequestPending  <= P1_P2_P2_NotPending ;
-                                P1_P2_P2_uWord  = P1_P2_P2_Datai %(2**15);
+                                P1_P2_P2_uWord  = P1_P2_P2_Datai %( 16'b1000_0000_0000_0000);
                                 if ( P1_P2_P2_StateBS16 ==1'b1)
-                                    P1_P2_P2_lWord  = P1_P2_P2_Datai %(2**16);
+                                    P1_P2_P2_lWord  = P1_P2_P2_Datai %( 17'b1_0000_0000_0000_0000);
                                 else
                                 begin
                                     P1_P2_P2_rEIP  <= P1_P2_P2_rEIP +2;
@@ -3937,12 +3952,12 @@ module b19 (
                                     if ( P1_P2_P2_READY_n ==1'b0)
                                     begin
                                         P1_P2_P2_RequestPending  <= P1_P2_P2_NotPending ;
-                                        P1_P2_P2_lWord  = P1_P2_P2_Datai %(2**16);
+                                        P1_P2_P2_lWord  = P1_P2_P2_Datai %( 17'b1_0000_0000_0000_0000);
                                     end
                                 end
                                 if ( P1_P2_P2_READY_n ==1'b0)
                                 begin
-                                    P1_P2_P2_EAX  <= P1_P2_P2_uWord *(2**16)+ P1_P2_P2_lWord ;
+                                    P1_P2_P2_EAX  <= P1_P2_P2_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P2_P2_lWord ;
                                     P1_P2_P2_More  =1'b0;
                                     P1_P2_P2_Flush  =1'b0;
                                     P1_P2_P2_InstAddrPointer  = P1_P2_P2_InstAddrPointer +2;
@@ -3962,15 +3977,15 @@ module b19 (
                                 P1_P2_P2_rEIP  <= P1_P2_P2_EBX ;
                             else
                                 P1_P2_P2_rEIP  <= P1_P2_P2_EBX ;
-                            P1_P2_P2_lWord  = P1_P2_P2_EAX %(2**16);
-                            P1_P2_P2_uWord  =( P1_P2_P2_EAX /(2**16))%(2**15);
+                            P1_P2_P2_lWord  = P1_P2_P2_EAX %( 17'b1_0000_0000_0000_0000);
+                            P1_P2_P2_uWord  =( P1_P2_P2_EAX /( 17'b1_0000_0000_0000_0000))%( 16'b1000_0000_0000_0000);
                             P1_P2_P2_RequestPending  <= P1_P2_P2_Pending ;
                             P1_P2_P2_ReadRequest  <= P1_P2_P2_NotPending ;
                             P1_P2_P2_MemoryFetch  <= P1_P2_P2_Pending ;
                             P1_P2_P2_CodeFetch  <= P1_P2_P2_NotPending ;
                             if ( P1_P2_P2_State == P1_P2_P2_StateT1 | P1_P2_P2_State == P1_P2_P2_StateT1P )
                             begin
-                                P1_P2_P2_Datao  <=( P1_P2_P2_uWord *(2**16)+ P1_P2_P2_lWord );
+                                P1_P2_P2_Datao  <=( P1_P2_P2_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P2_P2_lWord );
                                 if ( P1_P2_P2_READY_n ==1'b0)
                                 begin
                                     P1_P2_P2_RequestPending  <= P1_P2_P2_NotPending ;
@@ -4028,7 +4043,7 @@ module b19 (
                             P1_P2_P2_CodeFetch  <= P1_P2_P2_NotPending ;
                             if ( P1_P2_P2_State == P1_P2_P2_StateT1 | P1_P2_P2_State == P1_P2_P2_StateT1P )
                             begin
-                                P1_P2_P2_fWord  = P1_P2_P2_EAX %(2**16);
+                                P1_P2_P2_fWord  = P1_P2_P2_EAX %( 17'b1_0000_0000_0000_0000);
                                 P1_P2_P2_Datao  <= P1_P2_P2_fWord ;
                                 if ( P1_P2_P2_READY_n ==1'b0)
                                 begin
@@ -4102,7 +4117,7 @@ module b19 (
             end
             P1_P2_P2_S6  :
             begin
-                P1_P2_P2_Datao  <=( P1_P2_P2_uWord *(2**16)+ P1_P2_P2_lWord );
+                P1_P2_P2_Datao  <=( P1_P2_P2_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P2_P2_lWord );
                 if ( P1_P2_P2_READY_n ==1'b0)
                 begin
                     P1_P2_P2_RequestPending  <= P1_P2_P2_NotPending ;
@@ -4152,7 +4167,7 @@ module b19 (
     end
 
     always @(  posedge   P1_P2_P2_CLOCK or posedge  P1_P2_P2_RESET )
-    begin : P1_P2_P2_P2
+    begin
         if ( P1_P2_P2_RESET ==1'b1)
         begin
             P1_P2_P2_ByteEnable  <=4'b0000;
@@ -4316,8 +4331,31 @@ module b19 (
     parameter P1_P2_P3_HLT =8'hF4;
     parameter P1_P2_P3_WAITx =8'h9B;
     parameter P1_P2_P3_NOP =8'h90;
+    reg[7:0] P1_P2_P3_InstQueue [15:0];
+    reg[4:0] P1_P2_P3_InstQueueRd_Addr ;
+    reg[4:0] P1_P2_P3_InstQueueWr_Addr ;
+    parameter P1_P2_P3_InstQueueLimit =15;
+    integer P1_P2_P3_InstAddrPointer ;
+    integer P1_P2_P3_PhyAddrPointer ;
+    reg P1_P2_P3_Extended ;
+    reg P1_P2_P3_More ;
+    reg P1_P2_P3_Flush ;
+    reg[15:0] P1_P2_P3_lWord ;
+    reg[14:0] P1_P2_P3_uWord ;
+    integer P1_P2_P3_fWord ;
+    reg[3:0] P1_P2_P3_State2 ;
+    parameter P1_P2_P3_Si =0;
+    parameter P1_P2_P3_S1 =1;
+    parameter P1_P2_P3_S2 =2;
+    parameter P1_P2_P3_S3 =3;
+    parameter P1_P2_P3_S4 =4;
+    parameter P1_P2_P3_S5 =5;
+    parameter P1_P2_P3_S6 =6;
+    parameter P1_P2_P3_S7 =7;
+    parameter P1_P2_P3_S8 =8;
+    parameter P1_P2_P3_S9 =9;
     always @(  posedge   P1_P2_P3_CLOCK or posedge  P1_P2_P3_RESET )
-    begin : P1_P2_P3_P0
+    begin
         if ( P1_P2_P3_RESET ==1'b1)
         begin
             P1_P2_P3_BE_n  <=4'b0000;
@@ -4353,7 +4391,7 @@ module b19 (
                         P1_P2_P3_State  <= P1_P2_P3_StateTi ;
             P1_P2_P3_StateT1  :
             begin
-                P1_P2_P3_Address  <= P1_P2_P3_rEIP /4%2**30;
+                P1_P2_P3_Address  <= P1_P2_P3_rEIP /4% 4'b10000;
                 P1_P2_P3_BE_n  <= P1_P2_P3_ByteEnable ;
                 P1_P2_P3_M_IO_n  <= P1_P2_P3_MemoryFetch ;
                 if ( P1_P2_P3_ReadRequest == P1_P2_P3_Pending )
@@ -4426,7 +4464,7 @@ module b19 (
                         P1_P2_P3_State  <= P1_P2_P3_StateTh ;
             P1_P2_P3_StateT2P  :
             begin
-                P1_P2_P3_Address  <= P1_P2_P3_rEIP /2%2**30;
+                P1_P2_P3_Address  <= P1_P2_P3_rEIP /2% 4'b10000;
                 P1_P2_P3_BE_n  <= P1_P2_P3_ByteEnable ;
                 P1_P2_P3_M_IO_n  <= P1_P2_P3_MemoryFetch ;
                 if ( P1_P2_P3_ReadRequest == P1_P2_P3_Pending )
@@ -4461,27 +4499,7 @@ module b19 (
     end
 
     always @(  posedge   P1_P2_P3_CLOCK or posedge  P1_P2_P3_RESET )
-    begin : P1_P2_P3_P1 reg[7:0] P1_P2_P3_InstQueue [15:0];reg[4:0] P1_P2_P3_InstQueueRd_Addr ;reg[4:0] P1_P2_P3_InstQueueWr_Addr ;
-        parameter P1_P2_P3_InstQueueLimit =15;
-        integer P1_P2_P3_InstAddrPointer ;
-        integer P1_P2_P3_PhyAddrPointer ;
-        reg P1_P2_P3_Extended ;
-        reg P1_P2_P3_More ;
-        reg P1_P2_P3_Flush ;
-        reg[15:0] P1_P2_P3_lWord ;
-        reg[14:0] P1_P2_P3_uWord ;
-        integer P1_P2_P3_fWord ;
-        reg[3:0] P1_P2_P3_State2 ;
-        parameter P1_P2_P3_Si =0;
-        parameter P1_P2_P3_S1 =1;
-        parameter P1_P2_P3_S2 =2;
-        parameter P1_P2_P3_S3 =3;
-        parameter P1_P2_P3_S4 =4;
-        parameter P1_P2_P3_S5 =5;
-        parameter P1_P2_P3_S6 =6;
-        parameter P1_P2_P3_S7 =7;
-        parameter P1_P2_P3_S8 =8;
-        parameter P1_P2_P3_S9 =9;
+    begin
         if ( P1_P2_P3_RESET ==1'b1)
         begin
             P1_P2_P3_State2  = P1_P2_P3_Si ;
@@ -4546,15 +4564,15 @@ module b19 (
             P1_P2_P3_S2  :
             begin
                 P1_P2_P3_RequestPending  <= P1_P2_P3_NotPending ;
-                P1_P2_P3_InstQueue  [ P1_P2_P3_InstQueueWr_Addr ]= P1_P2_P3_Datai %(2**8);
+                P1_P2_P3_InstQueue  [ P1_P2_P3_InstQueueWr_Addr ]= P1_P2_P3_Datai %( 9'b1_0000_0000);
                 P1_P2_P3_InstQueueWr_Addr  =( P1_P2_P3_InstQueueWr_Addr +1)%16;
-                P1_P2_P3_InstQueue  [ P1_P2_P3_InstQueueWr_Addr ]= P1_P2_P3_Datai %2**8;
+                P1_P2_P3_InstQueue  [ P1_P2_P3_InstQueueWr_Addr ]= P1_P2_P3_Datai % 9'b1_0000_0000;
                 P1_P2_P3_InstQueueWr_Addr  =( P1_P2_P3_InstQueueWr_Addr +1)%16;
                 if ( P1_P2_P3_StateBS16 ==1'b1)
                 begin
-                    P1_P2_P3_InstQueue  [ P1_P2_P3_InstQueueWr_Addr ]=( P1_P2_P3_Datai /(2**16))%(2**8);
+                    P1_P2_P3_InstQueue  [ P1_P2_P3_InstQueueWr_Addr ]=( P1_P2_P3_Datai /( 17'b1_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P1_P2_P3_InstQueueWr_Addr  =( P1_P2_P3_InstQueueWr_Addr +1)%16;
-                    P1_P2_P3_InstQueue  [ P1_P2_P3_InstQueueWr_Addr ]=( P1_P2_P3_Datai /(2**24))%(2**8);
+                    P1_P2_P3_InstQueue  [ P1_P2_P3_InstQueueWr_Addr ]=( P1_P2_P3_Datai /(25'b1_0000_0000_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P1_P2_P3_InstQueueWr_Addr  =( P1_P2_P3_InstQueueWr_Addr +1)%16;
                     P1_P2_P3_PhyAddrPointer  = P1_P2_P3_PhyAddrPointer +4;
                     P1_P2_P3_State2  = P1_P2_P3_S5 ;
@@ -4580,9 +4598,9 @@ module b19 (
             P1_P2_P3_S4  :
             begin
                 P1_P2_P3_RequestPending  <= P1_P2_P3_NotPending ;
-                P1_P2_P3_InstQueue  [ P1_P2_P3_InstQueueWr_Addr ]= P1_P2_P3_Datai %(2**8);
+                P1_P2_P3_InstQueue  [ P1_P2_P3_InstQueueWr_Addr ]= P1_P2_P3_Datai %( 9'b1_0000_0000);
                 P1_P2_P3_InstQueueWr_Addr  =( P1_P2_P3_InstQueueWr_Addr +1)%16;
-                P1_P2_P3_InstQueue  [ P1_P2_P3_InstQueueWr_Addr ]= P1_P2_P3_Datai %(2**8);
+                P1_P2_P3_InstQueue  [ P1_P2_P3_InstQueueWr_Addr ]= P1_P2_P3_Datai %( 9'b1_0000_0000);
                 P1_P2_P3_InstQueueWr_Addr  =( P1_P2_P3_InstQueueWr_Addr +1)%16;
                 P1_P2_P3_PhyAddrPointer  = P1_P2_P3_PhyAddrPointer +2;
                 P1_P2_P3_State2  = P1_P2_P3_S5 ;
@@ -4656,7 +4674,7 @@ module b19 (
                     P1_P2_P3_MOV_eax_dw  :
                         if (( P1_P2_P3_InstQueueWr_Addr - P1_P2_P3_InstQueueRd_Addr )>=5)
                         begin
-                            P1_P2_P3_EAX  <= P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +4)%16]*(2**23)+ P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +3)%16]*(2**16)+ P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +2)%16]*(2**8)+ P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +1)%16];
+                            P1_P2_P3_EAX  <= P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +1)%16];
                             P1_P2_P3_More  =1'b0;
                             P1_P2_P3_Flush  =1'b0;
                             P1_P2_P3_InstAddrPointer  = P1_P2_P3_InstAddrPointer +5;
@@ -4670,7 +4688,7 @@ module b19 (
                     P1_P2_P3_MOV_ebx_dw  :
                         if (( P1_P2_P3_InstQueueWr_Addr - P1_P2_P3_InstQueueRd_Addr )>=5)
                         begin
-                            P1_P2_P3_EBX  <= P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +4)%16]*(2**23)+ P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +3)%16]*(2**16)+ P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +2)%16]*(2**8)+ P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +1)%1];
+                            P1_P2_P3_EBX  <= P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P1_P2_P3_InstQueue [( P1_P2_P3_InstQueueRd_Addr +1)%1];
                             P1_P2_P3_More  =1'b0;
                             P1_P2_P3_Flush  =1'b0;
                             P1_P2_P3_InstAddrPointer  = P1_P2_P3_InstAddrPointer +5;
@@ -4695,9 +4713,9 @@ module b19 (
                             if ( P1_P2_P3_READY_n ==1'b0)
                             begin
                                 P1_P2_P3_RequestPending  <= P1_P2_P3_NotPending ;
-                                P1_P2_P3_uWord  = P1_P2_P3_Datai %(2**15);
+                                P1_P2_P3_uWord  = P1_P2_P3_Datai %( 16'b1000_0000_0000_0000);
                                 if ( P1_P2_P3_StateBS16 ==1'b1)
-                                    P1_P2_P3_lWord  = P1_P2_P3_Datai %(2**16);
+                                    P1_P2_P3_lWord  = P1_P2_P3_Datai %( 17'b1_0000_0000_0000_0000);
                                 else
                                 begin
                                     P1_P2_P3_rEIP  <= P1_P2_P3_rEIP +2;
@@ -4705,12 +4723,12 @@ module b19 (
                                     if ( P1_P2_P3_READY_n ==1'b0)
                                     begin
                                         P1_P2_P3_RequestPending  <= P1_P2_P3_NotPending ;
-                                        P1_P2_P3_lWord  = P1_P2_P3_Datai %(2**16);
+                                        P1_P2_P3_lWord  = P1_P2_P3_Datai %( 17'b1_0000_0000_0000_0000);
                                     end
                                 end
                                 if ( P1_P2_P3_READY_n ==1'b0)
                                 begin
-                                    P1_P2_P3_EAX  <= P1_P2_P3_uWord *(2**16)+ P1_P2_P3_lWord ;
+                                    P1_P2_P3_EAX  <= P1_P2_P3_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P2_P3_lWord ;
                                     P1_P2_P3_More  =1'b0;
                                     P1_P2_P3_Flush  =1'b0;
                                     P1_P2_P3_InstAddrPointer  = P1_P2_P3_InstAddrPointer +2;
@@ -4730,15 +4748,15 @@ module b19 (
                                 P1_P2_P3_rEIP  <= P1_P2_P3_EBX ;
                             else
                                 P1_P2_P3_rEIP  <= P1_P2_P3_EBX ;
-                            P1_P2_P3_lWord  = P1_P2_P3_EAX %(2**16);
-                            P1_P2_P3_uWord  =( P1_P2_P3_EAX /(2**16))%(2**15);
+                            P1_P2_P3_lWord  = P1_P2_P3_EAX %( 17'b1_0000_0000_0000_0000);
+                            P1_P2_P3_uWord  =( P1_P2_P3_EAX /( 17'b1_0000_0000_0000_0000))%( 16'b1000_0000_0000_0000);
                             P1_P2_P3_RequestPending  <= P1_P2_P3_Pending ;
                             P1_P2_P3_ReadRequest  <= P1_P2_P3_NotPending ;
                             P1_P2_P3_MemoryFetch  <= P1_P2_P3_Pending ;
                             P1_P2_P3_CodeFetch  <= P1_P2_P3_NotPending ;
                             if ( P1_P2_P3_State == P1_P2_P3_StateT1 | P1_P2_P3_State == P1_P2_P3_StateT1P )
                             begin
-                                P1_P2_P3_Datao  <=( P1_P2_P3_uWord *(2**16)+ P1_P2_P3_lWord );
+                                P1_P2_P3_Datao  <=( P1_P2_P3_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P2_P3_lWord );
                                 if ( P1_P2_P3_READY_n ==1'b0)
                                 begin
                                     P1_P2_P3_RequestPending  <= P1_P2_P3_NotPending ;
@@ -4796,7 +4814,7 @@ module b19 (
                             P1_P2_P3_CodeFetch  <= P1_P2_P3_NotPending ;
                             if ( P1_P2_P3_State == P1_P2_P3_StateT1 | P1_P2_P3_State == P1_P2_P3_StateT1P )
                             begin
-                                P1_P2_P3_fWord  = P1_P2_P3_EAX %(2**16);
+                                P1_P2_P3_fWord  = P1_P2_P3_EAX %( 17'b1_0000_0000_0000_0000);
                                 P1_P2_P3_Datao  <= P1_P2_P3_fWord ;
                                 if ( P1_P2_P3_READY_n ==1'b0)
                                 begin
@@ -4870,7 +4888,7 @@ module b19 (
             end
             P1_P2_P3_S6  :
             begin
-                P1_P2_P3_Datao  <=( P1_P2_P3_uWord *(2**16)+ P1_P2_P3_lWord );
+                P1_P2_P3_Datao  <=( P1_P2_P3_uWord *( 17'b1_0000_0000_0000_0000)+ P1_P2_P3_lWord );
                 if ( P1_P2_P3_READY_n ==1'b0)
                 begin
                     P1_P2_P3_RequestPending  <= P1_P2_P3_NotPending ;
@@ -4920,7 +4938,7 @@ module b19 (
     end
 
     always @(  posedge   P1_P2_P3_CLOCK or posedge  P1_P2_P3_RESET )
-    begin : P1_P2_P3_P2
+    begin
         if ( P1_P2_P3_RESET ==1'b1)
         begin
             P1_P2_P3_ByteEnable  <=4'b0000;
@@ -5014,10 +5032,30 @@ module b19 (
     assign P1_rd3 = P1_P3_rd;
     assign P1_wr3 = P1_P3_wr;
 
+    integer P1_P3_reg0 ;
+    integer P1_P3_reg1 ;
+    integer P1_P3_reg2 ;
+    integer P1_P3_reg3 ;
+    reg P1_P3_B ;
+    reg[19:0] P1_P3_MAR ;
+    integer P1_P3_MBR ;
+    reg[1:0] P1_P3_mf ;
+    reg[2:0] P1_P3_df ;
+    reg[0:0] P1_P3_cf ;
+    reg[3:0] P1_P3_ff ;
+    reg[19:0] P1_P3_tail ;
+    integer P1_P3_IR ;
+    reg[0:0] P1_P3_state ;
+    integer P1_P3_r ;
+    integer P1_P3_m ;
+    integer P1_P3_t ;
+    integer P1_P3_d ;
+    integer P1_P3_temp ;
+    reg[1:0] P1_P3_s ;
+    parameter P1_P3_FETCH =0;
+    parameter P1_P3_EXEC =1;
     always @(  posedge   P1_P3_clock or posedge  P1_P3_reset )
-    begin : P1_P3_xhdl0 integer P1_P3_reg0 ;integer P1_P3_reg1 ;integer P1_P3_reg2 ;integer P1_P3_reg3 ;reg P1_P3_B ;reg[19:0] P1_P3_MAR ;integer P1_P3_MBR ;reg[1:0] P1_P3_mf ;reg[2:0] P1_P3_df ;reg[0:0] P1_P3_cf ;reg[3:0] P1_P3_ff ;reg[19:0] P1_P3_tail ;integer P1_P3_IR ;reg[0:0] P1_P3_state ;integer P1_P3_r ;integer P1_P3_m ;integer P1_P3_t ;integer P1_P3_d ;integer P1_P3_temp ;reg[1:0] P1_P3_s ;
-        parameter P1_P3_FETCH =0;
-        parameter P1_P3_EXEC =1;
+    begin
         if ( P1_P3_reset ==1'b1)
         begin
             P1_P3_MAR  =0;
@@ -5051,7 +5089,7 @@ module b19 (
             case ( P1_P3_state )
                 P1_P3_FETCH  :
                 begin
-                    P1_P3_MAR  = P1_P3_reg3 %2**20;
+                    P1_P3_MAR  = P1_P3_reg3 % 21'b1_0000_0000_0000_0000_0000;
                     P1_P3_addr  <= P1_P3_MAR ;
                     P1_P3_rd  <=1'b1;
                     P1_P3_MBR  = P1_P3_datai ;
@@ -5062,13 +5100,13 @@ module b19 (
                 begin
                     if ( P1_P3_IR <0)
                         P1_P3_IR  =- P1_P3_IR ;
-                    P1_P3_mf  =( P1_P3_IR /2**27)%4;
-                    P1_P3_df  =( P1_P3_IR /2**24)%2**3;
-                    P1_P3_ff  =( P1_P3_IR /2**19)%2**4;
-                    P1_P3_cf  =( P1_P3_IR /2**23)%2;
-                    P1_P3_tail  = P1_P3_IR %2**20;
-                    P1_P3_reg3  =(( P1_P3_reg3 %2**29)+8);
-                    P1_P3_s  =( P1_P3_IR /2**29)%4;
+                    P1_P3_mf  =( P1_P3_IR /28'b1000_0000_0000_0000_0000_0000_0000)%4;
+                    P1_P3_df  =( P1_P3_IR /25'b1_0000_0000_0000_0000_0000_0000)% 4'b1000;
+                    P1_P3_ff  =( P1_P3_IR / 20'b1000_0000_0000_0000_0000)% 5'b1_0000;
+                    P1_P3_cf  =( P1_P3_IR /24'b1000_0000_0000_0000_0000_0000)%2;
+                    P1_P3_tail  = P1_P3_IR % 21'b1_0000_0000_0000_0000_0000;
+                    P1_P3_reg3  =(( P1_P3_reg3 %30'b10_0000_0000_0000_0000_0000_0000_0000)+8);
+                    P1_P3_s  =( P1_P3_IR /30'b10_0000_0000_0000_0000_0000_0000_0000)%4;
                     case ( P1_P3_s )
                         0 :
                             P1_P3_r  = P1_P3_reg0 ;
@@ -5093,13 +5131,13 @@ module b19 (
                                 end
                                 2 :
                                 begin
-                                    P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )%2**20;
+                                    P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                     P1_P3_rd  <=1'b1;
                                     P1_P3_m  = P1_P3_datai ;
                                 end
                                 3 :
                                 begin
-                                    P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )%2**20;
+                                    P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                     P1_P3_rd  <=1'b1;
                                     P1_P3_m  = P1_P3_datai ;
                                 end
@@ -5137,8 +5175,8 @@ module b19 (
                                         P1_P3_B  =1'b0;
                                 6 :
                                 begin
-                                    if ( P1_P3_r >2**30-1)
-                                        P1_P3_r  = P1_P3_r -2**30;
+                                    if ( P1_P3_r > 4'b10000-1)
+                                        P1_P3_r  = P1_P3_r - 4'b10000;
                                     if ( P1_P3_r < P1_P3_m )
                                         P1_P3_B  =1'b1;
                                     else
@@ -5146,8 +5184,8 @@ module b19 (
                                 end
                                 7 :
                                 begin
-                                    if ( P1_P3_r >2**30-1)
-                                        P1_P3_r  = P1_P3_r -2**30;
+                                    if ( P1_P3_r > 4'b10000-1)
+                                        P1_P3_r  = P1_P3_r - 4'b10000;
                                     if (~( P1_P3_r < P1_P3_m ))
                                         P1_P3_B  =1'b1;
                                     else
@@ -5185,8 +5223,8 @@ module b19 (
                                         P1_P3_B  =1'b0;
                                 14 :
                                 begin
-                                    if ( P1_P3_r >2**30-1)
-                                        P1_P3_r  = P1_P3_r -2**30;
+                                    if ( P1_P3_r > 4'b10000-1)
+                                        P1_P3_r  = P1_P3_r - 4'b10000;
                                     if (( P1_P3_r < P1_P3_m )|( P1_P3_B ==1'b1))
                                         P1_P3_B  =1'b1;
                                     else
@@ -5194,8 +5232,8 @@ module b19 (
                                 end
                                 15 :
                                 begin
-                                    if ( P1_P3_r >2**30-1)
-                                        P1_P3_r  = P1_P3_r -2**30;
+                                    if ( P1_P3_r > 4'b10000-1)
+                                        P1_P3_r  = P1_P3_r - 4'b10000;
                                     if ((~( P1_P3_r < P1_P3_m ))|( P1_P3_B ==1'b1))
                                         P1_P3_B  =1'b1;
                                     else
@@ -5243,13 +5281,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
@@ -5281,13 +5319,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
@@ -5308,13 +5346,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
@@ -5345,13 +5383,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
@@ -5382,26 +5420,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                         endcase
                                         case ( P1_P3_d )
                                             0 :
-                                                P1_P3_reg0  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg0  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             1 :
-                                                P1_P3_reg1  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg1  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             2 :
-                                                P1_P3_reg2  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg2  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             3 :
-                                                P1_P3_reg3  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg3  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -5419,26 +5457,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                         endcase
                                         case ( P1_P3_d )
                                             0 :
-                                                P1_P3_reg0  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg0  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             1 :
-                                                P1_P3_reg1  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg1  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             2 :
-                                                P1_P3_reg2  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg2  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             3 :
-                                                P1_P3_reg3  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg3  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -5456,26 +5494,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                         endcase
                                         case ( P1_P3_d )
                                             0 :
-                                                P1_P3_reg0  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg0  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             1 :
-                                                P1_P3_reg1  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg1  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             2 :
-                                                P1_P3_reg2  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg2  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             3 :
-                                                P1_P3_reg3  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg3  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -5493,26 +5531,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                         endcase
                                         case ( P1_P3_d )
                                             0 :
-                                                P1_P3_reg0  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg0  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             1 :
-                                                P1_P3_reg1  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg1  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             2 :
-                                                P1_P3_reg2  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg2  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             3 :
-                                                P1_P3_reg3  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg3  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -5530,26 +5568,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                         endcase
                                         case ( P1_P3_d )
                                             0 :
-                                                P1_P3_reg0  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg0  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             1 :
-                                                P1_P3_reg1  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg1  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             2 :
-                                                P1_P3_reg2  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg2  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             3 :
-                                                P1_P3_reg3  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg3  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -5567,26 +5605,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                         endcase
                                         case ( P1_P3_d )
                                             0 :
-                                                P1_P3_reg0  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg0  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             1 :
-                                                P1_P3_reg1  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg1  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             2 :
-                                                P1_P3_reg2  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg2  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             3 :
-                                                P1_P3_reg3  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg3  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -5604,26 +5642,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                         endcase
                                         case ( P1_P3_d )
                                             0 :
-                                                P1_P3_reg0  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg0  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             1 :
-                                                P1_P3_reg1  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg1  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             2 :
-                                                P1_P3_reg2  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg2  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             3 :
-                                                P1_P3_reg3  =( P1_P3_r + P1_P3_m )%2**30;
+                                                P1_P3_reg3  =( P1_P3_r + P1_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -5641,26 +5679,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )%2**20;
+                                                P1_P3_addr  <=( P1_P3_tail + P1_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P3_rd  <=1'b1;
                                                 P1_P3_m  = P1_P3_datai ;
                                             end
                                         endcase
                                         case ( P1_P3_d )
                                             0 :
-                                                P1_P3_reg0  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg0  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             1 :
-                                                P1_P3_reg1  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg1  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             2 :
-                                                P1_P3_reg2  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg2  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             3 :
-                                                P1_P3_reg3  =( P1_P3_r - P1_P3_m )%2**30;
+                                                P1_P3_reg3  =( P1_P3_r - P1_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -5674,14 +5712,14 @@ module b19 (
                                             begin
                                                 P1_P3_t  = P1_P3_r /2;
                                                 if ( P1_P3_B ==1'b1)
-                                                    P1_P3_t  = P1_P3_t %2**29;
+                                                    P1_P3_t  = P1_P3_t %30'b10_0000_0000_0000_0000_0000_0000_0000;
                                             end
                                             2 :
-                                                P1_P3_t  =( P1_P3_r %2**29)*2;
+                                                P1_P3_t  =( P1_P3_r %30'b10_0000_0000_0000_0000_0000_0000_0000)*2;
                                             3 :
                                             begin
-                                                P1_P3_t  =( P1_P3_r %2**29)*2;
-                                                if ( P1_P3_t >2**30-1)
+                                                P1_P3_t  =( P1_P3_r %30'b10_0000_0000_0000_0000_0000_0000_0000)*2;
+                                                if ( P1_P3_t > 4'b10000-1)
                                                     P1_P3_B  =1'b1;
                                                 else
                                                     P1_P3_B  =1'b0;
@@ -5715,9 +5753,9 @@ module b19 (
                                         1 :
                                             P1_P3_m  = P1_P3_tail ;
                                         2 :
-                                            P1_P3_m  =( P1_P3_reg1 %2**20)+( P1_P3_tail %2**20);
+                                            P1_P3_m  =( P1_P3_reg1 % 21'b1_0000_0000_0000_0000_0000)+( P1_P3_tail % 21'b1_0000_0000_0000_0000_0000);
                                         3 :
-                                            P1_P3_m  =( P1_P3_reg2 %2**20)+( P1_P3_tail %2**20);
+                                            P1_P3_m  =( P1_P3_reg2 % 21'b1_0000_0000_0000_0000_0000)+( P1_P3_tail % 21'b1_0000_0000_0000_0000_0000);
                                     endcase
                                     P1_P3_addr  <= P1_P3_m %2*20;
                                     P1_P3_wr  <=1'b1;
@@ -5747,10 +5785,30 @@ module b19 (
     assign P1_rd4 = P1_P4_rd;
     assign P1_wr4 = P1_P4_wr;
 
+    integer P1_P4_reg0 ;
+    integer P1_P4_reg1 ;
+    integer P1_P4_reg2 ;
+    integer P1_P4_reg3 ;
+    reg P1_P4_B ;
+    reg[19:0] P1_P4_MAR ;
+    integer P1_P4_MBR ;
+    reg[1:0] P1_P4_mf ;
+    reg[2:0] P1_P4_df ;
+    reg[0:0] P1_P4_cf ;
+    reg[3:0] P1_P4_ff ;
+    reg[19:0] P1_P4_tail ;
+    integer P1_P4_IR ;
+    reg[0:0] P1_P4_state ;
+    integer P1_P4_r ;
+    integer P1_P4_m ;
+    integer P1_P4_t ;
+    integer P1_P4_d ;
+    integer P1_P4_temp ;
+    reg[1:0] P1_P4_s ;
+    parameter P1_P4_FETCH =0;
+    parameter P1_P4_EXEC =1;
     always @(  posedge   P1_P4_clock or posedge  P1_P4_reset )
-    begin : P1_P4_xhdl0 integer P1_P4_reg0 ;integer P1_P4_reg1 ;integer P1_P4_reg2 ;integer P1_P4_reg3 ;reg P1_P4_B ;reg[19:0] P1_P4_MAR ;integer P1_P4_MBR ;reg[1:0] P1_P4_mf ;reg[2:0] P1_P4_df ;reg[0:0] P1_P4_cf ;reg[3:0] P1_P4_ff ;reg[19:0] P1_P4_tail ;integer P1_P4_IR ;reg[0:0] P1_P4_state ;integer P1_P4_r ;integer P1_P4_m ;integer P1_P4_t ;integer P1_P4_d ;integer P1_P4_temp ;reg[1:0] P1_P4_s ;
-        parameter P1_P4_FETCH =0;
-        parameter P1_P4_EXEC =1;
+    begin
         if ( P1_P4_reset ==1'b1)
         begin
             P1_P4_MAR  =0;
@@ -5784,7 +5842,7 @@ module b19 (
             case ( P1_P4_state )
                 P1_P4_FETCH  :
                 begin
-                    P1_P4_MAR  = P1_P4_reg3 %2**20;
+                    P1_P4_MAR  = P1_P4_reg3 % 21'b1_0000_0000_0000_0000_0000;
                     P1_P4_addr  <= P1_P4_MAR ;
                     P1_P4_rd  <=1'b1;
                     P1_P4_MBR  = P1_P4_datai ;
@@ -5795,13 +5853,13 @@ module b19 (
                 begin
                     if ( P1_P4_IR <0)
                         P1_P4_IR  =- P1_P4_IR ;
-                    P1_P4_mf  =( P1_P4_IR /2**27)%4;
-                    P1_P4_df  =( P1_P4_IR /2**24)%2**3;
-                    P1_P4_ff  =( P1_P4_IR /2**19)%2**4;
-                    P1_P4_cf  =( P1_P4_IR /2**23)%2;
-                    P1_P4_tail  = P1_P4_IR %2**20;
-                    P1_P4_reg3  =(( P1_P4_reg3 %2**29)+8);
-                    P1_P4_s  =( P1_P4_IR /2**29)%4;
+                    P1_P4_mf  =( P1_P4_IR /28'b1000_0000_0000_0000_0000_0000_0000)%4;
+                    P1_P4_df  =( P1_P4_IR /25'b1_0000_0000_0000_0000_0000_0000)% 4'b1000;
+                    P1_P4_ff  =( P1_P4_IR / 20'b1000_0000_0000_0000_0000)% 5'b1_0000;
+                    P1_P4_cf  =( P1_P4_IR /24'b1000_0000_0000_0000_0000_0000)%2;
+                    P1_P4_tail  = P1_P4_IR % 21'b1_0000_0000_0000_0000_0000;
+                    P1_P4_reg3  =(( P1_P4_reg3 %30'b10_0000_0000_0000_0000_0000_0000_0000)+8);
+                    P1_P4_s  =( P1_P4_IR /30'b10_0000_0000_0000_0000_0000_0000_0000)%4;
                     case ( P1_P4_s )
                         0 :
                             P1_P4_r  = P1_P4_reg0 ;
@@ -5826,13 +5884,13 @@ module b19 (
                                 end
                                 2 :
                                 begin
-                                    P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                    P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                     P1_P4_rd  <=1'b1;
                                     P1_P4_m  = P1_P4_datai ;
                                 end
                                 3 :
                                 begin
-                                    P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                    P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                     P1_P4_rd  <=1'b1;
                                     P1_P4_m  = P1_P4_datai ;
                                 end
@@ -5870,8 +5928,8 @@ module b19 (
                                         P1_P4_B  =1'b0;
                                 6 :
                                 begin
-                                    if ( P1_P4_r >2**30-1)
-                                        P1_P4_r  = P1_P4_r -2**30;
+                                    if ( P1_P4_r > 4'b10000-1)
+                                        P1_P4_r  = P1_P4_r - 4'b10000;
                                     if ( P1_P4_r < P1_P4_m )
                                         P1_P4_B  =1'b1;
                                     else
@@ -5879,8 +5937,8 @@ module b19 (
                                 end
                                 7 :
                                 begin
-                                    if ( P1_P4_r >2**30-1)
-                                        P1_P4_r  = P1_P4_r -2**30;
+                                    if ( P1_P4_r > 4'b10000-1)
+                                        P1_P4_r  = P1_P4_r - 4'b10000;
                                     if (~( P1_P4_r < P1_P4_m ))
                                         P1_P4_B  =1'b1;
                                     else
@@ -5918,8 +5976,8 @@ module b19 (
                                         P1_P4_B  =1'b0;
                                 14 :
                                 begin
-                                    if ( P1_P4_r >2**30-1)
-                                        P1_P4_r  = P1_P4_r -2**30;
+                                    if ( P1_P4_r > 4'b10000-1)
+                                        P1_P4_r  = P1_P4_r - 4'b10000;
                                     if (( P1_P4_r < P1_P4_m )|( P1_P4_B ==1'b1))
                                         P1_P4_B  =1'b1;
                                     else
@@ -5927,8 +5985,8 @@ module b19 (
                                 end
                                 15 :
                                 begin
-                                    if ( P1_P4_r >2**30-1)
-                                        P1_P4_r  = P1_P4_r -2**30;
+                                    if ( P1_P4_r > 4'b10000-1)
+                                        P1_P4_r  = P1_P4_r - 4'b10000;
                                     if ((~( P1_P4_r < P1_P4_m ))|( P1_P4_B ==1'b1))
                                         P1_P4_B  =1'b1;
                                     else
@@ -5976,13 +6034,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
@@ -6014,13 +6072,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
@@ -6041,13 +6099,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
@@ -6078,13 +6136,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
@@ -6115,26 +6173,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                         endcase
                                         case ( P1_P4_d )
                                             0 :
-                                                P1_P4_reg0  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg0  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             1 :
-                                                P1_P4_reg1  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg1  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             2 :
-                                                P1_P4_reg2  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg2  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             3 :
-                                                P1_P4_reg3  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg3  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -6152,26 +6210,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                         endcase
                                         case ( P1_P4_d )
                                             0 :
-                                                P1_P4_reg0  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg0  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             1 :
-                                                P1_P4_reg1  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg1  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             2 :
-                                                P1_P4_reg2  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg2  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             3 :
-                                                P1_P4_reg3  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg3  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -6189,26 +6247,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                         endcase
                                         case ( P1_P4_d )
                                             0 :
-                                                P1_P4_reg0  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg0  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             1 :
-                                                P1_P4_reg1  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg1  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             2 :
-                                                P1_P4_reg2  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg2  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             3 :
-                                                P1_P4_reg3  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg3  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -6226,26 +6284,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                         endcase
                                         case ( P1_P4_d )
                                             0 :
-                                                P1_P4_reg0  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg0  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             1 :
-                                                P1_P4_reg1  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg1  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             2 :
-                                                P1_P4_reg2  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg2  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             3 :
-                                                P1_P4_reg3  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg3  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -6263,26 +6321,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                         endcase
                                         case ( P1_P4_d )
                                             0 :
-                                                P1_P4_reg0  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg0  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             1 :
-                                                P1_P4_reg1  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg1  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             2 :
-                                                P1_P4_reg2  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg2  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             3 :
-                                                P1_P4_reg3  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg3  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -6300,26 +6358,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                         endcase
                                         case ( P1_P4_d )
                                             0 :
-                                                P1_P4_reg0  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg0  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             1 :
-                                                P1_P4_reg1  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg1  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             2 :
-                                                P1_P4_reg2  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg2  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             3 :
-                                                P1_P4_reg3  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg3  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -6337,26 +6395,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                         endcase
                                         case ( P1_P4_d )
                                             0 :
-                                                P1_P4_reg0  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg0  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             1 :
-                                                P1_P4_reg1  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg1  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             2 :
-                                                P1_P4_reg2  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg2  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             3 :
-                                                P1_P4_reg3  =( P1_P4_r + P1_P4_m )%2**30;
+                                                P1_P4_reg3  =( P1_P4_r + P1_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -6374,26 +6432,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )%2**20;
+                                                P1_P4_addr  <=( P1_P4_tail + P1_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P1_P4_rd  <=1'b1;
                                                 P1_P4_m  = P1_P4_datai ;
                                             end
                                         endcase
                                         case ( P1_P4_d )
                                             0 :
-                                                P1_P4_reg0  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg0  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             1 :
-                                                P1_P4_reg1  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg1  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             2 :
-                                                P1_P4_reg2  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg2  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             3 :
-                                                P1_P4_reg3  =( P1_P4_r - P1_P4_m )%2**30;
+                                                P1_P4_reg3  =( P1_P4_r - P1_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -6407,14 +6465,14 @@ module b19 (
                                             begin
                                                 P1_P4_t  = P1_P4_r /2;
                                                 if ( P1_P4_B ==1'b1)
-                                                    P1_P4_t  = P1_P4_t %2**29;
+                                                    P1_P4_t  = P1_P4_t %30'b10_0000_0000_0000_0000_0000_0000_0000;
                                             end
                                             2 :
-                                                P1_P4_t  =( P1_P4_r %2**29)*2;
+                                                P1_P4_t  =( P1_P4_r %30'b10_0000_0000_0000_0000_0000_0000_0000)*2;
                                             3 :
                                             begin
-                                                P1_P4_t  =( P1_P4_r %2**29)*2;
-                                                if ( P1_P4_t >2**30-1)
+                                                P1_P4_t  =( P1_P4_r %30'b10_0000_0000_0000_0000_0000_0000_0000)*2;
+                                                if ( P1_P4_t > 4'b10000-1)
                                                     P1_P4_B  =1'b1;
                                                 else
                                                     P1_P4_B  =1'b0;
@@ -6448,9 +6506,9 @@ module b19 (
                                         1 :
                                             P1_P4_m  = P1_P4_tail ;
                                         2 :
-                                            P1_P4_m  =( P1_P4_reg1 %2**20)+( P1_P4_tail %2**20);
+                                            P1_P4_m  =( P1_P4_reg1 % 21'b1_0000_0000_0000_0000_0000)+( P1_P4_tail % 21'b1_0000_0000_0000_0000_0000);
                                         3 :
-                                            P1_P4_m  =( P1_P4_reg2 %2**20)+( P1_P4_tail %2**20);
+                                            P1_P4_m  =( P1_P4_reg2 % 21'b1_0000_0000_0000_0000_0000)+( P1_P4_tail % 21'b1_0000_0000_0000_0000_0000);
                                     endcase
                                     P1_P4_addr  <= P1_P4_m %2*20;
                                     P1_P4_wr  <=1'b1;
@@ -6466,7 +6524,7 @@ module b19 (
 
     always @(                                 P1_do1                                 or  P1_rd3  or  P1_wr1  or  P1_mio1  or  P1_dc1  or  P1_as12  or  P1_do2  or  P1_rd4  or  P1_wr2  or  P1_mio2  or  P1_dc2  or  P1_as22  or  P1_as21  or  P1_as11  or  P1_wr3  or  P1_ad31  or  P1_tad2  or  P1_wr4  or  P1_ad41  or  P1_tad1  or  P1_do3  or  P1_do4  or  P1_ad11  or  P1_ad12  or  P1_ad21  or  P1_ad22  or  P1_tad3  or  P1_tad4  or  P1_sel  or  P1_din  or  P1_td1  or  P1_td2  )
     begin
-        P1_di3  <= P1_do1 %2**20;
+        P1_di3  <= P1_do1 % 21'b1_0000_0000_0000_0000_0000;
         P1_r12  <=(~( P1_rd3 & P1_wr1 & P1_mio1 & P1_dc1 &(~ P1_as12 )));
         P1_di4  <= P1_do2 ;
         P1_r22  <=(~( P1_rd4 & P1_wr2 & P1_mio2 & P1_dc2 &(~ P1_as22 )));
@@ -6475,20 +6533,20 @@ module b19 (
         if ( P1_wr3 ==1'b1)
             P1_tad3  <= P1_ad31 ;
         else
-            P1_tad3  <= P1_tad2 %2**20;
+            P1_tad3  <= P1_tad2 % 21'b1_0000_0000_0000_0000_0000;
         if ( P1_wr4 ==1'b1)
             P1_tad4  <= P1_ad41 ;
         else
-            P1_tad4  <= P1_tad1 %2**20;
-        if ( P1_do3 >2**28)
+            P1_tad4  <= P1_tad1 % 21'b1_0000_0000_0000_0000_0000;
+        if ( P1_do3 >29'b1_0000_0000_0000_0000_0000_0000_0000)
             P1_tad1  <= P1_ad11 ;
         else
             P1_tad1  <= P1_ad12 ;
-        if ( P1_do4 >2**29)
+        if ( P1_do4 >30'b10_0000_0000_0000_0000_0000_0000_0000)
             P1_tad2  <= P1_ad21 ;
         else
             P1_tad2  <= P1_ad22 ;
-        P1_dout  <=( P1_tad3 * P1_tad4 )%2**19;
+        P1_dout  <=( P1_tad3 * P1_tad4 )% 20'b1000_0000_0000_0000_0000;
         if ( P1_sel ==1'b0)
         begin
             P1_td1  <=0;
@@ -6501,7 +6559,7 @@ module b19 (
         end
         P1_di1  <= P1_do4 * P1_td1 ;
         P1_di2  <= P1_do3 * P1_td2 ;
-        P1_aux  <=( P1_tad1 * P1_tad2 )%2**3;
+        P1_aux  <=( P1_tad1 * P1_tad2 )% 4'b1000;
     end
 
 
@@ -6639,14 +6697,14 @@ module b19 (
         end
         else
         begin
-            if ( P2_P1_addr1 >2**29& P2_P1_ads1 ==1'b0& P2_P1_mio1 ==1'b1& P2_P1_dc1 ==1'b0& P2_P1_wr1 ==1'b1& P2_P1_be1 ==4'b0000)
+            if ( P2_P1_addr1 >30'b10_0000_0000_0000_0000_0000_0000_0000& P2_P1_ads1 ==1'b0& P2_P1_mio1 ==1'b1& P2_P1_dc1 ==1'b0& P2_P1_wr1 ==1'b1& P2_P1_be1 ==4'b0000)
             begin
                 P2_P1_buf1  <= P2_P1_do1 ;
                 P2_P1_ready11  <=1'b0;
                 P2_P1_ready12  <=1'b1;
             end
             else
-                if ( P2_P1_addr2 >2**29& P2_P1_ads2 ==1'b0& P2_P1_mio2 ==1'b1& P2_P1_dc2 ==1'b0& P2_P1_wr2 ==1'b1& P2_P1_be2 ==4'b0000)
+                if ( P2_P1_addr2 >30'b10_0000_0000_0000_0000_0000_0000_0000& P2_P1_ads2 ==1'b0& P2_P1_mio2 ==1'b1& P2_P1_dc2 ==1'b0& P2_P1_wr2 ==1'b1& P2_P1_be2 ==4'b0000)
                 begin
                     P2_P1_buf1  <= P2_P1_do2 ;
                     P2_P1_ready11  <=1'b1;
@@ -6668,7 +6726,7 @@ module b19 (
         end
         else
         begin
-            if ( P2_P1_addr2 <2**29& P2_P1_ads2 ==1'b0& P2_P1_mio2 ==1'b1& P2_P1_dc2 ==1'b0& P2_P1_wr2 ==1'b1& P2_P1_be2 ==4'b0000)
+            if ( P2_P1_addr2 <30'b10_0000_0000_0000_0000_0000_0000_0000& P2_P1_ads2 ==1'b0& P2_P1_mio2 ==1'b1& P2_P1_dc2 ==1'b0& P2_P1_wr2 ==1'b1& P2_P1_be2 ==4'b0000)
             begin
                 P2_P1_buf2  <= P2_P1_do2 ;
                 P2_P1_ready21  <=1'b0;
@@ -6688,19 +6746,19 @@ module b19 (
         end
 
     always @(    P2_P1_addr1    or  P2_P1_buf1  or  P2_P1_datai  )
-        if ( P2_P1_addr1 >2**29)
+        if ( P2_P1_addr1 >30'b10_0000_0000_0000_0000_0000_0000_0000)
             P2_P1_di1  <= P2_P1_buf1 ;
         else
             P2_P1_di1  <= P2_P1_datai ;
 
     always @(    P2_P1_addr2    or  P2_P1_buf1  or  P2_P1_buf2  )
-        if ( P2_P1_addr2 >2**29)
+        if ( P2_P1_addr2 >30'b10_0000_0000_0000_0000_0000_0000_0000)
             P2_P1_di2  <= P2_P1_buf1 ;
         else
             P2_P1_di2  <= P2_P1_buf2 ;
 
     always @(      P2_P1_addr2      or  P2_P1_addr3  or  P2_P1_do1  or  P2_P1_do2  or  P2_P1_do3  )
-        if (( P2_P1_do1 <2**30)&( P2_P1_do2 <2**30)&( P2_P1_do3 <2**30))
+        if (( P2_P1_do1 < 4'b10000)&( P2_P1_do2 < 4'b10000)&( P2_P1_do3 < 4'b10000))
             P2_P1_address2  <= P2_P1_addr3 ;
         else
             P2_P1_address2  <= P2_P1_addr2 ;
@@ -6807,8 +6865,31 @@ module b19 (
     parameter P2_P1_P1_HLT =8'hF4;
     parameter P2_P1_P1_WAITx =8'h9B;
     parameter P2_P1_P1_NOP =8'h90;
+    reg[7:0] P2_P1_P1_InstQueue [15:0];
+    reg[4:0] P2_P1_P1_InstQueueRd_Addr ;
+    reg[4:0] P2_P1_P1_InstQueueWr_Addr ;
+    parameter P2_P1_P1_InstQueueLimit =15;
+    integer P2_P1_P1_InstAddrPointer ;
+    integer P2_P1_P1_PhyAddrPointer ;
+    reg P2_P1_P1_Extended ;
+    reg P2_P1_P1_More ;
+    reg P2_P1_P1_Flush ;
+    reg[15:0] P2_P1_P1_lWord ;
+    reg[14:0] P2_P1_P1_uWord ;
+    integer P2_P1_P1_fWord ;
+    reg[3:0] P2_P1_P1_State2 ;
+    parameter P2_P1_P1_Si =0;
+    parameter P2_P1_P1_S1 =1;
+    parameter P2_P1_P1_S2 =2;
+    parameter P2_P1_P1_S3 =3;
+    parameter P2_P1_P1_S4 =4;
+    parameter P2_P1_P1_S5 =5;
+    parameter P2_P1_P1_S6 =6;
+    parameter P2_P1_P1_S7 =7;
+    parameter P2_P1_P1_S8 =8;
+    parameter P2_P1_P1_S9 =9;
     always @(  posedge   P2_P1_P1_CLOCK or posedge  P2_P1_P1_RESET )
-    begin : P2_P1_P1_P0
+    begin
         if ( P2_P1_P1_RESET ==1'b1)
         begin
             P2_P1_P1_BE_n  <=4'b0000;
@@ -6844,7 +6925,7 @@ module b19 (
                         P2_P1_P1_State  <= P2_P1_P1_StateTi ;
             P2_P1_P1_StateT1  :
             begin
-                P2_P1_P1_Address  <= P2_P1_P1_rEIP /4%2**30;
+                P2_P1_P1_Address  <= P2_P1_P1_rEIP /4% 4'b10000;
                 P2_P1_P1_BE_n  <= P2_P1_P1_ByteEnable ;
                 P2_P1_P1_M_IO_n  <= P2_P1_P1_MemoryFetch ;
                 if ( P2_P1_P1_ReadRequest == P2_P1_P1_Pending )
@@ -6917,7 +6998,7 @@ module b19 (
                         P2_P1_P1_State  <= P2_P1_P1_StateTh ;
             P2_P1_P1_StateT2P  :
             begin
-                P2_P1_P1_Address  <= P2_P1_P1_rEIP /2%2**30;
+                P2_P1_P1_Address  <= P2_P1_P1_rEIP /2% 4'b10000;
                 P2_P1_P1_BE_n  <= P2_P1_P1_ByteEnable ;
                 P2_P1_P1_M_IO_n  <= P2_P1_P1_MemoryFetch ;
                 if ( P2_P1_P1_ReadRequest == P2_P1_P1_Pending )
@@ -6952,27 +7033,7 @@ module b19 (
     end
 
     always @(  posedge   P2_P1_P1_CLOCK or posedge  P2_P1_P1_RESET )
-    begin : P2_P1_P1_P1 reg[7:0] P2_P1_P1_InstQueue [15:0];reg[4:0] P2_P1_P1_InstQueueRd_Addr ;reg[4:0] P2_P1_P1_InstQueueWr_Addr ;
-        parameter P2_P1_P1_InstQueueLimit =15;
-        integer P2_P1_P1_InstAddrPointer ;
-        integer P2_P1_P1_PhyAddrPointer ;
-        reg P2_P1_P1_Extended ;
-        reg P2_P1_P1_More ;
-        reg P2_P1_P1_Flush ;
-        reg[15:0] P2_P1_P1_lWord ;
-        reg[14:0] P2_P1_P1_uWord ;
-        integer P2_P1_P1_fWord ;
-        reg[3:0] P2_P1_P1_State2 ;
-        parameter P2_P1_P1_Si =0;
-        parameter P2_P1_P1_S1 =1;
-        parameter P2_P1_P1_S2 =2;
-        parameter P2_P1_P1_S3 =3;
-        parameter P2_P1_P1_S4 =4;
-        parameter P2_P1_P1_S5 =5;
-        parameter P2_P1_P1_S6 =6;
-        parameter P2_P1_P1_S7 =7;
-        parameter P2_P1_P1_S8 =8;
-        parameter P2_P1_P1_S9 =9;
+    begin
         if ( P2_P1_P1_RESET ==1'b1)
         begin
             P2_P1_P1_State2  = P2_P1_P1_Si ;
@@ -7037,15 +7098,15 @@ module b19 (
             P2_P1_P1_S2  :
             begin
                 P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
-                P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]= P2_P1_P1_Datai %(2**8);
+                P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]= P2_P1_P1_Datai %( 9'b1_0000_0000);
                 P2_P1_P1_InstQueueWr_Addr  =( P2_P1_P1_InstQueueWr_Addr +1)%16;
-                P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]= P2_P1_P1_Datai %2**8;
+                P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]= P2_P1_P1_Datai % 9'b1_0000_0000;
                 P2_P1_P1_InstQueueWr_Addr  =( P2_P1_P1_InstQueueWr_Addr +1)%16;
                 if ( P2_P1_P1_StateBS16 ==1'b1)
                 begin
-                    P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]=( P2_P1_P1_Datai /(2**16))%(2**8);
+                    P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]=( P2_P1_P1_Datai /( 17'b1_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P2_P1_P1_InstQueueWr_Addr  =( P2_P1_P1_InstQueueWr_Addr +1)%16;
-                    P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]=( P2_P1_P1_Datai /(2**24))%(2**8);
+                    P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]=( P2_P1_P1_Datai /(25'b1_0000_0000_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P2_P1_P1_InstQueueWr_Addr  =( P2_P1_P1_InstQueueWr_Addr +1)%16;
                     P2_P1_P1_PhyAddrPointer  = P2_P1_P1_PhyAddrPointer +4;
                     P2_P1_P1_State2  = P2_P1_P1_S5 ;
@@ -7071,9 +7132,9 @@ module b19 (
             P2_P1_P1_S4  :
             begin
                 P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
-                P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]= P2_P1_P1_Datai %(2**8);
+                P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]= P2_P1_P1_Datai %( 9'b1_0000_0000);
                 P2_P1_P1_InstQueueWr_Addr  =( P2_P1_P1_InstQueueWr_Addr +1)%16;
-                P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]= P2_P1_P1_Datai %(2**8);
+                P2_P1_P1_InstQueue  [ P2_P1_P1_InstQueueWr_Addr ]= P2_P1_P1_Datai %( 9'b1_0000_0000);
                 P2_P1_P1_InstQueueWr_Addr  =( P2_P1_P1_InstQueueWr_Addr +1)%16;
                 P2_P1_P1_PhyAddrPointer  = P2_P1_P1_PhyAddrPointer +2;
                 P2_P1_P1_State2  = P2_P1_P1_S5 ;
@@ -7147,7 +7208,7 @@ module b19 (
                     P2_P1_P1_MOV_eax_dw  :
                         if (( P2_P1_P1_InstQueueWr_Addr - P2_P1_P1_InstQueueRd_Addr )>=5)
                         begin
-                            P2_P1_P1_EAX  <= P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +1)%16];
+                            P2_P1_P1_EAX  <= P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +1)%16];
                             P2_P1_P1_More  =1'b0;
                             P2_P1_P1_Flush  =1'b0;
                             P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +5;
@@ -7161,7 +7222,7 @@ module b19 (
                     P2_P1_P1_MOV_ebx_dw  :
                         if (( P2_P1_P1_InstQueueWr_Addr - P2_P1_P1_InstQueueRd_Addr )>=5)
                         begin
-                            P2_P1_P1_EBX  <= P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +1)%1];
+                            P2_P1_P1_EBX  <= P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P2_P1_P1_InstQueue [( P2_P1_P1_InstQueueRd_Addr +1)%1];
                             P2_P1_P1_More  =1'b0;
                             P2_P1_P1_Flush  =1'b0;
                             P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +5;
@@ -7186,9 +7247,9 @@ module b19 (
                             if ( P2_P1_P1_READY_n ==1'b0)
                             begin
                                 P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
-                                P2_P1_P1_uWord  = P2_P1_P1_Datai %(2**15);
+                                P2_P1_P1_uWord  = P2_P1_P1_Datai %( 16'b1000_0000_0000_0000);
                                 if ( P2_P1_P1_StateBS16 ==1'b1)
-                                    P2_P1_P1_lWord  = P2_P1_P1_Datai %(2**16);
+                                    P2_P1_P1_lWord  = P2_P1_P1_Datai %( 17'b1_0000_0000_0000_0000);
                                 else
                                 begin
                                     P2_P1_P1_rEIP  <= P2_P1_P1_rEIP +2;
@@ -7196,12 +7257,12 @@ module b19 (
                                     if ( P2_P1_P1_READY_n ==1'b0)
                                     begin
                                         P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
-                                        P2_P1_P1_lWord  = P2_P1_P1_Datai %(2**16);
+                                        P2_P1_P1_lWord  = P2_P1_P1_Datai %( 17'b1_0000_0000_0000_0000);
                                     end
                                 end
                                 if ( P2_P1_P1_READY_n ==1'b0)
                                 begin
-                                    P2_P1_P1_EAX  <= P2_P1_P1_uWord *(2**16)+ P2_P1_P1_lWord ;
+                                    P2_P1_P1_EAX  <= P2_P1_P1_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P1_P1_lWord ;
                                     P2_P1_P1_More  =1'b0;
                                     P2_P1_P1_Flush  =1'b0;
                                     P2_P1_P1_InstAddrPointer  = P2_P1_P1_InstAddrPointer +2;
@@ -7221,15 +7282,15 @@ module b19 (
                                 P2_P1_P1_rEIP  <= P2_P1_P1_EBX ;
                             else
                                 P2_P1_P1_rEIP  <= P2_P1_P1_EBX ;
-                            P2_P1_P1_lWord  = P2_P1_P1_EAX %(2**16);
-                            P2_P1_P1_uWord  =( P2_P1_P1_EAX /(2**16))%(2**15);
+                            P2_P1_P1_lWord  = P2_P1_P1_EAX %( 17'b1_0000_0000_0000_0000);
+                            P2_P1_P1_uWord  =( P2_P1_P1_EAX /( 17'b1_0000_0000_0000_0000))%( 16'b1000_0000_0000_0000);
                             P2_P1_P1_RequestPending  <= P2_P1_P1_Pending ;
                             P2_P1_P1_ReadRequest  <= P2_P1_P1_NotPending ;
                             P2_P1_P1_MemoryFetch  <= P2_P1_P1_Pending ;
                             P2_P1_P1_CodeFetch  <= P2_P1_P1_NotPending ;
                             if ( P2_P1_P1_State == P2_P1_P1_StateT1 | P2_P1_P1_State == P2_P1_P1_StateT1P )
                             begin
-                                P2_P1_P1_Datao  <=( P2_P1_P1_uWord *(2**16)+ P2_P1_P1_lWord );
+                                P2_P1_P1_Datao  <=( P2_P1_P1_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P1_P1_lWord );
                                 if ( P2_P1_P1_READY_n ==1'b0)
                                 begin
                                     P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
@@ -7287,7 +7348,7 @@ module b19 (
                             P2_P1_P1_CodeFetch  <= P2_P1_P1_NotPending ;
                             if ( P2_P1_P1_State == P2_P1_P1_StateT1 | P2_P1_P1_State == P2_P1_P1_StateT1P )
                             begin
-                                P2_P1_P1_fWord  = P2_P1_P1_EAX %(2**16);
+                                P2_P1_P1_fWord  = P2_P1_P1_EAX %( 17'b1_0000_0000_0000_0000);
                                 P2_P1_P1_Datao  <= P2_P1_P1_fWord ;
                                 if ( P2_P1_P1_READY_n ==1'b0)
                                 begin
@@ -7361,7 +7422,7 @@ module b19 (
             end
             P2_P1_P1_S6  :
             begin
-                P2_P1_P1_Datao  <=( P2_P1_P1_uWord *(2**16)+ P2_P1_P1_lWord );
+                P2_P1_P1_Datao  <=( P2_P1_P1_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P1_P1_lWord );
                 if ( P2_P1_P1_READY_n ==1'b0)
                 begin
                     P2_P1_P1_RequestPending  <= P2_P1_P1_NotPending ;
@@ -7411,7 +7472,7 @@ module b19 (
     end
 
     always @(  posedge   P2_P1_P1_CLOCK or posedge  P2_P1_P1_RESET )
-    begin : P2_P1_P1_P2
+    begin
         if ( P2_P1_P1_RESET ==1'b1)
         begin
             P2_P1_P1_ByteEnable  <=4'b0000;
@@ -7575,8 +7636,31 @@ module b19 (
     parameter P2_P1_P2_HLT =8'hF4;
     parameter P2_P1_P2_WAITx =8'h9B;
     parameter P2_P1_P2_NOP =8'h90;
+    reg[7:0] P2_P1_P2_InstQueue [15:0];
+    reg[4:0] P2_P1_P2_InstQueueRd_Addr ;
+    reg[4:0] P2_P1_P2_InstQueueWr_Addr ;
+    parameter P2_P1_P2_InstQueueLimit =15;
+    integer P2_P1_P2_InstAddrPointer ;
+    integer P2_P1_P2_PhyAddrPointer ;
+    reg P2_P1_P2_Extended ;
+    reg P2_P1_P2_More ;
+    reg P2_P1_P2_Flush ;
+    reg[15:0] P2_P1_P2_lWord ;
+    reg[14:0] P2_P1_P2_uWord ;
+    integer P2_P1_P2_fWord ;
+    reg[3:0] P2_P1_P2_State2 ;
+    parameter P2_P1_P2_Si =0;
+    parameter P2_P1_P2_S1 =1;
+    parameter P2_P1_P2_S2 =2;
+    parameter P2_P1_P2_S3 =3;
+    parameter P2_P1_P2_S4 =4;
+    parameter P2_P1_P2_S5 =5;
+    parameter P2_P1_P2_S6 =6;
+    parameter P2_P1_P2_S7 =7;
+    parameter P2_P1_P2_S8 =8;
+    parameter P2_P1_P2_S9 =9;
     always @(  posedge   P2_P1_P2_CLOCK or posedge  P2_P1_P2_RESET )
-    begin : P2_P1_P2_P0
+    begin
         if ( P2_P1_P2_RESET ==1'b1)
         begin
             P2_P1_P2_BE_n  <=4'b0000;
@@ -7612,7 +7696,7 @@ module b19 (
                         P2_P1_P2_State  <= P2_P1_P2_StateTi ;
             P2_P1_P2_StateT1  :
             begin
-                P2_P1_P2_Address  <= P2_P1_P2_rEIP /4%2**30;
+                P2_P1_P2_Address  <= P2_P1_P2_rEIP /4% 4'b10000;
                 P2_P1_P2_BE_n  <= P2_P1_P2_ByteEnable ;
                 P2_P1_P2_M_IO_n  <= P2_P1_P2_MemoryFetch ;
                 if ( P2_P1_P2_ReadRequest == P2_P1_P2_Pending )
@@ -7685,7 +7769,7 @@ module b19 (
                         P2_P1_P2_State  <= P2_P1_P2_StateTh ;
             P2_P1_P2_StateT2P  :
             begin
-                P2_P1_P2_Address  <= P2_P1_P2_rEIP /2%2**30;
+                P2_P1_P2_Address  <= P2_P1_P2_rEIP /2% 4'b10000;
                 P2_P1_P2_BE_n  <= P2_P1_P2_ByteEnable ;
                 P2_P1_P2_M_IO_n  <= P2_P1_P2_MemoryFetch ;
                 if ( P2_P1_P2_ReadRequest == P2_P1_P2_Pending )
@@ -7720,27 +7804,7 @@ module b19 (
     end
 
     always @(  posedge   P2_P1_P2_CLOCK or posedge  P2_P1_P2_RESET )
-    begin : P2_P1_P2_P1 reg[7:0] P2_P1_P2_InstQueue [15:0];reg[4:0] P2_P1_P2_InstQueueRd_Addr ;reg[4:0] P2_P1_P2_InstQueueWr_Addr ;
-        parameter P2_P1_P2_InstQueueLimit =15;
-        integer P2_P1_P2_InstAddrPointer ;
-        integer P2_P1_P2_PhyAddrPointer ;
-        reg P2_P1_P2_Extended ;
-        reg P2_P1_P2_More ;
-        reg P2_P1_P2_Flush ;
-        reg[15:0] P2_P1_P2_lWord ;
-        reg[14:0] P2_P1_P2_uWord ;
-        integer P2_P1_P2_fWord ;
-        reg[3:0] P2_P1_P2_State2 ;
-        parameter P2_P1_P2_Si =0;
-        parameter P2_P1_P2_S1 =1;
-        parameter P2_P1_P2_S2 =2;
-        parameter P2_P1_P2_S3 =3;
-        parameter P2_P1_P2_S4 =4;
-        parameter P2_P1_P2_S5 =5;
-        parameter P2_P1_P2_S6 =6;
-        parameter P2_P1_P2_S7 =7;
-        parameter P2_P1_P2_S8 =8;
-        parameter P2_P1_P2_S9 =9;
+    begin
         if ( P2_P1_P2_RESET ==1'b1)
         begin
             P2_P1_P2_State2  = P2_P1_P2_Si ;
@@ -7805,15 +7869,15 @@ module b19 (
             P2_P1_P2_S2  :
             begin
                 P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
-                P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]= P2_P1_P2_Datai %(2**8);
+                P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]= P2_P1_P2_Datai %( 9'b1_0000_0000);
                 P2_P1_P2_InstQueueWr_Addr  =( P2_P1_P2_InstQueueWr_Addr +1)%16;
-                P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]= P2_P1_P2_Datai %2**8;
+                P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]= P2_P1_P2_Datai % 9'b1_0000_0000;
                 P2_P1_P2_InstQueueWr_Addr  =( P2_P1_P2_InstQueueWr_Addr +1)%16;
                 if ( P2_P1_P2_StateBS16 ==1'b1)
                 begin
-                    P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]=( P2_P1_P2_Datai /(2**16))%(2**8);
+                    P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]=( P2_P1_P2_Datai /( 17'b1_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P2_P1_P2_InstQueueWr_Addr  =( P2_P1_P2_InstQueueWr_Addr +1)%16;
-                    P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]=( P2_P1_P2_Datai /(2**24))%(2**8);
+                    P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]=( P2_P1_P2_Datai /(25'b1_0000_0000_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P2_P1_P2_InstQueueWr_Addr  =( P2_P1_P2_InstQueueWr_Addr +1)%16;
                     P2_P1_P2_PhyAddrPointer  = P2_P1_P2_PhyAddrPointer +4;
                     P2_P1_P2_State2  = P2_P1_P2_S5 ;
@@ -7839,9 +7903,9 @@ module b19 (
             P2_P1_P2_S4  :
             begin
                 P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
-                P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]= P2_P1_P2_Datai %(2**8);
+                P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]= P2_P1_P2_Datai %( 9'b1_0000_0000);
                 P2_P1_P2_InstQueueWr_Addr  =( P2_P1_P2_InstQueueWr_Addr +1)%16;
-                P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]= P2_P1_P2_Datai %(2**8);
+                P2_P1_P2_InstQueue  [ P2_P1_P2_InstQueueWr_Addr ]= P2_P1_P2_Datai %( 9'b1_0000_0000);
                 P2_P1_P2_InstQueueWr_Addr  =( P2_P1_P2_InstQueueWr_Addr +1)%16;
                 P2_P1_P2_PhyAddrPointer  = P2_P1_P2_PhyAddrPointer +2;
                 P2_P1_P2_State2  = P2_P1_P2_S5 ;
@@ -7915,7 +7979,7 @@ module b19 (
                     P2_P1_P2_MOV_eax_dw  :
                         if (( P2_P1_P2_InstQueueWr_Addr - P2_P1_P2_InstQueueRd_Addr )>=5)
                         begin
-                            P2_P1_P2_EAX  <= P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +1)%16];
+                            P2_P1_P2_EAX  <= P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +1)%16];
                             P2_P1_P2_More  =1'b0;
                             P2_P1_P2_Flush  =1'b0;
                             P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +5;
@@ -7929,7 +7993,7 @@ module b19 (
                     P2_P1_P2_MOV_ebx_dw  :
                         if (( P2_P1_P2_InstQueueWr_Addr - P2_P1_P2_InstQueueRd_Addr )>=5)
                         begin
-                            P2_P1_P2_EBX  <= P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +1)%1];
+                            P2_P1_P2_EBX  <= P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P2_P1_P2_InstQueue [( P2_P1_P2_InstQueueRd_Addr +1)%1];
                             P2_P1_P2_More  =1'b0;
                             P2_P1_P2_Flush  =1'b0;
                             P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +5;
@@ -7954,9 +8018,9 @@ module b19 (
                             if ( P2_P1_P2_READY_n ==1'b0)
                             begin
                                 P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
-                                P2_P1_P2_uWord  = P2_P1_P2_Datai %(2**15);
+                                P2_P1_P2_uWord  = P2_P1_P2_Datai %( 16'b1000_0000_0000_0000);
                                 if ( P2_P1_P2_StateBS16 ==1'b1)
-                                    P2_P1_P2_lWord  = P2_P1_P2_Datai %(2**16);
+                                    P2_P1_P2_lWord  = P2_P1_P2_Datai %( 17'b1_0000_0000_0000_0000);
                                 else
                                 begin
                                     P2_P1_P2_rEIP  <= P2_P1_P2_rEIP +2;
@@ -7964,12 +8028,12 @@ module b19 (
                                     if ( P2_P1_P2_READY_n ==1'b0)
                                     begin
                                         P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
-                                        P2_P1_P2_lWord  = P2_P1_P2_Datai %(2**16);
+                                        P2_P1_P2_lWord  = P2_P1_P2_Datai %( 17'b1_0000_0000_0000_0000);
                                     end
                                 end
                                 if ( P2_P1_P2_READY_n ==1'b0)
                                 begin
-                                    P2_P1_P2_EAX  <= P2_P1_P2_uWord *(2**16)+ P2_P1_P2_lWord ;
+                                    P2_P1_P2_EAX  <= P2_P1_P2_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P1_P2_lWord ;
                                     P2_P1_P2_More  =1'b0;
                                     P2_P1_P2_Flush  =1'b0;
                                     P2_P1_P2_InstAddrPointer  = P2_P1_P2_InstAddrPointer +2;
@@ -7989,15 +8053,15 @@ module b19 (
                                 P2_P1_P2_rEIP  <= P2_P1_P2_EBX ;
                             else
                                 P2_P1_P2_rEIP  <= P2_P1_P2_EBX ;
-                            P2_P1_P2_lWord  = P2_P1_P2_EAX %(2**16);
-                            P2_P1_P2_uWord  =( P2_P1_P2_EAX /(2**16))%(2**15);
+                            P2_P1_P2_lWord  = P2_P1_P2_EAX %( 17'b1_0000_0000_0000_0000);
+                            P2_P1_P2_uWord  =( P2_P1_P2_EAX /( 17'b1_0000_0000_0000_0000))%( 16'b1000_0000_0000_0000);
                             P2_P1_P2_RequestPending  <= P2_P1_P2_Pending ;
                             P2_P1_P2_ReadRequest  <= P2_P1_P2_NotPending ;
                             P2_P1_P2_MemoryFetch  <= P2_P1_P2_Pending ;
                             P2_P1_P2_CodeFetch  <= P2_P1_P2_NotPending ;
                             if ( P2_P1_P2_State == P2_P1_P2_StateT1 | P2_P1_P2_State == P2_P1_P2_StateT1P )
                             begin
-                                P2_P1_P2_Datao  <=( P2_P1_P2_uWord *(2**16)+ P2_P1_P2_lWord );
+                                P2_P1_P2_Datao  <=( P2_P1_P2_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P1_P2_lWord );
                                 if ( P2_P1_P2_READY_n ==1'b0)
                                 begin
                                     P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
@@ -8055,7 +8119,7 @@ module b19 (
                             P2_P1_P2_CodeFetch  <= P2_P1_P2_NotPending ;
                             if ( P2_P1_P2_State == P2_P1_P2_StateT1 | P2_P1_P2_State == P2_P1_P2_StateT1P )
                             begin
-                                P2_P1_P2_fWord  = P2_P1_P2_EAX %(2**16);
+                                P2_P1_P2_fWord  = P2_P1_P2_EAX %( 17'b1_0000_0000_0000_0000);
                                 P2_P1_P2_Datao  <= P2_P1_P2_fWord ;
                                 if ( P2_P1_P2_READY_n ==1'b0)
                                 begin
@@ -8129,7 +8193,7 @@ module b19 (
             end
             P2_P1_P2_S6  :
             begin
-                P2_P1_P2_Datao  <=( P2_P1_P2_uWord *(2**16)+ P2_P1_P2_lWord );
+                P2_P1_P2_Datao  <=( P2_P1_P2_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P1_P2_lWord );
                 if ( P2_P1_P2_READY_n ==1'b0)
                 begin
                     P2_P1_P2_RequestPending  <= P2_P1_P2_NotPending ;
@@ -8179,7 +8243,7 @@ module b19 (
     end
 
     always @(  posedge   P2_P1_P2_CLOCK or posedge  P2_P1_P2_RESET )
-    begin : P2_P1_P2_P2
+    begin
         if ( P2_P1_P2_RESET ==1'b1)
         begin
             P2_P1_P2_ByteEnable  <=4'b0000;
@@ -8343,8 +8407,31 @@ module b19 (
     parameter P2_P1_P3_HLT =8'hF4;
     parameter P2_P1_P3_WAITx =8'h9B;
     parameter P2_P1_P3_NOP =8'h90;
+    reg[7:0] P2_P1_P3_InstQueue [15:0];
+    reg[4:0] P2_P1_P3_InstQueueRd_Addr ;
+    reg[4:0] P2_P1_P3_InstQueueWr_Addr ;
+    parameter P2_P1_P3_InstQueueLimit =15;
+    integer P2_P1_P3_InstAddrPointer ;
+    integer P2_P1_P3_PhyAddrPointer ;
+    reg P2_P1_P3_Extended ;
+    reg P2_P1_P3_More ;
+    reg P2_P1_P3_Flush ;
+    reg[15:0] P2_P1_P3_lWord ;
+    reg[14:0] P2_P1_P3_uWord ;
+    integer P2_P1_P3_fWord ;
+    reg[3:0] P2_P1_P3_State2 ;
+    parameter P2_P1_P3_Si =0;
+    parameter P2_P1_P3_S1 =1;
+    parameter P2_P1_P3_S2 =2;
+    parameter P2_P1_P3_S3 =3;
+    parameter P2_P1_P3_S4 =4;
+    parameter P2_P1_P3_S5 =5;
+    parameter P2_P1_P3_S6 =6;
+    parameter P2_P1_P3_S7 =7;
+    parameter P2_P1_P3_S8 =8;
+    parameter P2_P1_P3_S9 =9;
     always @(  posedge   P2_P1_P3_CLOCK or posedge  P2_P1_P3_RESET )
-    begin : P2_P1_P3_P0
+    begin
         if ( P2_P1_P3_RESET ==1'b1)
         begin
             P2_P1_P3_BE_n  <=4'b0000;
@@ -8380,7 +8467,7 @@ module b19 (
                         P2_P1_P3_State  <= P2_P1_P3_StateTi ;
             P2_P1_P3_StateT1  :
             begin
-                P2_P1_P3_Address  <= P2_P1_P3_rEIP /4%2**30;
+                P2_P1_P3_Address  <= P2_P1_P3_rEIP /4% 4'b10000;
                 P2_P1_P3_BE_n  <= P2_P1_P3_ByteEnable ;
                 P2_P1_P3_M_IO_n  <= P2_P1_P3_MemoryFetch ;
                 if ( P2_P1_P3_ReadRequest == P2_P1_P3_Pending )
@@ -8453,7 +8540,7 @@ module b19 (
                         P2_P1_P3_State  <= P2_P1_P3_StateTh ;
             P2_P1_P3_StateT2P  :
             begin
-                P2_P1_P3_Address  <= P2_P1_P3_rEIP /2%2**30;
+                P2_P1_P3_Address  <= P2_P1_P3_rEIP /2% 4'b10000;
                 P2_P1_P3_BE_n  <= P2_P1_P3_ByteEnable ;
                 P2_P1_P3_M_IO_n  <= P2_P1_P3_MemoryFetch ;
                 if ( P2_P1_P3_ReadRequest == P2_P1_P3_Pending )
@@ -8488,27 +8575,7 @@ module b19 (
     end
 
     always @(  posedge   P2_P1_P3_CLOCK or posedge  P2_P1_P3_RESET )
-    begin : P2_P1_P3_P1 reg[7:0] P2_P1_P3_InstQueue [15:0];reg[4:0] P2_P1_P3_InstQueueRd_Addr ;reg[4:0] P2_P1_P3_InstQueueWr_Addr ;
-        parameter P2_P1_P3_InstQueueLimit =15;
-        integer P2_P1_P3_InstAddrPointer ;
-        integer P2_P1_P3_PhyAddrPointer ;
-        reg P2_P1_P3_Extended ;
-        reg P2_P1_P3_More ;
-        reg P2_P1_P3_Flush ;
-        reg[15:0] P2_P1_P3_lWord ;
-        reg[14:0] P2_P1_P3_uWord ;
-        integer P2_P1_P3_fWord ;
-        reg[3:0] P2_P1_P3_State2 ;
-        parameter P2_P1_P3_Si =0;
-        parameter P2_P1_P3_S1 =1;
-        parameter P2_P1_P3_S2 =2;
-        parameter P2_P1_P3_S3 =3;
-        parameter P2_P1_P3_S4 =4;
-        parameter P2_P1_P3_S5 =5;
-        parameter P2_P1_P3_S6 =6;
-        parameter P2_P1_P3_S7 =7;
-        parameter P2_P1_P3_S8 =8;
-        parameter P2_P1_P3_S9 =9;
+    begin
         if ( P2_P1_P3_RESET ==1'b1)
         begin
             P2_P1_P3_State2  = P2_P1_P3_Si ;
@@ -8573,15 +8640,15 @@ module b19 (
             P2_P1_P3_S2  :
             begin
                 P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
-                P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]= P2_P1_P3_Datai %(2**8);
+                P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]= P2_P1_P3_Datai %( 9'b1_0000_0000);
                 P2_P1_P3_InstQueueWr_Addr  =( P2_P1_P3_InstQueueWr_Addr +1)%16;
-                P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]= P2_P1_P3_Datai %2**8;
+                P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]= P2_P1_P3_Datai % 9'b1_0000_0000;
                 P2_P1_P3_InstQueueWr_Addr  =( P2_P1_P3_InstQueueWr_Addr +1)%16;
                 if ( P2_P1_P3_StateBS16 ==1'b1)
                 begin
-                    P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]=( P2_P1_P3_Datai /(2**16))%(2**8);
+                    P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]=( P2_P1_P3_Datai /( 17'b1_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P2_P1_P3_InstQueueWr_Addr  =( P2_P1_P3_InstQueueWr_Addr +1)%16;
-                    P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]=( P2_P1_P3_Datai /(2**24))%(2**8);
+                    P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]=( P2_P1_P3_Datai /(25'b1_0000_0000_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P2_P1_P3_InstQueueWr_Addr  =( P2_P1_P3_InstQueueWr_Addr +1)%16;
                     P2_P1_P3_PhyAddrPointer  = P2_P1_P3_PhyAddrPointer +4;
                     P2_P1_P3_State2  = P2_P1_P3_S5 ;
@@ -8607,9 +8674,9 @@ module b19 (
             P2_P1_P3_S4  :
             begin
                 P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
-                P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]= P2_P1_P3_Datai %(2**8);
+                P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]= P2_P1_P3_Datai %( 9'b1_0000_0000);
                 P2_P1_P3_InstQueueWr_Addr  =( P2_P1_P3_InstQueueWr_Addr +1)%16;
-                P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]= P2_P1_P3_Datai %(2**8);
+                P2_P1_P3_InstQueue  [ P2_P1_P3_InstQueueWr_Addr ]= P2_P1_P3_Datai %( 9'b1_0000_0000);
                 P2_P1_P3_InstQueueWr_Addr  =( P2_P1_P3_InstQueueWr_Addr +1)%16;
                 P2_P1_P3_PhyAddrPointer  = P2_P1_P3_PhyAddrPointer +2;
                 P2_P1_P3_State2  = P2_P1_P3_S5 ;
@@ -8683,7 +8750,7 @@ module b19 (
                     P2_P1_P3_MOV_eax_dw  :
                         if (( P2_P1_P3_InstQueueWr_Addr - P2_P1_P3_InstQueueRd_Addr )>=5)
                         begin
-                            P2_P1_P3_EAX  <= P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +1)%16];
+                            P2_P1_P3_EAX  <= P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +1)%16];
                             P2_P1_P3_More  =1'b0;
                             P2_P1_P3_Flush  =1'b0;
                             P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +5;
@@ -8697,7 +8764,7 @@ module b19 (
                     P2_P1_P3_MOV_ebx_dw  :
                         if (( P2_P1_P3_InstQueueWr_Addr - P2_P1_P3_InstQueueRd_Addr )>=5)
                         begin
-                            P2_P1_P3_EBX  <= P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +1)%1];
+                            P2_P1_P3_EBX  <= P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P2_P1_P3_InstQueue [( P2_P1_P3_InstQueueRd_Addr +1)%1];
                             P2_P1_P3_More  =1'b0;
                             P2_P1_P3_Flush  =1'b0;
                             P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +5;
@@ -8722,9 +8789,9 @@ module b19 (
                             if ( P2_P1_P3_READY_n ==1'b0)
                             begin
                                 P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
-                                P2_P1_P3_uWord  = P2_P1_P3_Datai %(2**15);
+                                P2_P1_P3_uWord  = P2_P1_P3_Datai %( 16'b1000_0000_0000_0000);
                                 if ( P2_P1_P3_StateBS16 ==1'b1)
-                                    P2_P1_P3_lWord  = P2_P1_P3_Datai %(2**16);
+                                    P2_P1_P3_lWord  = P2_P1_P3_Datai %( 17'b1_0000_0000_0000_0000);
                                 else
                                 begin
                                     P2_P1_P3_rEIP  <= P2_P1_P3_rEIP +2;
@@ -8732,12 +8799,12 @@ module b19 (
                                     if ( P2_P1_P3_READY_n ==1'b0)
                                     begin
                                         P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
-                                        P2_P1_P3_lWord  = P2_P1_P3_Datai %(2**16);
+                                        P2_P1_P3_lWord  = P2_P1_P3_Datai %( 17'b1_0000_0000_0000_0000);
                                     end
                                 end
                                 if ( P2_P1_P3_READY_n ==1'b0)
                                 begin
-                                    P2_P1_P3_EAX  <= P2_P1_P3_uWord *(2**16)+ P2_P1_P3_lWord ;
+                                    P2_P1_P3_EAX  <= P2_P1_P3_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P1_P3_lWord ;
                                     P2_P1_P3_More  =1'b0;
                                     P2_P1_P3_Flush  =1'b0;
                                     P2_P1_P3_InstAddrPointer  = P2_P1_P3_InstAddrPointer +2;
@@ -8757,15 +8824,15 @@ module b19 (
                                 P2_P1_P3_rEIP  <= P2_P1_P3_EBX ;
                             else
                                 P2_P1_P3_rEIP  <= P2_P1_P3_EBX ;
-                            P2_P1_P3_lWord  = P2_P1_P3_EAX %(2**16);
-                            P2_P1_P3_uWord  =( P2_P1_P3_EAX /(2**16))%(2**15);
+                            P2_P1_P3_lWord  = P2_P1_P3_EAX %( 17'b1_0000_0000_0000_0000);
+                            P2_P1_P3_uWord  =( P2_P1_P3_EAX /( 17'b1_0000_0000_0000_0000))%( 16'b1000_0000_0000_0000);
                             P2_P1_P3_RequestPending  <= P2_P1_P3_Pending ;
                             P2_P1_P3_ReadRequest  <= P2_P1_P3_NotPending ;
                             P2_P1_P3_MemoryFetch  <= P2_P1_P3_Pending ;
                             P2_P1_P3_CodeFetch  <= P2_P1_P3_NotPending ;
                             if ( P2_P1_P3_State == P2_P1_P3_StateT1 | P2_P1_P3_State == P2_P1_P3_StateT1P )
                             begin
-                                P2_P1_P3_Datao  <=( P2_P1_P3_uWord *(2**16)+ P2_P1_P3_lWord );
+                                P2_P1_P3_Datao  <=( P2_P1_P3_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P1_P3_lWord );
                                 if ( P2_P1_P3_READY_n ==1'b0)
                                 begin
                                     P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
@@ -8823,7 +8890,7 @@ module b19 (
                             P2_P1_P3_CodeFetch  <= P2_P1_P3_NotPending ;
                             if ( P2_P1_P3_State == P2_P1_P3_StateT1 | P2_P1_P3_State == P2_P1_P3_StateT1P )
                             begin
-                                P2_P1_P3_fWord  = P2_P1_P3_EAX %(2**16);
+                                P2_P1_P3_fWord  = P2_P1_P3_EAX %( 17'b1_0000_0000_0000_0000);
                                 P2_P1_P3_Datao  <= P2_P1_P3_fWord ;
                                 if ( P2_P1_P3_READY_n ==1'b0)
                                 begin
@@ -8897,7 +8964,7 @@ module b19 (
             end
             P2_P1_P3_S6  :
             begin
-                P2_P1_P3_Datao  <=( P2_P1_P3_uWord *(2**16)+ P2_P1_P3_lWord );
+                P2_P1_P3_Datao  <=( P2_P1_P3_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P1_P3_lWord );
                 if ( P2_P1_P3_READY_n ==1'b0)
                 begin
                     P2_P1_P3_RequestPending  <= P2_P1_P3_NotPending ;
@@ -8947,7 +9014,7 @@ module b19 (
     end
 
     always @(  posedge   P2_P1_P3_CLOCK or posedge  P2_P1_P3_RESET )
-    begin : P2_P1_P3_P2
+    begin
         if ( P2_P1_P3_RESET ==1'b1)
         begin
             P2_P1_P3_ByteEnable  <=4'b0000;
@@ -9101,14 +9168,14 @@ module b19 (
         end
         else
         begin
-            if ( P2_P2_addr1 >2**29& P2_P2_ads1 ==1'b0& P2_P2_mio1 ==1'b1& P2_P2_dc1 ==1'b0& P2_P2_wr1 ==1'b1& P2_P2_be1 ==4'b0000)
+            if ( P2_P2_addr1 >30'b10_0000_0000_0000_0000_0000_0000_0000& P2_P2_ads1 ==1'b0& P2_P2_mio1 ==1'b1& P2_P2_dc1 ==1'b0& P2_P2_wr1 ==1'b1& P2_P2_be1 ==4'b0000)
             begin
                 P2_P2_buf1  <= P2_P2_do1 ;
                 P2_P2_ready11  <=1'b0;
                 P2_P2_ready12  <=1'b1;
             end
             else
-                if ( P2_P2_addr2 >2**29& P2_P2_ads2 ==1'b0& P2_P2_mio2 ==1'b1& P2_P2_dc2 ==1'b0& P2_P2_wr2 ==1'b1& P2_P2_be2 ==4'b0000)
+                if ( P2_P2_addr2 >30'b10_0000_0000_0000_0000_0000_0000_0000& P2_P2_ads2 ==1'b0& P2_P2_mio2 ==1'b1& P2_P2_dc2 ==1'b0& P2_P2_wr2 ==1'b1& P2_P2_be2 ==4'b0000)
                 begin
                     P2_P2_buf1  <= P2_P2_do2 ;
                     P2_P2_ready11  <=1'b1;
@@ -9130,7 +9197,7 @@ module b19 (
         end
         else
         begin
-            if ( P2_P2_addr2 <2**29& P2_P2_ads2 ==1'b0& P2_P2_mio2 ==1'b1& P2_P2_dc2 ==1'b0& P2_P2_wr2 ==1'b1& P2_P2_be2 ==4'b0000)
+            if ( P2_P2_addr2 <30'b10_0000_0000_0000_0000_0000_0000_0000& P2_P2_ads2 ==1'b0& P2_P2_mio2 ==1'b1& P2_P2_dc2 ==1'b0& P2_P2_wr2 ==1'b1& P2_P2_be2 ==4'b0000)
             begin
                 P2_P2_buf2  <= P2_P2_do2 ;
                 P2_P2_ready21  <=1'b0;
@@ -9150,19 +9217,19 @@ module b19 (
         end
 
     always @(    P2_P2_addr1    or  P2_P2_buf1  or  P2_P2_datai  )
-        if ( P2_P2_addr1 >2**29)
+        if ( P2_P2_addr1 >30'b10_0000_0000_0000_0000_0000_0000_0000)
             P2_P2_di1  <= P2_P2_buf1 ;
         else
             P2_P2_di1  <= P2_P2_datai ;
 
     always @(    P2_P2_addr2    or  P2_P2_buf1  or  P2_P2_buf2  )
-        if ( P2_P2_addr2 >2**29)
+        if ( P2_P2_addr2 >30'b10_0000_0000_0000_0000_0000_0000_0000)
             P2_P2_di2  <= P2_P2_buf1 ;
         else
             P2_P2_di2  <= P2_P2_buf2 ;
 
     always @(      P2_P2_addr2      or  P2_P2_addr3  or  P2_P2_do1  or  P2_P2_do2  or  P2_P2_do3  )
-        if (( P2_P2_do1 <2**30)&( P2_P2_do2 <2**30)&( P2_P2_do3 <2**30))
+        if (( P2_P2_do1 < 4'b10000)&( P2_P2_do2 < 4'b10000)&( P2_P2_do3 < 4'b10000))
             P2_P2_address2  <= P2_P2_addr3 ;
         else
             P2_P2_address2  <= P2_P2_addr2 ;
@@ -9269,8 +9336,31 @@ module b19 (
     parameter P2_P2_P1_HLT =8'hF4;
     parameter P2_P2_P1_WAITx =8'h9B;
     parameter P2_P2_P1_NOP =8'h90;
+    reg[7:0] P2_P2_P1_InstQueue [15:0];
+    reg[4:0] P2_P2_P1_InstQueueRd_Addr ;
+    reg[4:0] P2_P2_P1_InstQueueWr_Addr ;
+    parameter P2_P2_P1_InstQueueLimit =15;
+    integer P2_P2_P1_InstAddrPointer ;
+    integer P2_P2_P1_PhyAddrPointer ;
+    reg P2_P2_P1_Extended ;
+    reg P2_P2_P1_More ;
+    reg P2_P2_P1_Flush ;
+    reg[15:0] P2_P2_P1_lWord ;
+    reg[14:0] P2_P2_P1_uWord ;
+    integer P2_P2_P1_fWord ;
+    reg[3:0] P2_P2_P1_State2 ;
+    parameter P2_P2_P1_Si =0;
+    parameter P2_P2_P1_S1 =1;
+    parameter P2_P2_P1_S2 =2;
+    parameter P2_P2_P1_S3 =3;
+    parameter P2_P2_P1_S4 =4;
+    parameter P2_P2_P1_S5 =5;
+    parameter P2_P2_P1_S6 =6;
+    parameter P2_P2_P1_S7 =7;
+    parameter P2_P2_P1_S8 =8;
+    parameter P2_P2_P1_S9 =9;
     always @(  posedge   P2_P2_P1_CLOCK or posedge  P2_P2_P1_RESET )
-    begin : P2_P2_P1_P0
+    begin
         if ( P2_P2_P1_RESET ==1'b1)
         begin
             P2_P2_P1_BE_n  <=4'b0000;
@@ -9306,7 +9396,7 @@ module b19 (
                         P2_P2_P1_State  <= P2_P2_P1_StateTi ;
             P2_P2_P1_StateT1  :
             begin
-                P2_P2_P1_Address  <= P2_P2_P1_rEIP /4%2**30;
+                P2_P2_P1_Address  <= P2_P2_P1_rEIP /4% 4'b10000;
                 P2_P2_P1_BE_n  <= P2_P2_P1_ByteEnable ;
                 P2_P2_P1_M_IO_n  <= P2_P2_P1_MemoryFetch ;
                 if ( P2_P2_P1_ReadRequest == P2_P2_P1_Pending )
@@ -9379,7 +9469,7 @@ module b19 (
                         P2_P2_P1_State  <= P2_P2_P1_StateTh ;
             P2_P2_P1_StateT2P  :
             begin
-                P2_P2_P1_Address  <= P2_P2_P1_rEIP /2%2**30;
+                P2_P2_P1_Address  <= P2_P2_P1_rEIP /2% 4'b10000;
                 P2_P2_P1_BE_n  <= P2_P2_P1_ByteEnable ;
                 P2_P2_P1_M_IO_n  <= P2_P2_P1_MemoryFetch ;
                 if ( P2_P2_P1_ReadRequest == P2_P2_P1_Pending )
@@ -9414,27 +9504,7 @@ module b19 (
     end
 
     always @(  posedge   P2_P2_P1_CLOCK or posedge  P2_P2_P1_RESET )
-    begin : P2_P2_P1_P1 reg[7:0] P2_P2_P1_InstQueue [15:0];reg[4:0] P2_P2_P1_InstQueueRd_Addr ;reg[4:0] P2_P2_P1_InstQueueWr_Addr ;
-        parameter P2_P2_P1_InstQueueLimit =15;
-        integer P2_P2_P1_InstAddrPointer ;
-        integer P2_P2_P1_PhyAddrPointer ;
-        reg P2_P2_P1_Extended ;
-        reg P2_P2_P1_More ;
-        reg P2_P2_P1_Flush ;
-        reg[15:0] P2_P2_P1_lWord ;
-        reg[14:0] P2_P2_P1_uWord ;
-        integer P2_P2_P1_fWord ;
-        reg[3:0] P2_P2_P1_State2 ;
-        parameter P2_P2_P1_Si =0;
-        parameter P2_P2_P1_S1 =1;
-        parameter P2_P2_P1_S2 =2;
-        parameter P2_P2_P1_S3 =3;
-        parameter P2_P2_P1_S4 =4;
-        parameter P2_P2_P1_S5 =5;
-        parameter P2_P2_P1_S6 =6;
-        parameter P2_P2_P1_S7 =7;
-        parameter P2_P2_P1_S8 =8;
-        parameter P2_P2_P1_S9 =9;
+    begin
         if ( P2_P2_P1_RESET ==1'b1)
         begin
             P2_P2_P1_State2  = P2_P2_P1_Si ;
@@ -9499,15 +9569,15 @@ module b19 (
             P2_P2_P1_S2  :
             begin
                 P2_P2_P1_RequestPending  <= P2_P2_P1_NotPending ;
-                P2_P2_P1_InstQueue  [ P2_P2_P1_InstQueueWr_Addr ]= P2_P2_P1_Datai %(2**8);
+                P2_P2_P1_InstQueue  [ P2_P2_P1_InstQueueWr_Addr ]= P2_P2_P1_Datai %( 9'b1_0000_0000);
                 P2_P2_P1_InstQueueWr_Addr  =( P2_P2_P1_InstQueueWr_Addr +1)%16;
-                P2_P2_P1_InstQueue  [ P2_P2_P1_InstQueueWr_Addr ]= P2_P2_P1_Datai %2**8;
+                P2_P2_P1_InstQueue  [ P2_P2_P1_InstQueueWr_Addr ]= P2_P2_P1_Datai % 9'b1_0000_0000;
                 P2_P2_P1_InstQueueWr_Addr  =( P2_P2_P1_InstQueueWr_Addr +1)%16;
                 if ( P2_P2_P1_StateBS16 ==1'b1)
                 begin
-                    P2_P2_P1_InstQueue  [ P2_P2_P1_InstQueueWr_Addr ]=( P2_P2_P1_Datai /(2**16))%(2**8);
+                    P2_P2_P1_InstQueue  [ P2_P2_P1_InstQueueWr_Addr ]=( P2_P2_P1_Datai /( 17'b1_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P2_P2_P1_InstQueueWr_Addr  =( P2_P2_P1_InstQueueWr_Addr +1)%16;
-                    P2_P2_P1_InstQueue  [ P2_P2_P1_InstQueueWr_Addr ]=( P2_P2_P1_Datai /(2**24))%(2**8);
+                    P2_P2_P1_InstQueue  [ P2_P2_P1_InstQueueWr_Addr ]=( P2_P2_P1_Datai /(25'b1_0000_0000_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P2_P2_P1_InstQueueWr_Addr  =( P2_P2_P1_InstQueueWr_Addr +1)%16;
                     P2_P2_P1_PhyAddrPointer  = P2_P2_P1_PhyAddrPointer +4;
                     P2_P2_P1_State2  = P2_P2_P1_S5 ;
@@ -9533,9 +9603,9 @@ module b19 (
             P2_P2_P1_S4  :
             begin
                 P2_P2_P1_RequestPending  <= P2_P2_P1_NotPending ;
-                P2_P2_P1_InstQueue  [ P2_P2_P1_InstQueueWr_Addr ]= P2_P2_P1_Datai %(2**8);
+                P2_P2_P1_InstQueue  [ P2_P2_P1_InstQueueWr_Addr ]= P2_P2_P1_Datai %( 9'b1_0000_0000);
                 P2_P2_P1_InstQueueWr_Addr  =( P2_P2_P1_InstQueueWr_Addr +1)%16;
-                P2_P2_P1_InstQueue  [ P2_P2_P1_InstQueueWr_Addr ]= P2_P2_P1_Datai %(2**8);
+                P2_P2_P1_InstQueue  [ P2_P2_P1_InstQueueWr_Addr ]= P2_P2_P1_Datai %( 9'b1_0000_0000);
                 P2_P2_P1_InstQueueWr_Addr  =( P2_P2_P1_InstQueueWr_Addr +1)%16;
                 P2_P2_P1_PhyAddrPointer  = P2_P2_P1_PhyAddrPointer +2;
                 P2_P2_P1_State2  = P2_P2_P1_S5 ;
@@ -9609,7 +9679,7 @@ module b19 (
                     P2_P2_P1_MOV_eax_dw  :
                         if (( P2_P2_P1_InstQueueWr_Addr - P2_P2_P1_InstQueueRd_Addr )>=5)
                         begin
-                            P2_P2_P1_EAX  <= P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +1)%16];
+                            P2_P2_P1_EAX  <= P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +1)%16];
                             P2_P2_P1_More  =1'b0;
                             P2_P2_P1_Flush  =1'b0;
                             P2_P2_P1_InstAddrPointer  = P2_P2_P1_InstAddrPointer +5;
@@ -9623,7 +9693,7 @@ module b19 (
                     P2_P2_P1_MOV_ebx_dw  :
                         if (( P2_P2_P1_InstQueueWr_Addr - P2_P2_P1_InstQueueRd_Addr )>=5)
                         begin
-                            P2_P2_P1_EBX  <= P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +1)%1];
+                            P2_P2_P1_EBX  <= P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P2_P2_P1_InstQueue [( P2_P2_P1_InstQueueRd_Addr +1)%1];
                             P2_P2_P1_More  =1'b0;
                             P2_P2_P1_Flush  =1'b0;
                             P2_P2_P1_InstAddrPointer  = P2_P2_P1_InstAddrPointer +5;
@@ -9648,9 +9718,9 @@ module b19 (
                             if ( P2_P2_P1_READY_n ==1'b0)
                             begin
                                 P2_P2_P1_RequestPending  <= P2_P2_P1_NotPending ;
-                                P2_P2_P1_uWord  = P2_P2_P1_Datai %(2**15);
+                                P2_P2_P1_uWord  = P2_P2_P1_Datai %( 16'b1000_0000_0000_0000);
                                 if ( P2_P2_P1_StateBS16 ==1'b1)
-                                    P2_P2_P1_lWord  = P2_P2_P1_Datai %(2**16);
+                                    P2_P2_P1_lWord  = P2_P2_P1_Datai %( 17'b1_0000_0000_0000_0000);
                                 else
                                 begin
                                     P2_P2_P1_rEIP  <= P2_P2_P1_rEIP +2;
@@ -9658,12 +9728,12 @@ module b19 (
                                     if ( P2_P2_P1_READY_n ==1'b0)
                                     begin
                                         P2_P2_P1_RequestPending  <= P2_P2_P1_NotPending ;
-                                        P2_P2_P1_lWord  = P2_P2_P1_Datai %(2**16);
+                                        P2_P2_P1_lWord  = P2_P2_P1_Datai %( 17'b1_0000_0000_0000_0000);
                                     end
                                 end
                                 if ( P2_P2_P1_READY_n ==1'b0)
                                 begin
-                                    P2_P2_P1_EAX  <= P2_P2_P1_uWord *(2**16)+ P2_P2_P1_lWord ;
+                                    P2_P2_P1_EAX  <= P2_P2_P1_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P2_P1_lWord ;
                                     P2_P2_P1_More  =1'b0;
                                     P2_P2_P1_Flush  =1'b0;
                                     P2_P2_P1_InstAddrPointer  = P2_P2_P1_InstAddrPointer +2;
@@ -9683,15 +9753,15 @@ module b19 (
                                 P2_P2_P1_rEIP  <= P2_P2_P1_EBX ;
                             else
                                 P2_P2_P1_rEIP  <= P2_P2_P1_EBX ;
-                            P2_P2_P1_lWord  = P2_P2_P1_EAX %(2**16);
-                            P2_P2_P1_uWord  =( P2_P2_P1_EAX /(2**16))%(2**15);
+                            P2_P2_P1_lWord  = P2_P2_P1_EAX %( 17'b1_0000_0000_0000_0000);
+                            P2_P2_P1_uWord  =( P2_P2_P1_EAX /( 17'b1_0000_0000_0000_0000))%( 16'b1000_0000_0000_0000);
                             P2_P2_P1_RequestPending  <= P2_P2_P1_Pending ;
                             P2_P2_P1_ReadRequest  <= P2_P2_P1_NotPending ;
                             P2_P2_P1_MemoryFetch  <= P2_P2_P1_Pending ;
                             P2_P2_P1_CodeFetch  <= P2_P2_P1_NotPending ;
                             if ( P2_P2_P1_State == P2_P2_P1_StateT1 | P2_P2_P1_State == P2_P2_P1_StateT1P )
                             begin
-                                P2_P2_P1_Datao  <=( P2_P2_P1_uWord *(2**16)+ P2_P2_P1_lWord );
+                                P2_P2_P1_Datao  <=( P2_P2_P1_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P2_P1_lWord );
                                 if ( P2_P2_P1_READY_n ==1'b0)
                                 begin
                                     P2_P2_P1_RequestPending  <= P2_P2_P1_NotPending ;
@@ -9749,7 +9819,7 @@ module b19 (
                             P2_P2_P1_CodeFetch  <= P2_P2_P1_NotPending ;
                             if ( P2_P2_P1_State == P2_P2_P1_StateT1 | P2_P2_P1_State == P2_P2_P1_StateT1P )
                             begin
-                                P2_P2_P1_fWord  = P2_P2_P1_EAX %(2**16);
+                                P2_P2_P1_fWord  = P2_P2_P1_EAX %( 17'b1_0000_0000_0000_0000);
                                 P2_P2_P1_Datao  <= P2_P2_P1_fWord ;
                                 if ( P2_P2_P1_READY_n ==1'b0)
                                 begin
@@ -9823,7 +9893,7 @@ module b19 (
             end
             P2_P2_P1_S6  :
             begin
-                P2_P2_P1_Datao  <=( P2_P2_P1_uWord *(2**16)+ P2_P2_P1_lWord );
+                P2_P2_P1_Datao  <=( P2_P2_P1_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P2_P1_lWord );
                 if ( P2_P2_P1_READY_n ==1'b0)
                 begin
                     P2_P2_P1_RequestPending  <= P2_P2_P1_NotPending ;
@@ -9873,7 +9943,7 @@ module b19 (
     end
 
     always @(  posedge   P2_P2_P1_CLOCK or posedge  P2_P2_P1_RESET )
-    begin : P2_P2_P1_P2
+    begin
         if ( P2_P2_P1_RESET ==1'b1)
         begin
             P2_P2_P1_ByteEnable  <=4'b0000;
@@ -10037,8 +10107,31 @@ module b19 (
     parameter P2_P2_P2_HLT =8'hF4;
     parameter P2_P2_P2_WAITx =8'h9B;
     parameter P2_P2_P2_NOP =8'h90;
+    reg[7:0] P2_P2_P2_InstQueue [15:0];
+    reg[4:0] P2_P2_P2_InstQueueRd_Addr ;
+    reg[4:0] P2_P2_P2_InstQueueWr_Addr ;
+    parameter P2_P2_P2_InstQueueLimit =15;
+    integer P2_P2_P2_InstAddrPointer ;
+    integer P2_P2_P2_PhyAddrPointer ;
+    reg P2_P2_P2_Extended ;
+    reg P2_P2_P2_More ;
+    reg P2_P2_P2_Flush ;
+    reg[15:0] P2_P2_P2_lWord ;
+    reg[14:0] P2_P2_P2_uWord ;
+    integer P2_P2_P2_fWord ;
+    reg[3:0] P2_P2_P2_State2 ;
+    parameter P2_P2_P2_Si =0;
+    parameter P2_P2_P2_S1 =1;
+    parameter P2_P2_P2_S2 =2;
+    parameter P2_P2_P2_S3 =3;
+    parameter P2_P2_P2_S4 =4;
+    parameter P2_P2_P2_S5 =5;
+    parameter P2_P2_P2_S6 =6;
+    parameter P2_P2_P2_S7 =7;
+    parameter P2_P2_P2_S8 =8;
+    parameter P2_P2_P2_S9 =9;
     always @(  posedge   P2_P2_P2_CLOCK or posedge  P2_P2_P2_RESET )
-    begin : P2_P2_P2_P0
+    begin
         if ( P2_P2_P2_RESET ==1'b1)
         begin
             P2_P2_P2_BE_n  <=4'b0000;
@@ -10074,7 +10167,7 @@ module b19 (
                         P2_P2_P2_State  <= P2_P2_P2_StateTi ;
             P2_P2_P2_StateT1  :
             begin
-                P2_P2_P2_Address  <= P2_P2_P2_rEIP /4%2**30;
+                P2_P2_P2_Address  <= P2_P2_P2_rEIP /4% 4'b10000;
                 P2_P2_P2_BE_n  <= P2_P2_P2_ByteEnable ;
                 P2_P2_P2_M_IO_n  <= P2_P2_P2_MemoryFetch ;
                 if ( P2_P2_P2_ReadRequest == P2_P2_P2_Pending )
@@ -10147,7 +10240,7 @@ module b19 (
                         P2_P2_P2_State  <= P2_P2_P2_StateTh ;
             P2_P2_P2_StateT2P  :
             begin
-                P2_P2_P2_Address  <= P2_P2_P2_rEIP /2%2**30;
+                P2_P2_P2_Address  <= P2_P2_P2_rEIP /2% 4'b10000;
                 P2_P2_P2_BE_n  <= P2_P2_P2_ByteEnable ;
                 P2_P2_P2_M_IO_n  <= P2_P2_P2_MemoryFetch ;
                 if ( P2_P2_P2_ReadRequest == P2_P2_P2_Pending )
@@ -10182,27 +10275,7 @@ module b19 (
     end
 
     always @(  posedge   P2_P2_P2_CLOCK or posedge  P2_P2_P2_RESET )
-    begin : P2_P2_P2_P1 reg[7:0] P2_P2_P2_InstQueue [15:0];reg[4:0] P2_P2_P2_InstQueueRd_Addr ;reg[4:0] P2_P2_P2_InstQueueWr_Addr ;
-        parameter P2_P2_P2_InstQueueLimit =15;
-        integer P2_P2_P2_InstAddrPointer ;
-        integer P2_P2_P2_PhyAddrPointer ;
-        reg P2_P2_P2_Extended ;
-        reg P2_P2_P2_More ;
-        reg P2_P2_P2_Flush ;
-        reg[15:0] P2_P2_P2_lWord ;
-        reg[14:0] P2_P2_P2_uWord ;
-        integer P2_P2_P2_fWord ;
-        reg[3:0] P2_P2_P2_State2 ;
-        parameter P2_P2_P2_Si =0;
-        parameter P2_P2_P2_S1 =1;
-        parameter P2_P2_P2_S2 =2;
-        parameter P2_P2_P2_S3 =3;
-        parameter P2_P2_P2_S4 =4;
-        parameter P2_P2_P2_S5 =5;
-        parameter P2_P2_P2_S6 =6;
-        parameter P2_P2_P2_S7 =7;
-        parameter P2_P2_P2_S8 =8;
-        parameter P2_P2_P2_S9 =9;
+    begin
         if ( P2_P2_P2_RESET ==1'b1)
         begin
             P2_P2_P2_State2  = P2_P2_P2_Si ;
@@ -10267,15 +10340,15 @@ module b19 (
             P2_P2_P2_S2  :
             begin
                 P2_P2_P2_RequestPending  <= P2_P2_P2_NotPending ;
-                P2_P2_P2_InstQueue  [ P2_P2_P2_InstQueueWr_Addr ]= P2_P2_P2_Datai %(2**8);
+                P2_P2_P2_InstQueue  [ P2_P2_P2_InstQueueWr_Addr ]= P2_P2_P2_Datai %( 9'b1_0000_0000);
                 P2_P2_P2_InstQueueWr_Addr  =( P2_P2_P2_InstQueueWr_Addr +1)%16;
-                P2_P2_P2_InstQueue  [ P2_P2_P2_InstQueueWr_Addr ]= P2_P2_P2_Datai %2**8;
+                P2_P2_P2_InstQueue  [ P2_P2_P2_InstQueueWr_Addr ]= P2_P2_P2_Datai % 9'b1_0000_0000;
                 P2_P2_P2_InstQueueWr_Addr  =( P2_P2_P2_InstQueueWr_Addr +1)%16;
                 if ( P2_P2_P2_StateBS16 ==1'b1)
                 begin
-                    P2_P2_P2_InstQueue  [ P2_P2_P2_InstQueueWr_Addr ]=( P2_P2_P2_Datai /(2**16))%(2**8);
+                    P2_P2_P2_InstQueue  [ P2_P2_P2_InstQueueWr_Addr ]=( P2_P2_P2_Datai /( 17'b1_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P2_P2_P2_InstQueueWr_Addr  =( P2_P2_P2_InstQueueWr_Addr +1)%16;
-                    P2_P2_P2_InstQueue  [ P2_P2_P2_InstQueueWr_Addr ]=( P2_P2_P2_Datai /(2**24))%(2**8);
+                    P2_P2_P2_InstQueue  [ P2_P2_P2_InstQueueWr_Addr ]=( P2_P2_P2_Datai /(25'b1_0000_0000_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P2_P2_P2_InstQueueWr_Addr  =( P2_P2_P2_InstQueueWr_Addr +1)%16;
                     P2_P2_P2_PhyAddrPointer  = P2_P2_P2_PhyAddrPointer +4;
                     P2_P2_P2_State2  = P2_P2_P2_S5 ;
@@ -10301,9 +10374,9 @@ module b19 (
             P2_P2_P2_S4  :
             begin
                 P2_P2_P2_RequestPending  <= P2_P2_P2_NotPending ;
-                P2_P2_P2_InstQueue  [ P2_P2_P2_InstQueueWr_Addr ]= P2_P2_P2_Datai %(2**8);
+                P2_P2_P2_InstQueue  [ P2_P2_P2_InstQueueWr_Addr ]= P2_P2_P2_Datai %( 9'b1_0000_0000);
                 P2_P2_P2_InstQueueWr_Addr  =( P2_P2_P2_InstQueueWr_Addr +1)%16;
-                P2_P2_P2_InstQueue  [ P2_P2_P2_InstQueueWr_Addr ]= P2_P2_P2_Datai %(2**8);
+                P2_P2_P2_InstQueue  [ P2_P2_P2_InstQueueWr_Addr ]= P2_P2_P2_Datai %( 9'b1_0000_0000);
                 P2_P2_P2_InstQueueWr_Addr  =( P2_P2_P2_InstQueueWr_Addr +1)%16;
                 P2_P2_P2_PhyAddrPointer  = P2_P2_P2_PhyAddrPointer +2;
                 P2_P2_P2_State2  = P2_P2_P2_S5 ;
@@ -10377,7 +10450,7 @@ module b19 (
                     P2_P2_P2_MOV_eax_dw  :
                         if (( P2_P2_P2_InstQueueWr_Addr - P2_P2_P2_InstQueueRd_Addr )>=5)
                         begin
-                            P2_P2_P2_EAX  <= P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +1)%16];
+                            P2_P2_P2_EAX  <= P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +1)%16];
                             P2_P2_P2_More  =1'b0;
                             P2_P2_P2_Flush  =1'b0;
                             P2_P2_P2_InstAddrPointer  = P2_P2_P2_InstAddrPointer +5;
@@ -10391,7 +10464,7 @@ module b19 (
                     P2_P2_P2_MOV_ebx_dw  :
                         if (( P2_P2_P2_InstQueueWr_Addr - P2_P2_P2_InstQueueRd_Addr )>=5)
                         begin
-                            P2_P2_P2_EBX  <= P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +1)%1];
+                            P2_P2_P2_EBX  <= P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P2_P2_P2_InstQueue [( P2_P2_P2_InstQueueRd_Addr +1)%1];
                             P2_P2_P2_More  =1'b0;
                             P2_P2_P2_Flush  =1'b0;
                             P2_P2_P2_InstAddrPointer  = P2_P2_P2_InstAddrPointer +5;
@@ -10416,9 +10489,9 @@ module b19 (
                             if ( P2_P2_P2_READY_n ==1'b0)
                             begin
                                 P2_P2_P2_RequestPending  <= P2_P2_P2_NotPending ;
-                                P2_P2_P2_uWord  = P2_P2_P2_Datai %(2**15);
+                                P2_P2_P2_uWord  = P2_P2_P2_Datai %( 16'b1000_0000_0000_0000);
                                 if ( P2_P2_P2_StateBS16 ==1'b1)
-                                    P2_P2_P2_lWord  = P2_P2_P2_Datai %(2**16);
+                                    P2_P2_P2_lWord  = P2_P2_P2_Datai %( 17'b1_0000_0000_0000_0000);
                                 else
                                 begin
                                     P2_P2_P2_rEIP  <= P2_P2_P2_rEIP +2;
@@ -10426,12 +10499,12 @@ module b19 (
                                     if ( P2_P2_P2_READY_n ==1'b0)
                                     begin
                                         P2_P2_P2_RequestPending  <= P2_P2_P2_NotPending ;
-                                        P2_P2_P2_lWord  = P2_P2_P2_Datai %(2**16);
+                                        P2_P2_P2_lWord  = P2_P2_P2_Datai %( 17'b1_0000_0000_0000_0000);
                                     end
                                 end
                                 if ( P2_P2_P2_READY_n ==1'b0)
                                 begin
-                                    P2_P2_P2_EAX  <= P2_P2_P2_uWord *(2**16)+ P2_P2_P2_lWord ;
+                                    P2_P2_P2_EAX  <= P2_P2_P2_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P2_P2_lWord ;
                                     P2_P2_P2_More  =1'b0;
                                     P2_P2_P2_Flush  =1'b0;
                                     P2_P2_P2_InstAddrPointer  = P2_P2_P2_InstAddrPointer +2;
@@ -10451,15 +10524,15 @@ module b19 (
                                 P2_P2_P2_rEIP  <= P2_P2_P2_EBX ;
                             else
                                 P2_P2_P2_rEIP  <= P2_P2_P2_EBX ;
-                            P2_P2_P2_lWord  = P2_P2_P2_EAX %(2**16);
-                            P2_P2_P2_uWord  =( P2_P2_P2_EAX /(2**16))%(2**15);
+                            P2_P2_P2_lWord  = P2_P2_P2_EAX %( 17'b1_0000_0000_0000_0000);
+                            P2_P2_P2_uWord  =( P2_P2_P2_EAX /( 17'b1_0000_0000_0000_0000))%( 16'b1000_0000_0000_0000);
                             P2_P2_P2_RequestPending  <= P2_P2_P2_Pending ;
                             P2_P2_P2_ReadRequest  <= P2_P2_P2_NotPending ;
                             P2_P2_P2_MemoryFetch  <= P2_P2_P2_Pending ;
                             P2_P2_P2_CodeFetch  <= P2_P2_P2_NotPending ;
                             if ( P2_P2_P2_State == P2_P2_P2_StateT1 | P2_P2_P2_State == P2_P2_P2_StateT1P )
                             begin
-                                P2_P2_P2_Datao  <=( P2_P2_P2_uWord *(2**16)+ P2_P2_P2_lWord );
+                                P2_P2_P2_Datao  <=( P2_P2_P2_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P2_P2_lWord );
                                 if ( P2_P2_P2_READY_n ==1'b0)
                                 begin
                                     P2_P2_P2_RequestPending  <= P2_P2_P2_NotPending ;
@@ -10517,7 +10590,7 @@ module b19 (
                             P2_P2_P2_CodeFetch  <= P2_P2_P2_NotPending ;
                             if ( P2_P2_P2_State == P2_P2_P2_StateT1 | P2_P2_P2_State == P2_P2_P2_StateT1P )
                             begin
-                                P2_P2_P2_fWord  = P2_P2_P2_EAX %(2**16);
+                                P2_P2_P2_fWord  = P2_P2_P2_EAX %( 17'b1_0000_0000_0000_0000);
                                 P2_P2_P2_Datao  <= P2_P2_P2_fWord ;
                                 if ( P2_P2_P2_READY_n ==1'b0)
                                 begin
@@ -10591,7 +10664,7 @@ module b19 (
             end
             P2_P2_P2_S6  :
             begin
-                P2_P2_P2_Datao  <=( P2_P2_P2_uWord *(2**16)+ P2_P2_P2_lWord );
+                P2_P2_P2_Datao  <=( P2_P2_P2_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P2_P2_lWord );
                 if ( P2_P2_P2_READY_n ==1'b0)
                 begin
                     P2_P2_P2_RequestPending  <= P2_P2_P2_NotPending ;
@@ -10641,7 +10714,7 @@ module b19 (
     end
 
     always @(  posedge   P2_P2_P2_CLOCK or posedge  P2_P2_P2_RESET )
-    begin : P2_P2_P2_P2
+    begin
         if ( P2_P2_P2_RESET ==1'b1)
         begin
             P2_P2_P2_ByteEnable  <=4'b0000;
@@ -10805,8 +10878,31 @@ module b19 (
     parameter P2_P2_P3_HLT =8'hF4;
     parameter P2_P2_P3_WAITx =8'h9B;
     parameter P2_P2_P3_NOP =8'h90;
+    reg[7:0] P2_P2_P3_InstQueue [15:0];
+    reg[4:0] P2_P2_P3_InstQueueRd_Addr ;
+    reg[4:0] P2_P2_P3_InstQueueWr_Addr ;
+    parameter P2_P2_P3_InstQueueLimit =15;
+    integer P2_P2_P3_InstAddrPointer ;
+    integer P2_P2_P3_PhyAddrPointer ;
+    reg P2_P2_P3_Extended ;
+    reg P2_P2_P3_More ;
+    reg P2_P2_P3_Flush ;
+    reg[15:0] P2_P2_P3_lWord ;
+    reg[14:0] P2_P2_P3_uWord ;
+    integer P2_P2_P3_fWord ;
+    reg[3:0] P2_P2_P3_State2 ;
+    parameter P2_P2_P3_Si =0;
+    parameter P2_P2_P3_S1 =1;
+    parameter P2_P2_P3_S2 =2;
+    parameter P2_P2_P3_S3 =3;
+    parameter P2_P2_P3_S4 =4;
+    parameter P2_P2_P3_S5 =5;
+    parameter P2_P2_P3_S6 =6;
+    parameter P2_P2_P3_S7 =7;
+    parameter P2_P2_P3_S8 =8;
+    parameter P2_P2_P3_S9 =9;
     always @(  posedge   P2_P2_P3_CLOCK or posedge  P2_P2_P3_RESET )
-    begin : P2_P2_P3_P0
+    begin
         if ( P2_P2_P3_RESET ==1'b1)
         begin
             P2_P2_P3_BE_n  <=4'b0000;
@@ -10842,7 +10938,7 @@ module b19 (
                         P2_P2_P3_State  <= P2_P2_P3_StateTi ;
             P2_P2_P3_StateT1  :
             begin
-                P2_P2_P3_Address  <= P2_P2_P3_rEIP /4%2**30;
+                P2_P2_P3_Address  <= P2_P2_P3_rEIP /4% 4'b10000;
                 P2_P2_P3_BE_n  <= P2_P2_P3_ByteEnable ;
                 P2_P2_P3_M_IO_n  <= P2_P2_P3_MemoryFetch ;
                 if ( P2_P2_P3_ReadRequest == P2_P2_P3_Pending )
@@ -10915,7 +11011,7 @@ module b19 (
                         P2_P2_P3_State  <= P2_P2_P3_StateTh ;
             P2_P2_P3_StateT2P  :
             begin
-                P2_P2_P3_Address  <= P2_P2_P3_rEIP /2%2**30;
+                P2_P2_P3_Address  <= P2_P2_P3_rEIP /2% 4'b10000;
                 P2_P2_P3_BE_n  <= P2_P2_P3_ByteEnable ;
                 P2_P2_P3_M_IO_n  <= P2_P2_P3_MemoryFetch ;
                 if ( P2_P2_P3_ReadRequest == P2_P2_P3_Pending )
@@ -10950,27 +11046,7 @@ module b19 (
     end
 
     always @(  posedge   P2_P2_P3_CLOCK or posedge  P2_P2_P3_RESET )
-    begin : P2_P2_P3_P1 reg[7:0] P2_P2_P3_InstQueue [15:0];reg[4:0] P2_P2_P3_InstQueueRd_Addr ;reg[4:0] P2_P2_P3_InstQueueWr_Addr ;
-        parameter P2_P2_P3_InstQueueLimit =15;
-        integer P2_P2_P3_InstAddrPointer ;
-        integer P2_P2_P3_PhyAddrPointer ;
-        reg P2_P2_P3_Extended ;
-        reg P2_P2_P3_More ;
-        reg P2_P2_P3_Flush ;
-        reg[15:0] P2_P2_P3_lWord ;
-        reg[14:0] P2_P2_P3_uWord ;
-        integer P2_P2_P3_fWord ;
-        reg[3:0] P2_P2_P3_State2 ;
-        parameter P2_P2_P3_Si =0;
-        parameter P2_P2_P3_S1 =1;
-        parameter P2_P2_P3_S2 =2;
-        parameter P2_P2_P3_S3 =3;
-        parameter P2_P2_P3_S4 =4;
-        parameter P2_P2_P3_S5 =5;
-        parameter P2_P2_P3_S6 =6;
-        parameter P2_P2_P3_S7 =7;
-        parameter P2_P2_P3_S8 =8;
-        parameter P2_P2_P3_S9 =9;
+    begin
         if ( P2_P2_P3_RESET ==1'b1)
         begin
             P2_P2_P3_State2  = P2_P2_P3_Si ;
@@ -11035,15 +11111,15 @@ module b19 (
             P2_P2_P3_S2  :
             begin
                 P2_P2_P3_RequestPending  <= P2_P2_P3_NotPending ;
-                P2_P2_P3_InstQueue  [ P2_P2_P3_InstQueueWr_Addr ]= P2_P2_P3_Datai %(2**8);
+                P2_P2_P3_InstQueue  [ P2_P2_P3_InstQueueWr_Addr ]= P2_P2_P3_Datai %( 9'b1_0000_0000);
                 P2_P2_P3_InstQueueWr_Addr  =( P2_P2_P3_InstQueueWr_Addr +1)%16;
-                P2_P2_P3_InstQueue  [ P2_P2_P3_InstQueueWr_Addr ]= P2_P2_P3_Datai %2**8;
+                P2_P2_P3_InstQueue  [ P2_P2_P3_InstQueueWr_Addr ]= P2_P2_P3_Datai % 9'b1_0000_0000;
                 P2_P2_P3_InstQueueWr_Addr  =( P2_P2_P3_InstQueueWr_Addr +1)%16;
                 if ( P2_P2_P3_StateBS16 ==1'b1)
                 begin
-                    P2_P2_P3_InstQueue  [ P2_P2_P3_InstQueueWr_Addr ]=( P2_P2_P3_Datai /(2**16))%(2**8);
+                    P2_P2_P3_InstQueue  [ P2_P2_P3_InstQueueWr_Addr ]=( P2_P2_P3_Datai /( 17'b1_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P2_P2_P3_InstQueueWr_Addr  =( P2_P2_P3_InstQueueWr_Addr +1)%16;
-                    P2_P2_P3_InstQueue  [ P2_P2_P3_InstQueueWr_Addr ]=( P2_P2_P3_Datai /(2**24))%(2**8);
+                    P2_P2_P3_InstQueue  [ P2_P2_P3_InstQueueWr_Addr ]=( P2_P2_P3_Datai /(25'b1_0000_0000_0000_0000_0000_0000))%( 9'b1_0000_0000);
                     P2_P2_P3_InstQueueWr_Addr  =( P2_P2_P3_InstQueueWr_Addr +1)%16;
                     P2_P2_P3_PhyAddrPointer  = P2_P2_P3_PhyAddrPointer +4;
                     P2_P2_P3_State2  = P2_P2_P3_S5 ;
@@ -11069,9 +11145,9 @@ module b19 (
             P2_P2_P3_S4  :
             begin
                 P2_P2_P3_RequestPending  <= P2_P2_P3_NotPending ;
-                P2_P2_P3_InstQueue  [ P2_P2_P3_InstQueueWr_Addr ]= P2_P2_P3_Datai %(2**8);
+                P2_P2_P3_InstQueue  [ P2_P2_P3_InstQueueWr_Addr ]= P2_P2_P3_Datai %( 9'b1_0000_0000);
                 P2_P2_P3_InstQueueWr_Addr  =( P2_P2_P3_InstQueueWr_Addr +1)%16;
-                P2_P2_P3_InstQueue  [ P2_P2_P3_InstQueueWr_Addr ]= P2_P2_P3_Datai %(2**8);
+                P2_P2_P3_InstQueue  [ P2_P2_P3_InstQueueWr_Addr ]= P2_P2_P3_Datai %( 9'b1_0000_0000);
                 P2_P2_P3_InstQueueWr_Addr  =( P2_P2_P3_InstQueueWr_Addr +1)%16;
                 P2_P2_P3_PhyAddrPointer  = P2_P2_P3_PhyAddrPointer +2;
                 P2_P2_P3_State2  = P2_P2_P3_S5 ;
@@ -11145,7 +11221,7 @@ module b19 (
                     P2_P2_P3_MOV_eax_dw  :
                         if (( P2_P2_P3_InstQueueWr_Addr - P2_P2_P3_InstQueueRd_Addr )>=5)
                         begin
-                            P2_P2_P3_EAX  <= P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +1)%16];
+                            P2_P2_P3_EAX  <= P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +1)%16];
                             P2_P2_P3_More  =1'b0;
                             P2_P2_P3_Flush  =1'b0;
                             P2_P2_P3_InstAddrPointer  = P2_P2_P3_InstAddrPointer +5;
@@ -11159,7 +11235,7 @@ module b19 (
                     P2_P2_P3_MOV_ebx_dw  :
                         if (( P2_P2_P3_InstQueueWr_Addr - P2_P2_P3_InstQueueRd_Addr )>=5)
                         begin
-                            P2_P2_P3_EBX  <= P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +4)%16]*(2**23)+ P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +3)%16]*(2**16)+ P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +2)%16]*(2**8)+ P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +1)%1];
+                            P2_P2_P3_EBX  <= P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +4)%16]*(24'b1000_0000_0000_0000_0000_0000)+ P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +3)%16]*( 17'b1_0000_0000_0000_0000)+ P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +2)%16]*( 9'b1_0000_0000)+ P2_P2_P3_InstQueue [( P2_P2_P3_InstQueueRd_Addr +1)%1];
                             P2_P2_P3_More  =1'b0;
                             P2_P2_P3_Flush  =1'b0;
                             P2_P2_P3_InstAddrPointer  = P2_P2_P3_InstAddrPointer +5;
@@ -11184,9 +11260,9 @@ module b19 (
                             if ( P2_P2_P3_READY_n ==1'b0)
                             begin
                                 P2_P2_P3_RequestPending  <= P2_P2_P3_NotPending ;
-                                P2_P2_P3_uWord  = P2_P2_P3_Datai %(2**15);
+                                P2_P2_P3_uWord  = P2_P2_P3_Datai %( 16'b1000_0000_0000_0000);
                                 if ( P2_P2_P3_StateBS16 ==1'b1)
-                                    P2_P2_P3_lWord  = P2_P2_P3_Datai %(2**16);
+                                    P2_P2_P3_lWord  = P2_P2_P3_Datai %( 17'b1_0000_0000_0000_0000);
                                 else
                                 begin
                                     P2_P2_P3_rEIP  <= P2_P2_P3_rEIP +2;
@@ -11194,12 +11270,12 @@ module b19 (
                                     if ( P2_P2_P3_READY_n ==1'b0)
                                     begin
                                         P2_P2_P3_RequestPending  <= P2_P2_P3_NotPending ;
-                                        P2_P2_P3_lWord  = P2_P2_P3_Datai %(2**16);
+                                        P2_P2_P3_lWord  = P2_P2_P3_Datai %( 17'b1_0000_0000_0000_0000);
                                     end
                                 end
                                 if ( P2_P2_P3_READY_n ==1'b0)
                                 begin
-                                    P2_P2_P3_EAX  <= P2_P2_P3_uWord *(2**16)+ P2_P2_P3_lWord ;
+                                    P2_P2_P3_EAX  <= P2_P2_P3_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P2_P3_lWord ;
                                     P2_P2_P3_More  =1'b0;
                                     P2_P2_P3_Flush  =1'b0;
                                     P2_P2_P3_InstAddrPointer  = P2_P2_P3_InstAddrPointer +2;
@@ -11219,15 +11295,15 @@ module b19 (
                                 P2_P2_P3_rEIP  <= P2_P2_P3_EBX ;
                             else
                                 P2_P2_P3_rEIP  <= P2_P2_P3_EBX ;
-                            P2_P2_P3_lWord  = P2_P2_P3_EAX %(2**16);
-                            P2_P2_P3_uWord  =( P2_P2_P3_EAX /(2**16))%(2**15);
+                            P2_P2_P3_lWord  = P2_P2_P3_EAX %( 17'b1_0000_0000_0000_0000);
+                            P2_P2_P3_uWord  =( P2_P2_P3_EAX /( 17'b1_0000_0000_0000_0000))%( 16'b1000_0000_0000_0000);
                             P2_P2_P3_RequestPending  <= P2_P2_P3_Pending ;
                             P2_P2_P3_ReadRequest  <= P2_P2_P3_NotPending ;
                             P2_P2_P3_MemoryFetch  <= P2_P2_P3_Pending ;
                             P2_P2_P3_CodeFetch  <= P2_P2_P3_NotPending ;
                             if ( P2_P2_P3_State == P2_P2_P3_StateT1 | P2_P2_P3_State == P2_P2_P3_StateT1P )
                             begin
-                                P2_P2_P3_Datao  <=( P2_P2_P3_uWord *(2**16)+ P2_P2_P3_lWord );
+                                P2_P2_P3_Datao  <=( P2_P2_P3_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P2_P3_lWord );
                                 if ( P2_P2_P3_READY_n ==1'b0)
                                 begin
                                     P2_P2_P3_RequestPending  <= P2_P2_P3_NotPending ;
@@ -11285,7 +11361,7 @@ module b19 (
                             P2_P2_P3_CodeFetch  <= P2_P2_P3_NotPending ;
                             if ( P2_P2_P3_State == P2_P2_P3_StateT1 | P2_P2_P3_State == P2_P2_P3_StateT1P )
                             begin
-                                P2_P2_P3_fWord  = P2_P2_P3_EAX %(2**16);
+                                P2_P2_P3_fWord  = P2_P2_P3_EAX %( 17'b1_0000_0000_0000_0000);
                                 P2_P2_P3_Datao  <= P2_P2_P3_fWord ;
                                 if ( P2_P2_P3_READY_n ==1'b0)
                                 begin
@@ -11359,7 +11435,7 @@ module b19 (
             end
             P2_P2_P3_S6  :
             begin
-                P2_P2_P3_Datao  <=( P2_P2_P3_uWord *(2**16)+ P2_P2_P3_lWord );
+                P2_P2_P3_Datao  <=( P2_P2_P3_uWord *( 17'b1_0000_0000_0000_0000)+ P2_P2_P3_lWord );
                 if ( P2_P2_P3_READY_n ==1'b0)
                 begin
                     P2_P2_P3_RequestPending  <= P2_P2_P3_NotPending ;
@@ -11409,7 +11485,7 @@ module b19 (
     end
 
     always @(  posedge   P2_P2_P3_CLOCK or posedge  P2_P2_P3_RESET )
-    begin : P2_P2_P3_P2
+    begin
         if ( P2_P2_P3_RESET ==1'b1)
         begin
             P2_P2_P3_ByteEnable  <=4'b0000;
@@ -11503,10 +11579,30 @@ module b19 (
     assign P2_rd3 = P2_P3_rd;
     assign P2_wr3 = P2_P3_wr;
 
+    integer P2_P3_reg0 ;
+    integer P2_P3_reg1 ;
+    integer P2_P3_reg2 ;
+    integer P2_P3_reg3 ;
+    reg P2_P3_B ;
+    reg[19:0] P2_P3_MAR ;
+    integer P2_P3_MBR ;
+    reg[1:0] P2_P3_mf ;
+    reg[2:0] P2_P3_df ;
+    reg[0:0] P2_P3_cf ;
+    reg[3:0] P2_P3_ff ;
+    reg[19:0] P2_P3_tail ;
+    integer P2_P3_IR ;
+    reg[0:0] P2_P3_state ;
+    integer P2_P3_r ;
+    integer P2_P3_m ;
+    integer P2_P3_t ;
+    integer P2_P3_d ;
+    integer P2_P3_temp ;
+    reg[1:0] P2_P3_s ;
+    parameter P2_P3_FETCH =0;
+    parameter P2_P3_EXEC =1;
     always @(  posedge   P2_P3_clock or posedge  P2_P3_reset )
-    begin : P2_P3_xhdl0 integer P2_P3_reg0 ;integer P2_P3_reg1 ;integer P2_P3_reg2 ;integer P2_P3_reg3 ;reg P2_P3_B ;reg[19:0] P2_P3_MAR ;integer P2_P3_MBR ;reg[1:0] P2_P3_mf ;reg[2:0] P2_P3_df ;reg[0:0] P2_P3_cf ;reg[3:0] P2_P3_ff ;reg[19:0] P2_P3_tail ;integer P2_P3_IR ;reg[0:0] P2_P3_state ;integer P2_P3_r ;integer P2_P3_m ;integer P2_P3_t ;integer P2_P3_d ;integer P2_P3_temp ;reg[1:0] P2_P3_s ;
-        parameter P2_P3_FETCH =0;
-        parameter P2_P3_EXEC =1;
+    begin
         if ( P2_P3_reset ==1'b1)
         begin
             P2_P3_MAR  =0;
@@ -11540,7 +11636,7 @@ module b19 (
             case ( P2_P3_state )
                 P2_P3_FETCH  :
                 begin
-                    P2_P3_MAR  = P2_P3_reg3 %2**20;
+                    P2_P3_MAR  = P2_P3_reg3 % 21'b1_0000_0000_0000_0000_0000;
                     P2_P3_addr  <= P2_P3_MAR ;
                     P2_P3_rd  <=1'b1;
                     P2_P3_MBR  = P2_P3_datai ;
@@ -11551,13 +11647,13 @@ module b19 (
                 begin
                     if ( P2_P3_IR <0)
                         P2_P3_IR  =- P2_P3_IR ;
-                    P2_P3_mf  =( P2_P3_IR /2**27)%4;
-                    P2_P3_df  =( P2_P3_IR /2**24)%2**3;
-                    P2_P3_ff  =( P2_P3_IR /2**19)%2**4;
-                    P2_P3_cf  =( P2_P3_IR /2**23)%2;
-                    P2_P3_tail  = P2_P3_IR %2**20;
-                    P2_P3_reg3  =(( P2_P3_reg3 %2**29)+8);
-                    P2_P3_s  =( P2_P3_IR /2**29)%4;
+                    P2_P3_mf  =( P2_P3_IR /28'b1000_0000_0000_0000_0000_0000_0000)%4;
+                    P2_P3_df  =( P2_P3_IR /25'b1_0000_0000_0000_0000_0000_0000)% 4'b1000;
+                    P2_P3_ff  =( P2_P3_IR / 20'b1000_0000_0000_0000_0000)% 5'b1_0000;
+                    P2_P3_cf  =( P2_P3_IR /24'b1000_0000_0000_0000_0000_0000)%2;
+                    P2_P3_tail  = P2_P3_IR % 21'b1_0000_0000_0000_0000_0000;
+                    P2_P3_reg3  =(( P2_P3_reg3 %30'b10_0000_0000_0000_0000_0000_0000_0000)+8);
+                    P2_P3_s  =( P2_P3_IR /30'b10_0000_0000_0000_0000_0000_0000_0000)%4;
                     case ( P2_P3_s )
                         0 :
                             P2_P3_r  = P2_P3_reg0 ;
@@ -11582,13 +11678,13 @@ module b19 (
                                 end
                                 2 :
                                 begin
-                                    P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )%2**20;
+                                    P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                     P2_P3_rd  <=1'b1;
                                     P2_P3_m  = P2_P3_datai ;
                                 end
                                 3 :
                                 begin
-                                    P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )%2**20;
+                                    P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                     P2_P3_rd  <=1'b1;
                                     P2_P3_m  = P2_P3_datai ;
                                 end
@@ -11626,8 +11722,8 @@ module b19 (
                                         P2_P3_B  =1'b0;
                                 6 :
                                 begin
-                                    if ( P2_P3_r >2**30-1)
-                                        P2_P3_r  = P2_P3_r -2**30;
+                                    if ( P2_P3_r > 4'b10000-1)
+                                        P2_P3_r  = P2_P3_r - 4'b10000;
                                     if ( P2_P3_r < P2_P3_m )
                                         P2_P3_B  =1'b1;
                                     else
@@ -11635,8 +11731,8 @@ module b19 (
                                 end
                                 7 :
                                 begin
-                                    if ( P2_P3_r >2**30-1)
-                                        P2_P3_r  = P2_P3_r -2**30;
+                                    if ( P2_P3_r > 4'b10000-1)
+                                        P2_P3_r  = P2_P3_r - 4'b10000;
                                     if (~( P2_P3_r < P2_P3_m ))
                                         P2_P3_B  =1'b1;
                                     else
@@ -11674,8 +11770,8 @@ module b19 (
                                         P2_P3_B  =1'b0;
                                 14 :
                                 begin
-                                    if ( P2_P3_r >2**30-1)
-                                        P2_P3_r  = P2_P3_r -2**30;
+                                    if ( P2_P3_r > 4'b10000-1)
+                                        P2_P3_r  = P2_P3_r - 4'b10000;
                                     if (( P2_P3_r < P2_P3_m )|( P2_P3_B ==1'b1))
                                         P2_P3_B  =1'b1;
                                     else
@@ -11683,8 +11779,8 @@ module b19 (
                                 end
                                 15 :
                                 begin
-                                    if ( P2_P3_r >2**30-1)
-                                        P2_P3_r  = P2_P3_r -2**30;
+                                    if ( P2_P3_r > 4'b10000-1)
+                                        P2_P3_r  = P2_P3_r - 4'b10000;
                                     if ((~( P2_P3_r < P2_P3_m ))|( P2_P3_B ==1'b1))
                                         P2_P3_B  =1'b1;
                                     else
@@ -11732,13 +11828,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
@@ -11770,13 +11866,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
@@ -11797,13 +11893,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
@@ -11834,13 +11930,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
@@ -11871,26 +11967,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                         endcase
                                         case ( P2_P3_d )
                                             0 :
-                                                P2_P3_reg0  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg0  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             1 :
-                                                P2_P3_reg1  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg1  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             2 :
-                                                P2_P3_reg2  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg2  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             3 :
-                                                P2_P3_reg3  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg3  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -11908,26 +12004,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                         endcase
                                         case ( P2_P3_d )
                                             0 :
-                                                P2_P3_reg0  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg0  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             1 :
-                                                P2_P3_reg1  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg1  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             2 :
-                                                P2_P3_reg2  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg2  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             3 :
-                                                P2_P3_reg3  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg3  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -11945,26 +12041,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                         endcase
                                         case ( P2_P3_d )
                                             0 :
-                                                P2_P3_reg0  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg0  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             1 :
-                                                P2_P3_reg1  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg1  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             2 :
-                                                P2_P3_reg2  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg2  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             3 :
-                                                P2_P3_reg3  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg3  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -11982,26 +12078,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                         endcase
                                         case ( P2_P3_d )
                                             0 :
-                                                P2_P3_reg0  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg0  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             1 :
-                                                P2_P3_reg1  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg1  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             2 :
-                                                P2_P3_reg2  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg2  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             3 :
-                                                P2_P3_reg3  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg3  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -12019,26 +12115,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                         endcase
                                         case ( P2_P3_d )
                                             0 :
-                                                P2_P3_reg0  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg0  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             1 :
-                                                P2_P3_reg1  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg1  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             2 :
-                                                P2_P3_reg2  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg2  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             3 :
-                                                P2_P3_reg3  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg3  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -12056,26 +12152,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                         endcase
                                         case ( P2_P3_d )
                                             0 :
-                                                P2_P3_reg0  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg0  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             1 :
-                                                P2_P3_reg1  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg1  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             2 :
-                                                P2_P3_reg2  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg2  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             3 :
-                                                P2_P3_reg3  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg3  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -12093,26 +12189,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                         endcase
                                         case ( P2_P3_d )
                                             0 :
-                                                P2_P3_reg0  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg0  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             1 :
-                                                P2_P3_reg1  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg1  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             2 :
-                                                P2_P3_reg2  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg2  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             3 :
-                                                P2_P3_reg3  =( P2_P3_r + P2_P3_m )%2**30;
+                                                P2_P3_reg3  =( P2_P3_r + P2_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -12130,26 +12226,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )%2**20;
+                                                P2_P3_addr  <=( P2_P3_tail + P2_P3_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P3_rd  <=1'b1;
                                                 P2_P3_m  = P2_P3_datai ;
                                             end
                                         endcase
                                         case ( P2_P3_d )
                                             0 :
-                                                P2_P3_reg0  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg0  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             1 :
-                                                P2_P3_reg1  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg1  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             2 :
-                                                P2_P3_reg2  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg2  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             3 :
-                                                P2_P3_reg3  =( P2_P3_r - P2_P3_m )%2**30;
+                                                P2_P3_reg3  =( P2_P3_r - P2_P3_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -12163,14 +12259,14 @@ module b19 (
                                             begin
                                                 P2_P3_t  = P2_P3_r /2;
                                                 if ( P2_P3_B ==1'b1)
-                                                    P2_P3_t  = P2_P3_t %2**29;
+                                                    P2_P3_t  = P2_P3_t %30'b10_0000_0000_0000_0000_0000_0000_0000;
                                             end
                                             2 :
-                                                P2_P3_t  =( P2_P3_r %2**29)*2;
+                                                P2_P3_t  =( P2_P3_r %30'b10_0000_0000_0000_0000_0000_0000_0000)*2;
                                             3 :
                                             begin
-                                                P2_P3_t  =( P2_P3_r %2**29)*2;
-                                                if ( P2_P3_t >2**30-1)
+                                                P2_P3_t  =( P2_P3_r %30'b10_0000_0000_0000_0000_0000_0000_0000)*2;
+                                                if ( P2_P3_t > 4'b10000-1)
                                                     P2_P3_B  =1'b1;
                                                 else
                                                     P2_P3_B  =1'b0;
@@ -12204,9 +12300,9 @@ module b19 (
                                         1 :
                                             P2_P3_m  = P2_P3_tail ;
                                         2 :
-                                            P2_P3_m  =( P2_P3_reg1 %2**20)+( P2_P3_tail %2**20);
+                                            P2_P3_m  =( P2_P3_reg1 % 21'b1_0000_0000_0000_0000_0000)+( P2_P3_tail % 21'b1_0000_0000_0000_0000_0000);
                                         3 :
-                                            P2_P3_m  =( P2_P3_reg2 %2**20)+( P2_P3_tail %2**20);
+                                            P2_P3_m  =( P2_P3_reg2 % 21'b1_0000_0000_0000_0000_0000)+( P2_P3_tail % 21'b1_0000_0000_0000_0000_0000);
                                     endcase
                                     P2_P3_addr  <= P2_P3_m %2*20;
                                     P2_P3_wr  <=1'b1;
@@ -12236,10 +12332,30 @@ module b19 (
     assign P2_rd4 = P2_P4_rd;
     assign P2_wr4 = P2_P4_wr;
 
+    integer P2_P4_reg0 ;
+    integer P2_P4_reg1 ;
+    integer P2_P4_reg2 ;
+    integer P2_P4_reg3 ;
+    reg P2_P4_B ;
+    reg[19:0] P2_P4_MAR ;
+    integer P2_P4_MBR ;
+    reg[1:0] P2_P4_mf ;
+    reg[2:0] P2_P4_df ;
+    reg[0:0] P2_P4_cf ;
+    reg[3:0] P2_P4_ff ;
+    reg[19:0] P2_P4_tail ;
+    integer P2_P4_IR ;
+    reg[0:0] P2_P4_state ;
+    integer P2_P4_r ;
+    integer P2_P4_m ;
+    integer P2_P4_t ;
+    integer P2_P4_d ;
+    integer P2_P4_temp ;
+    reg[1:0] P2_P4_s ;
+    parameter P2_P4_FETCH =0;
+    parameter P2_P4_EXEC =1;
     always @(  posedge   P2_P4_clock or posedge  P2_P4_reset )
-    begin : P2_P4_xhdl0 integer P2_P4_reg0 ;integer P2_P4_reg1 ;integer P2_P4_reg2 ;integer P2_P4_reg3 ;reg P2_P4_B ;reg[19:0] P2_P4_MAR ;integer P2_P4_MBR ;reg[1:0] P2_P4_mf ;reg[2:0] P2_P4_df ;reg[0:0] P2_P4_cf ;reg[3:0] P2_P4_ff ;reg[19:0] P2_P4_tail ;integer P2_P4_IR ;reg[0:0] P2_P4_state ;integer P2_P4_r ;integer P2_P4_m ;integer P2_P4_t ;integer P2_P4_d ;integer P2_P4_temp ;reg[1:0] P2_P4_s ;
-        parameter P2_P4_FETCH =0;
-        parameter P2_P4_EXEC =1;
+    begin
         if ( P2_P4_reset ==1'b1)
         begin
             P2_P4_MAR  =0;
@@ -12273,7 +12389,7 @@ module b19 (
             case ( P2_P4_state )
                 P2_P4_FETCH  :
                 begin
-                    P2_P4_MAR  = P2_P4_reg3 %2**20;
+                    P2_P4_MAR  = P2_P4_reg3 % 21'b1_0000_0000_0000_0000_0000;
                     P2_P4_addr  <= P2_P4_MAR ;
                     P2_P4_rd  <=1'b1;
                     P2_P4_MBR  = P2_P4_datai ;
@@ -12284,13 +12400,13 @@ module b19 (
                 begin
                     if ( P2_P4_IR <0)
                         P2_P4_IR  =- P2_P4_IR ;
-                    P2_P4_mf  =( P2_P4_IR /2**27)%4;
-                    P2_P4_df  =( P2_P4_IR /2**24)%2**3;
-                    P2_P4_ff  =( P2_P4_IR /2**19)%2**4;
-                    P2_P4_cf  =( P2_P4_IR /2**23)%2;
-                    P2_P4_tail  = P2_P4_IR %2**20;
-                    P2_P4_reg3  =(( P2_P4_reg3 %2**29)+8);
-                    P2_P4_s  =( P2_P4_IR /2**29)%4;
+                    P2_P4_mf  =( P2_P4_IR /28'b1000_0000_0000_0000_0000_0000_0000)%4;
+                    P2_P4_df  =( P2_P4_IR /25'b1_0000_0000_0000_0000_0000_0000)% 4'b1000;
+                    P2_P4_ff  =( P2_P4_IR / 20'b1000_0000_0000_0000_0000)% 5'b1_0000;
+                    P2_P4_cf  =( P2_P4_IR /24'b1000_0000_0000_0000_0000_0000)%2;
+                    P2_P4_tail  = P2_P4_IR % 21'b1_0000_0000_0000_0000_0000;
+                    P2_P4_reg3  =(( P2_P4_reg3 %30'b10_0000_0000_0000_0000_0000_0000_0000)+8);
+                    P2_P4_s  =( P2_P4_IR /30'b10_0000_0000_0000_0000_0000_0000_0000)%4;
                     case ( P2_P4_s )
                         0 :
                             P2_P4_r  = P2_P4_reg0 ;
@@ -12315,13 +12431,13 @@ module b19 (
                                 end
                                 2 :
                                 begin
-                                    P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )%2**20;
+                                    P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                     P2_P4_rd  <=1'b1;
                                     P2_P4_m  = P2_P4_datai ;
                                 end
                                 3 :
                                 begin
-                                    P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )%2**20;
+                                    P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                     P2_P4_rd  <=1'b1;
                                     P2_P4_m  = P2_P4_datai ;
                                 end
@@ -12359,8 +12475,8 @@ module b19 (
                                         P2_P4_B  =1'b0;
                                 6 :
                                 begin
-                                    if ( P2_P4_r >2**30-1)
-                                        P2_P4_r  = P2_P4_r -2**30;
+                                    if ( P2_P4_r > 4'b10000-1)
+                                        P2_P4_r  = P2_P4_r - 4'b10000;
                                     if ( P2_P4_r < P2_P4_m )
                                         P2_P4_B  =1'b1;
                                     else
@@ -12368,8 +12484,8 @@ module b19 (
                                 end
                                 7 :
                                 begin
-                                    if ( P2_P4_r >2**30-1)
-                                        P2_P4_r  = P2_P4_r -2**30;
+                                    if ( P2_P4_r > 4'b10000-1)
+                                        P2_P4_r  = P2_P4_r - 4'b10000;
                                     if (~( P2_P4_r < P2_P4_m ))
                                         P2_P4_B  =1'b1;
                                     else
@@ -12407,8 +12523,8 @@ module b19 (
                                         P2_P4_B  =1'b0;
                                 14 :
                                 begin
-                                    if ( P2_P4_r >2**30-1)
-                                        P2_P4_r  = P2_P4_r -2**30;
+                                    if ( P2_P4_r > 4'b10000-1)
+                                        P2_P4_r  = P2_P4_r - 4'b10000;
                                     if (( P2_P4_r < P2_P4_m )|( P2_P4_B ==1'b1))
                                         P2_P4_B  =1'b1;
                                     else
@@ -12416,8 +12532,8 @@ module b19 (
                                 end
                                 15 :
                                 begin
-                                    if ( P2_P4_r >2**30-1)
-                                        P2_P4_r  = P2_P4_r -2**30;
+                                    if ( P2_P4_r > 4'b10000-1)
+                                        P2_P4_r  = P2_P4_r - 4'b10000;
                                     if ((~( P2_P4_r < P2_P4_m ))|( P2_P4_B ==1'b1))
                                         P2_P4_B  =1'b1;
                                     else
@@ -12465,13 +12581,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
@@ -12503,13 +12619,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
@@ -12530,13 +12646,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
@@ -12567,13 +12683,13 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
@@ -12604,26 +12720,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                         endcase
                                         case ( P2_P4_d )
                                             0 :
-                                                P2_P4_reg0  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg0  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             1 :
-                                                P2_P4_reg1  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg1  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             2 :
-                                                P2_P4_reg2  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg2  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             3 :
-                                                P2_P4_reg3  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg3  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -12641,26 +12757,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                         endcase
                                         case ( P2_P4_d )
                                             0 :
-                                                P2_P4_reg0  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg0  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             1 :
-                                                P2_P4_reg1  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg1  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             2 :
-                                                P2_P4_reg2  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg2  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             3 :
-                                                P2_P4_reg3  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg3  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -12678,26 +12794,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                         endcase
                                         case ( P2_P4_d )
                                             0 :
-                                                P2_P4_reg0  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg0  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             1 :
-                                                P2_P4_reg1  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg1  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             2 :
-                                                P2_P4_reg2  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg2  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             3 :
-                                                P2_P4_reg3  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg3  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -12715,26 +12831,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                         endcase
                                         case ( P2_P4_d )
                                             0 :
-                                                P2_P4_reg0  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg0  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             1 :
-                                                P2_P4_reg1  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg1  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             2 :
-                                                P2_P4_reg2  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg2  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             3 :
-                                                P2_P4_reg3  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg3  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -12752,26 +12868,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                         endcase
                                         case ( P2_P4_d )
                                             0 :
-                                                P2_P4_reg0  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg0  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             1 :
-                                                P2_P4_reg1  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg1  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             2 :
-                                                P2_P4_reg2  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg2  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             3 :
-                                                P2_P4_reg3  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg3  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -12789,26 +12905,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                         endcase
                                         case ( P2_P4_d )
                                             0 :
-                                                P2_P4_reg0  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg0  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             1 :
-                                                P2_P4_reg1  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg1  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             2 :
-                                                P2_P4_reg2  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg2  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             3 :
-                                                P2_P4_reg3  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg3  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -12826,26 +12942,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                         endcase
                                         case ( P2_P4_d )
                                             0 :
-                                                P2_P4_reg0  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg0  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             1 :
-                                                P2_P4_reg1  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg1  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             2 :
-                                                P2_P4_reg2  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg2  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             3 :
-                                                P2_P4_reg3  =( P2_P4_r + P2_P4_m )%2**30;
+                                                P2_P4_reg3  =( P2_P4_r + P2_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -12863,26 +12979,26 @@ module b19 (
                                             end
                                             2 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg1 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                             3 :
                                             begin
-                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )%2**20;
+                                                P2_P4_addr  <=( P2_P4_tail + P2_P4_reg2 )% 21'b1_0000_0000_0000_0000_0000;
                                                 P2_P4_rd  <=1'b1;
                                                 P2_P4_m  = P2_P4_datai ;
                                             end
                                         endcase
                                         case ( P2_P4_d )
                                             0 :
-                                                P2_P4_reg0  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg0  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             1 :
-                                                P2_P4_reg1  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg1  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             2 :
-                                                P2_P4_reg2  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg2  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             3 :
-                                                P2_P4_reg3  =( P2_P4_r - P2_P4_m )%2**30;
+                                                P2_P4_reg3  =( P2_P4_r - P2_P4_m )% 4'b10000;
                                             default :
                                                 ;
                                         endcase
@@ -12896,14 +13012,14 @@ module b19 (
                                             begin
                                                 P2_P4_t  = P2_P4_r /2;
                                                 if ( P2_P4_B ==1'b1)
-                                                    P2_P4_t  = P2_P4_t %2**29;
+                                                    P2_P4_t  = P2_P4_t %30'b10_0000_0000_0000_0000_0000_0000_0000;
                                             end
                                             2 :
-                                                P2_P4_t  =( P2_P4_r %2**29)*2;
+                                                P2_P4_t  =( P2_P4_r %30'b10_0000_0000_0000_0000_0000_0000_0000)*2;
                                             3 :
                                             begin
-                                                P2_P4_t  =( P2_P4_r %2**29)*2;
-                                                if ( P2_P4_t >2**30-1)
+                                                P2_P4_t  =( P2_P4_r %30'b10_0000_0000_0000_0000_0000_0000_0000)*2;
+                                                if ( P2_P4_t > 4'b10000-1)
                                                     P2_P4_B  =1'b1;
                                                 else
                                                     P2_P4_B  =1'b0;
@@ -12937,9 +13053,9 @@ module b19 (
                                         1 :
                                             P2_P4_m  = P2_P4_tail ;
                                         2 :
-                                            P2_P4_m  =( P2_P4_reg1 %2**20)+( P2_P4_tail %2**20);
+                                            P2_P4_m  =( P2_P4_reg1 % 21'b1_0000_0000_0000_0000_0000)+( P2_P4_tail % 21'b1_0000_0000_0000_0000_0000);
                                         3 :
-                                            P2_P4_m  =( P2_P4_reg2 %2**20)+( P2_P4_tail %2**20);
+                                            P2_P4_m  =( P2_P4_reg2 % 21'b1_0000_0000_0000_0000_0000)+( P2_P4_tail % 21'b1_0000_0000_0000_0000_0000);
                                     endcase
                                     P2_P4_addr  <= P2_P4_m %2*20;
                                     P2_P4_wr  <=1'b1;
@@ -12955,7 +13071,7 @@ module b19 (
 
     always @(                                 P2_do1                                 or  P2_rd3  or  P2_wr1  or  P2_mio1  or  P2_dc1  or  P2_as12  or  P2_do2  or  P2_rd4  or  P2_wr2  or  P2_mio2  or  P2_dc2  or  P2_as22  or  P2_as21  or  P2_as11  or  P2_wr3  or  P2_ad31  or  P2_tad2  or  P2_wr4  or  P2_ad41  or  P2_tad1  or  P2_do3  or  P2_do4  or  P2_ad11  or  P2_ad12  or  P2_ad21  or  P2_ad22  or  P2_tad3  or  P2_tad4  or  P2_sel  or  P2_din  or  P2_td1  or  P2_td2  )
     begin
-        P2_di3  <= P2_do1 %2**20;
+        P2_di3  <= P2_do1 % 21'b1_0000_0000_0000_0000_0000;
         P2_r12  <=(~( P2_rd3 & P2_wr1 & P2_mio1 & P2_dc1 &(~ P2_as12 )));
         P2_di4  <= P2_do2 ;
         P2_r22  <=(~( P2_rd4 & P2_wr2 & P2_mio2 & P2_dc2 &(~ P2_as22 )));
@@ -12964,20 +13080,20 @@ module b19 (
         if ( P2_wr3 ==1'b1)
             P2_tad3  <= P2_ad31 ;
         else
-            P2_tad3  <= P2_tad2 %2**20;
+            P2_tad3  <= P2_tad2 % 21'b1_0000_0000_0000_0000_0000;
         if ( P2_wr4 ==1'b1)
             P2_tad4  <= P2_ad41 ;
         else
-            P2_tad4  <= P2_tad1 %2**20;
-        if ( P2_do3 >2**28)
+            P2_tad4  <= P2_tad1 % 21'b1_0000_0000_0000_0000_0000;
+        if ( P2_do3 >29'b1_0000_0000_0000_0000_0000_0000_0000)
             P2_tad1  <= P2_ad11 ;
         else
             P2_tad1  <= P2_ad12 ;
-        if ( P2_do4 >2**29)
+        if ( P2_do4 >30'b10_0000_0000_0000_0000_0000_0000_0000)
             P2_tad2  <= P2_ad21 ;
         else
             P2_tad2  <= P2_ad22 ;
-        P2_dout  <=( P2_tad3 * P2_tad4 )%2**19;
+        P2_dout  <=( P2_tad3 * P2_tad4 )% 20'b1000_0000_0000_0000_0000;
         if ( P2_sel ==1'b0)
         begin
             P2_td1  <=0;
@@ -12990,7 +13106,7 @@ module b19 (
         end
         P2_di1  <= P2_do4 * P2_td1 ;
         P2_di2  <= P2_do3 * P2_td2 ;
-        P2_aux  <=( P2_tad1 * P2_tad2 )%2**3;
+        P2_aux  <=( P2_tad1 * P2_tad2 )% 4'b1000;
     end
 
 

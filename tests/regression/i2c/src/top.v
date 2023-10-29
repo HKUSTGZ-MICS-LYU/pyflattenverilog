@@ -18,30 +18,30 @@ module i2c_master_top(
         sda_padoen_o
     );
     parameter ARST_LVL  = 1'b0;
-    parameter [4:0]byte_controller_ST_IDLE  = 5'b0_0000;
-    parameter [4:0]byte_controller_ST_START  = 5'b0_0001;
-    parameter [4:0]byte_controller_ST_READ  = 5'b0_0010;
-    parameter [4:0]byte_controller_ST_WRITE  = 5'b0_0100;
-    parameter [4:0]byte_controller_ST_ACK  = 5'b0_1000;
-    parameter [4:0]byte_controller_ST_STOP  = 5'b1_0000;
-    parameter [17:0]byte_controller_bit_controller_idle  = 18'b0_0000_0000_0000_0000;
-    parameter [17:0]byte_controller_bit_controller_start_a  = 18'b0_0000_0000_0000_0001;
-    parameter [17:0]byte_controller_bit_controller_start_b  = 18'b0_0000_0000_0000_0010;
-    parameter [17:0]byte_controller_bit_controller_start_c  = 18'b0_0000_0000_0000_0100;
-    parameter [17:0]byte_controller_bit_controller_start_d  = 18'b0_0000_0000_0000_1000;
-    parameter [17:0]byte_controller_bit_controller_start_e  = 18'b0_0000_0000_0001_0000;
-    parameter [17:0]byte_controller_bit_controller_stop_a  = 18'b0_0000_0000_0010_0000;
-    parameter [17:0]byte_controller_bit_controller_stop_b  = 18'b0_0000_0000_0100_0000;
-    parameter [17:0]byte_controller_bit_controller_stop_c  = 18'b0_0000_0000_1000_0000;
-    parameter [17:0]byte_controller_bit_controller_stop_d  = 18'b0_0000_0001_0000_0000;
-    parameter [17:0]byte_controller_bit_controller_rd_a  = 18'b0_0000_0010_0000_0000;
-    parameter [17:0]byte_controller_bit_controller_rd_b  = 18'b0_0000_0100_0000_0000;
-    parameter [17:0]byte_controller_bit_controller_rd_c  = 18'b0_0000_1000_0000_0000;
-    parameter [17:0]byte_controller_bit_controller_rd_d  = 18'b0_0001_0000_0000_0000;
-    parameter [17:0]byte_controller_bit_controller_wr_a  = 18'b0_0010_0000_0000_0000;
-    parameter [17:0]byte_controller_bit_controller_wr_b  = 18'b0_0100_0000_0000_0000;
-    parameter [17:0]byte_controller_bit_controller_wr_c  = 18'b0_1000_0000_0000_0000;
-    parameter [17:0]byte_controller_bit_controller_wr_d  = 18'b1_0000_0000_0000_0000;
+    parameter  byte_controller_ST_IDLE  = 5'b0_0000;
+    parameter  byte_controller_ST_START  = 5'b0_0001;
+    parameter  byte_controller_ST_READ  = 5'b0_0010;
+    parameter  byte_controller_ST_WRITE  = 5'b0_0100;
+    parameter  byte_controller_ST_ACK  = 5'b0_1000;
+    parameter  byte_controller_ST_STOP  = 5'b1_0000;
+    parameter  byte_controller_bit_controller_idle  = 18'b0_0000_0000_0000_0000;
+    parameter  byte_controller_bit_controller_start_a  = 18'b0_0000_0000_0000_0001;
+    parameter  byte_controller_bit_controller_start_b  = 18'b0_0000_0000_0000_0010;
+    parameter  byte_controller_bit_controller_start_c  = 18'b0_0000_0000_0000_0100;
+    parameter  byte_controller_bit_controller_start_d  = 18'b0_0000_0000_0000_1000;
+    parameter  byte_controller_bit_controller_start_e  = 18'b0_0000_0000_0001_0000;
+    parameter  byte_controller_bit_controller_stop_a  = 18'b0_0000_0000_0010_0000;
+    parameter  byte_controller_bit_controller_stop_b  = 18'b0_0000_0000_0100_0000;
+    parameter  byte_controller_bit_controller_stop_c  = 18'b0_0000_0000_1000_0000;
+    parameter  byte_controller_bit_controller_stop_d  = 18'b0_0000_0001_0000_0000;
+    parameter  byte_controller_bit_controller_rd_a  = 18'b0_0000_0010_0000_0000;
+    parameter  byte_controller_bit_controller_rd_b  = 18'b0_0000_0100_0000_0000;
+    parameter  byte_controller_bit_controller_rd_c  = 18'b0_0000_1000_0000_0000;
+    parameter  byte_controller_bit_controller_rd_d  = 18'b0_0001_0000_0000_0000;
+    parameter  byte_controller_bit_controller_wr_a  = 18'b0_0010_0000_0000_0000;
+    parameter  byte_controller_bit_controller_wr_b  = 18'b0_0100_0000_0000_0000;
+    parameter  byte_controller_bit_controller_wr_c  = 18'b0_1000_0000_0000_0000;
+    parameter  byte_controller_bit_controller_wr_d  = 18'b1_0000_0000_0000_0000;
     input wb_clk_i;
     input wb_rst_i;
     input arst_i;
@@ -984,5 +984,6 @@ module i2c_master_top(
             end
         end
     end
+    always assert p1: prer == 16'hffff;
 endmodule 
 
