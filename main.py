@@ -4,10 +4,10 @@ import os
 
 # formatted part
 
-path = 'tests/regression/b19'
-inputfile = '/b19.v'
-outputfile = '/pre_b19.v'
-top_module = 'b19' 
+path = 'tests/regression/b14'
+inputfile = '/b14.v'
+outputfile = '/pre_b14.v'
+top_module = 'b14' 
 inputpath = path+inputfile
 formatpath = path+outputfile
 

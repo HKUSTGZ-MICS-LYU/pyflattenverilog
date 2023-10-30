@@ -20,6 +20,21 @@ def Port2Tree(Design):
    tree = parser.list_of_port_declarations()
    return tree
 
+def Paramter2Tree(Design):
+   lexer = VerilogLexer(InputStream(Design))
+   stream = CommonTokenStream(lexer)
+   parser = VerilogParser(stream)
+   tree = parser.module_item()
+   return tree
+
+def Module2Tree(Design):
+   lexer = VerilogLexer(InputStream(Design))
+   stream = CommonTokenStream(lexer)
+   parser = VerilogParser(stream)
+   tree = parser.module_item()
+   return tree
+
+
 def formatter_file(design, outputpath):
    def formatter_design(tree):  
 
@@ -27,6 +42,8 @@ def formatter_file(design, outputpath):
       class MyModuleVisitor(VerilogParserVisitor):
          def __init__(self):
             self.module_port = {}
+            self.block_port = {}
+            self.block_parameter = []
             self.module = None
 
          def visitModule_declaration(self, ctx:VerilogParser.Module_declarationContext):
@@ -66,6 +83,12 @@ def formatter_file(design, outputpath):
                   if isinstance(child, VerilogParser.Integer_declarationContext):
                      self._visit_integer_declaration(child)
 
+                  if isinstance(child, VerilogParser.Block_nameContext):
+                     index_of_child = child.parentCtx.children.index(child)
+                     del child.parentCtx.children[index_of_child]
+
+                  if isinstance(child, VerilogParser.Block_item_declarationContext):
+                     self._visit_block_declaration(child)
                   self._visit_port_declaration(child)
 
          # visit integer declaration
@@ -110,6 +133,7 @@ def formatter_file(design, outputpath):
                      self.module_port[name]['port_width'] = ctx.range_().getText()
                   if ctx.SIGNED() != None:
                      self.module_port[name]['data_type'] = ctx.SIGNED().getText()
+
          # visit inout declaration
          def _visit_inout_declaration(self, ctx: VerilogParser.Inout_declarationContext):
             for name in ctx.list_of_port_identifiers().getText().split(','):
@@ -131,20 +155,44 @@ def formatter_file(design, outputpath):
                      self.module_port[port_name] = {'data_type': '','port_type':'wire','port_width':'','port_direction':''}
                   self._visit_port_list(child)
 
+         # visit block declaration
+         def _visit_block_declaration(self, ctx: VerilogParser.Block_item_declarationContext):
+            if ctx.parameter_declaration() != None:
+               self.block_parameter.append(ctx.parameter_declaration().PARAMETER().getText() + ' ' + ctx.parameter_declaration().list_of_param_assignments().getText()+';')
+            if ctx.REG() != None:
+               self.block_port[ctx.list_of_block_variable_identifiers().getText()] = {'port_type': '','data_type': '','port_width': ''}
+               self.block_port[ctx.list_of_block_variable_identifiers().getText()]['port_type'] = ctx.REG().getText()
+               if ctx.range_() != None:
+                  self.block_port[ctx.list_of_block_variable_identifiers().getText()]['port_width'] = ctx.range_().getText()
+               if ctx.SIGNED() != None:
+                  self.block_port[ctx.list_of_block_variable_identifiers().getText()]['data_type'] = ctx.SIGNED().getText()
+            if ctx.INTEGER() != None:
+               self.block_port[ctx.list_of_block_variable_identifiers().getText()] = {'port_type': '','data_type': '','port_width': ''}
+               self.block_port[ctx.list_of_block_variable_identifiers().getText()]['port_type'] = ctx.INTEGER().getText()
+               if ctx.range_() != None:
+                  self.block_port[ctx.list_of_block_variable_identifiers().getText()]['port_width'] = ctx.range_().getText()
+               if ctx.SIGNED() != None:
+                  self.block_port[ctx.list_of_block_variable_identifiers().getText()]['data_type'] = ctx.SIGNED().getText()
+
+
       visitor = MyModuleVisitor()
       visitor.visitModule_declaration(tree)
       module_port = visitor.module_port
       remove_port_list = module_port.copy()
-
+      block_parameter = visitor.block_parameter
+      block_port = visitor.block_port
 
       "This function is used to remove the port and define the port in the list"
       class PortModifyVisitor(VerilogParserVisitor):
          def __init__(self):
             self.module = None
+         
 
          def modifyModule_declaration(self, ctx:VerilogParser.Module_declarationContext):
             self._modify_module_declaration(ctx)
             self._remove_signal_declaration(ctx)
+            self._add_block_content(ctx)
+            self._remove_block_content(ctx)
             self.module = ctx
          
          def _modify_module_declaration(self,ctx:VerilogParser.Module_declarationContext):  
@@ -224,6 +272,27 @@ def formatter_file(design, outputpath):
                         break
             return sig_name
          
+         def _add_block_content(self, ctx):
+            for child in ctx.getChildren():
+               if isinstance(child, antlr4.tree.Tree.TerminalNodeImpl) and child.symbol.text == ';':
+                  index = ctx.children.index(child)
+                  for i , item in enumerate(block_parameter):
+                     paramter = item
+                     ctx.children.insert(index + i + 1, Paramter2Tree(paramter))
+                  for key, value in block_port.items():
+                     defination = value['port_type'] + ' ' + value['data_type'] + ' ' + value['port_width'] + ' ' + key + ';'
+                     ctx.children.insert(index + len(block_parameter) + 1, Module2Tree(defination))
+
+         def _remove_block_content(self, ctx):
+            if isinstance(ctx, antlr4.tree.Tree.TerminalNodeImpl):
+               pass
+            else:
+               for child in list(ctx.children):
+                  if isinstance(child, VerilogParser.Block_item_declarationContext):
+                     index_of_child = child.parentCtx.children.index(child)
+                     del child.parentCtx.children[index_of_child]
+                  else:
+                     self._remove_block_content(child)
 
       visitor = PortModifyVisitor()
       visitor.modifyModule_declaration(tree)
