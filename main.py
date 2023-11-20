@@ -4,10 +4,10 @@ import os
 
 # formatted part
 
-path = 'tests/regression/b14'
-inputfile = '/b14.v'
-outputfile = '/pre_b14.v'
-top_module = 'b14' 
+path = 'tests/regression/AES/cb_aes_40'
+inputfile = '/top.v'
+outputfile = '/pre_top.v'
+top_module = 'top'
 inputpath = path+inputfile
 formatpath = path+outputfile
 
@@ -44,5 +44,4 @@ with open(formatpath,"r") as file:
             tmp_flatten_design = flatten.pyflattenverilog(tmp_flatten_design, top_module, tmp_output_path, debug_mode)
         else:
             break
-
 
